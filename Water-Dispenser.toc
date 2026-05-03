@@ -42,6 +42,6 @@ Options-Announcements.lua
 Options.lua
 
 # Feedback Welcome! (=
-# Water Dispenser on CurseForge // https://www.curseforge.com/wow/addons/water-dispenser
+# Water Dispenser on CurseForge // https://www.curseforge.com/wow/addons/water-dispenser-revisited
 # Water Dispenser on GitHub // https://github.com/Gogo1951/Water-Dispenser
 # Water Dispenser on Discord // https://discord.gg/eh8hKq992Q
