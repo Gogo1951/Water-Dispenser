@@ -26,6 +26,13 @@ local MACRO_BODY_LIMIT = 255
 -- (looting a chest, mass mailbox pickup), so we coalesce.
 local UPDATE_DEBOUNCE = 0.25
 
+-- Fixed chrome that wraps every announcement: the {rt6} raid target marker,
+-- the addon name, and the // separator. Kept out of the locale strings so
+-- translators only have to handle the actual sentence ("I have ..." /
+-- "Open trade!") without re-embedding the marker, branding, or punctuation
+-- — and so adjusting any of those three doesn't churn every locale file.
+local MESSAGE_PREFIX = "{rt6} Water Dispenser //"
+
 --------------------------------------------------------------------------------
 -- State
 --------------------------------------------------------------------------------
@@ -124,12 +131,15 @@ function ns.BuildAnnouncementMessage()
         end
     end
 
-    local prefix = L["ANNOUNCEMENTS_PREFIX_DEFAULT"]
-    local intro = L["ANNOUNCEMENTS_INTRO_DEFAULT"]
-    local outro = L["ANNOUNCEMENTS_OUTRO_DEFAULT"]
+    local intro = L["ANNOUNCEMENTS_INTRO"]
+    local outro = L["ANNOUNCEMENTS_OUTRO"]
 
+    -- Outro carries its own leading punctuation (". Open trade!" in enUS) so
+    -- the join doesn't insert a space between the last item and the period.
+    -- This also lets translators choose the right sentence-ender for their
+    -- locale (period, full stop, ideographic stop, etc.).
     local list = JoinList(parts)
-    return prefix .. " " .. intro .. " " .. list .. " " .. outro
+    return MESSAGE_PREFIX .. " " .. intro .. " " .. list .. outro
 end
 
 --------------------------------------------------------------------------------
@@ -163,7 +173,7 @@ local function BuildMacroBody()
         -- Empty inventory placeholder. Keeps the macro present and clickable
         -- but visually informs the player that there's nothing to announce
         -- yet — no garbled output if they fire it accidentally.
-        return channel .. (L["ANNOUNCEMENTS_PREFIX_DEFAULT"] or "") .. " " .. (L["CHAT_NOTHING_TO_ANNOUNCE"] or "")
+        return channel .. MESSAGE_PREFIX .. " " .. (L["CHAT_NOTHING_TO_ANNOUNCE"] or "")
     end
 
     local body = channel .. message

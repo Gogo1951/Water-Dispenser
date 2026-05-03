@@ -39,7 +39,7 @@ ns.CLASS_COLORS = {
     SHAMAN = "0070DD",
     WARLOCK = "8788EE",
     WARRIOR = "C69B6D",
-    ITEMS = "A335EE"
+    ITEMS = "A335EE",
 }
 
 --------------------------------------------------------------------------------
@@ -48,7 +48,7 @@ ns.CLASS_COLORS = {
 
 ns.URLS = {
     CURSEFORGE = "https://www.curseforge.com/wow/addons/water-dispenser",
-    GITHUB = "https://github.com/Gogo1951/WaterDispenser",
+    GITHUB = "https://github.com/Gogo1951/Water-Dispenser",
     DISCORD = "https://discord.gg/eh8hKq992Q"
 }
 
@@ -59,15 +59,15 @@ ns.URLS = {
 -- Ordered list used throughout the UI and config. Death Knight is omitted
 -- because Water Dispenser targets Classic Era and TBC Classic.
 ns.CLASSES = {
-    "WARRIOR",
-    "PALADIN",
+    "DRUID",
     "HUNTER",
-    "ROGUE",
-    "PRIEST",
-    "SHAMAN",
     "MAGE",
+    "PALADIN",
+    "PRIEST",
+    "ROGUE",
+    "SHAMAN",
     "WARLOCK",
-    "DRUID"
+    "WARRIOR",
 }
 
 --------------------------------------------------------------------------------
@@ -91,85 +91,91 @@ ns.COLLECTIONS = {
     MageWater = {
         -- { rank, level }
         Items = {
-            [5350] = {rank = 1, level = 1}, -- Conjured Water
-            [2288] = {rank = 2, level = 5}, -- Conjured Fresh Water
-            [2136] = {rank = 3, level = 15}, -- Conjured Purified Water
-            [3772] = {rank = 4, level = 25}, -- Conjured Spring Water
-            [8077] = {rank = 5, level = 35}, -- Conjured Mineral Water
-            [8078] = {rank = 6, level = 45}, -- Conjured Sparkling Water
-            [8079] = {rank = 7, level = 55}, -- Conjured Crystal Water
-            [30703] = {rank = 8, level = 60}, -- Conjured Mountain Spring Water (TBC)
-            [22018] = {rank = 9, level = 65} -- Conjured Glacier Water (TBC)
+            [5350]  = {rank = 1, level = 1},  -- Conjured Water
+            [2288]  = {rank = 2, level = 5},  -- Conjured Fresh Water
+            [2136]  = {rank = 3, level = 15}, -- Conjured Purified Water
+            [3772]  = {rank = 4, level = 25}, -- Conjured Spring Water
+            [8077]  = {rank = 5, level = 35}, -- Conjured Mineral Water
+            [8078]  = {rank = 6, level = 45}, -- Conjured Sparkling Water
+            [8079]  = {rank = 7, level = 55}, -- Conjured Crystal Water
+            [30703] = {rank = 8, level = 60}, -- Conjured Mountain Spring Water
+            [22018] = {rank = 9, level = 65}  -- Conjured Glacier Water
         },
         Spells = {
-            [5504] = 1, -- Conjure Water (rank 1)
-            [5505] = 2, -- Conjure Water (rank 2)
-            [5506] = 3, -- Conjure Water (rank 3)
-            [6127] = 4, -- Conjure Water (rank 4)
-            [10138] = 5, -- Conjure Water (rank 5)
-            [10139] = 6, -- Conjure Water (rank 6)
-            [10140] = 7, -- Conjure Water (rank 7)
-            [27090] = 9 -- Conjure Water (TBC max rank → Glacier Water)
+            [5504]  = 1, -- Conjure Water (Rank 1)
+            [5505]  = 2, -- Conjure Water (Rank 2)
+            [5506]  = 3, -- Conjure Water (Rank 3)
+            [6127]  = 4, -- Conjure Water (Rank 4)
+            [10138] = 5, -- Conjure Water (Rank 5)
+            [10139] = 6, -- Conjure Water (Rank 6)
+            [10140] = 7, -- Conjure Water (Rank 7)
+            [37420] = 8, -- Conjure Water (Rank 8)
+            [27090] = 9, -- Conjure Water (Rank 9)
+            [42955] = 1, -- Conjure Refreshment (Rank 1)
+            [42956] = 2  -- Conjure Refreshment (Rank 2)
         }
     },
     MageFood = {
         -- { rank, level }
         Items = {
-            [5349] = {rank = 1, level = 1}, -- Conjured Muffin
-            [1113] = {rank = 2, level = 5}, -- Conjured Bread
-            [1114] = {rank = 3, level = 15}, -- Conjured Rye
-            [1487] = {rank = 4, level = 25}, -- Conjured Pumpernickel
-            [8075] = {rank = 5, level = 35}, -- Conjured Sourdough
-            [8076] = {rank = 6, level = 45}, -- Conjured Sweet Roll
+            [5349]  = {rank = 1, level = 1},  -- Conjured Muffin
+            [1113]  = {rank = 2, level = 5},  -- Conjured Bread
+            [1114]  = {rank = 3, level = 15}, -- Conjured Rye
+            [1487]  = {rank = 4, level = 25}, -- Conjured Pumpernickel
+            [8075]  = {rank = 5, level = 35}, -- Conjured Sourdough
+            [8076]  = {rank = 6, level = 45}, -- Conjured Sweet Roll
             [22895] = {rank = 7, level = 55}, -- Conjured Cinnamon Roll
-            [22019] = {rank = 8, level = 65} -- Conjured Croissant
+            [22019] = {rank = 8, level = 65}  -- Conjured Croissant
         },
         Spells = {
-            [587] = 1, -- Conjure Food (rank 1)
-            [597] = 2, -- Conjure Food (rank 2)
-            [990] = 3, -- Conjure Food (rank 3)
-            [6129] = 4, -- Conjure Food (rank 4)
-            [10144] = 5, -- Conjure Food (rank 5)
-            [10145] = 6, -- Conjure Food (rank 6)
-            [28612] = 7 -- Conjure Food (TBC max rank → Cinnamon Roll)
+            [587]   = 1, -- Conjure Food (Rank 1)
+            [597]   = 2, -- Conjure Food (Rank 2)
+            [990]   = 3, -- Conjure Food (Rank 3)
+            [6129]  = 4, -- Conjure Food (Rank 4)
+            [10144] = 5, -- Conjure Food (Rank 5)
+            [10145] = 6, -- Conjure Food (Rank 6)
+            [28612] = 7, -- Conjure Food (Rank 7)
+            [33717] = 8  -- Conjure Food (Rank 8)
         }
     },
     WarlockHealthstone = {
         -- { rank, level, heal } — heal is the HP restored by the
         -- highest-talented variant; horizontal variants stack rank.
         Items = {
-            [5512] = {rank = 1, level = 1, heal = 100}, -- Minor Healthstone
-            [19004] = {rank = 1, level = 1, heal = 110}, -- Minor (Improved 1)
-            [19005] = {rank = 1, level = 1, heal = 120}, -- Minor (Improved 2)
-            [5511] = {rank = 2, level = 12, heal = 250}, -- Lesser Healthstone
-            [19006] = {rank = 2, level = 12, heal = 275},
-            [19007] = {rank = 2, level = 12, heal = 300},
-            [5509] = {rank = 3, level = 24, heal = 500}, -- Healthstone
-            [19008] = {rank = 3, level = 24, heal = 550},
-            [19009] = {rank = 3, level = 24, heal = 600},
-            [5510] = {rank = 4, level = 36, heal = 800}, -- Greater Healthstone
-            [19010] = {rank = 4, level = 36, heal = 880},
-            [19011] = {rank = 4, level = 36, heal = 960},
-            [9421] = {rank = 5, level = 48, heal = 1200}, -- Major Healthstone
-            [19012] = {rank = 5, level = 48, heal = 1320},
-            [19013] = {rank = 5, level = 48, heal = 1440},
-            [22103] = {rank = 6, level = 60, heal = 2080}, -- Master Healthstone (TBC)
-            [22104] = {rank = 6, level = 60, heal = 2288},
-            [22105] = {rank = 6, level = 60, heal = 2496},
-            [36889] = {rank = 7, level = 63, heal = 3500}, -- Demonic Healthstone (WotLK+)
-            [36890] = {rank = 7, level = 63, heal = 3850},
-            [36891] = {rank = 7, level = 63, heal = 4200},
-            [36892] = {rank = 8, level = 69, heal = 4280}, -- Fel Healthstone (WotLK+)
-            [36893] = {rank = 8, level = 69, heal = 4708},
-            [36894] = {rank = 8, level = 69, heal = 5136}
+            [5512]  = {rank = 1, level = 1,  heal = 100},  -- Minor Healthstone (100)
+            [19004] = {rank = 1, level = 1,  heal = 110},  -- Minor Healthstone (110)
+            [19005] = {rank = 1, level = 1,  heal = 120},  -- Minor Healthstone (120)
+            [5511]  = {rank = 2, level = 12, heal = 250},  -- Lesser Healthstone (250)
+            [19006] = {rank = 2, level = 12, heal = 275},  -- Lesser Healthstone (275)
+            [19007] = {rank = 2, level = 12, heal = 300},  -- Lesser Healthstone (300)
+            [5509]  = {rank = 3, level = 24, heal = 500},  -- Healthstone (500)
+            [19008] = {rank = 3, level = 24, heal = 550},  -- Healthstone (550)
+            [19009] = {rank = 3, level = 24, heal = 600},  -- Healthstone (600)
+            [5510]  = {rank = 4, level = 36, heal = 800},  -- Greater Healthstone (800)
+            [19010] = {rank = 4, level = 36, heal = 880},  -- Greater Healthstone (880)
+            [19011] = {rank = 4, level = 36, heal = 960},  -- Greater Healthstone (960)
+            [9421]  = {rank = 5, level = 48, heal = 1200}, -- Major Healthstone (1200)
+            [19012] = {rank = 5, level = 48, heal = 1320}, -- Major Healthstone (1320)
+            [19013] = {rank = 5, level = 48, heal = 1440}, -- Major Healthstone (1440)
+            [22103] = {rank = 6, level = 60, heal = 2080}, -- Master Healthstone (2080)
+            [22104] = {rank = 6, level = 60, heal = 2288}, -- Master Healthstone (2288)
+            [22105] = {rank = 6, level = 60, heal = 2496}, -- Master Healthstone (2496)
+            [36889] = {rank = 7, level = 63, heal = 3500}, -- Demonic Healthstone (3500)
+            [36890] = {rank = 7, level = 63, heal = 3850}, -- Demonic Healthstone (3850)
+            [36891] = {rank = 7, level = 63, heal = 4200}, -- Demonic Healthstone (4200)
+            [36892] = {rank = 8, level = 69, heal = 4280}, -- Fel Healthstone (4280)
+            [36893] = {rank = 8, level = 69, heal = 4708}, -- Fel Healthstone (4708)
+            [36894] = {rank = 8, level = 69, heal = 5136}  -- Fel Healthstone (5136)
         },
         Spells = {
-            [6201] = 1, -- Create Healthstone (Minor)
-            [6202] = 2, -- Create Healthstone (Lesser)
-            [5699] = 3, -- Create Healthstone
-            [11729] = 4, -- Create Healthstone (Greater)
-            [11730] = 5, -- Create Healthstone (Major)
-            [27230] = 6 -- Create Healthstone (Master, TBC)
+            [6201]  = 1, -- Create Healthstone (Rank 1)
+            [6202]  = 2, -- Create Healthstone (Rank 2)
+            [5699]  = 3, -- Create Healthstone (Rank 3)
+            [11729] = 4, -- Create Healthstone (Rank 4)
+            [11730] = 5, -- Create Healthstone (Rank 5)
+            [27230] = 6, -- Create Healthstone (Rank 6)
+            [47871] = 7, -- Create Healthstone (Rank 7)
+            [47878] = 8  -- Create Healthstone (Rank 8)
         }
     }
 }

@@ -93,7 +93,7 @@ The `macroFullWarned` flag latches the "all character macro slots in use" warnin
 
 ### 255-Character Macro Body
 
-`BuildMacroBody` composes the channel slash plus the announcement message. If the result exceeds 255 characters, it truncates at the last comma boundary inside the safe range and appends ` ...` — never slicing through a bracketed item name like `[Crystal Wa...`. With item links averaging 50–60 chars each, the truncation kicks in around three or four items.
+`BuildMacroBody` composes the channel slash plus the announcement message. If the result exceeds 255 characters, it truncates at the last comma boundary inside the safe range and appends a space followed by `...` — never slicing through a bracketed item name like `[Crystal Wa...`. With item links averaging 50–60 chars each, the truncation kicks in around three or four items.
 
 The macro name is intentionally short. WoW silently truncates macro names past 16 characters, so `- Dispenser` (11 chars) was chosen over `- Water Dispenser` (17). The leading `- ` sorts the macro to the top of the alphabetical macro list, making it quick to find when dragging onto an action bar.
 

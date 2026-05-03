@@ -85,7 +85,7 @@ L["CHAT_RESET"] = "All options have been reset to defaults."
 L["OPTIONS_ITEMS_DESC"] = "Configure how many stacks of each item to dispense. Note: Classic Era and TBC Anniversary do not support automated stack splitting. Sorry!"
 L["OPTIONS_ITEMS_EMPTY"] = "No items configured. Open the \"Add Item\" tab to add consumables from your bags."
 
-L["OPTIONS_ITEM_SETTINGS"] = "Settings"
+L["OPTIONS_ITEM_SETTINGS"] = "Item Settings"
 L["OPTIONS_ITEM_USE_NOT_FULL"] = "Fill with Partial Stacks"
 L["OPTIONS_ITEM_USE_NOT_FULL_DESC"] = "When a full stack is not available, fill the trade with whatever smaller stack you have on hand."
 
@@ -136,9 +136,8 @@ L["OPTIONS_ANNOUNCEMENTS_PREVIEW_HEADER"] = "Live Preview"
 L["OPTIONS_ANNOUNCEMENTS_PREVIEW_DESC"] = "This is what the macro will say if you click it right now."
 L["OPTIONS_ANNOUNCEMENTS_PREVIEW_EMPTY"] = "Nothing to announce. Configure items, restock your bags, or lower a \"Keep at least\" value."
 
-L["ANNOUNCEMENTS_PREFIX_DEFAULT"] = "{rt6} Water Dispenser //"
-L["ANNOUNCEMENTS_INTRO_DEFAULT"] = "I have"
-L["ANNOUNCEMENTS_OUTRO_DEFAULT"] = "remaining. Open trade!"
+L["ANNOUNCEMENTS_INTRO"] = "I have"
+L["ANNOUNCEMENTS_OUTRO"] = ". Open trade!"
 L["ANNOUNCEMENTS_AND"] = "and"
 
 L["CHAT_MACRO_CREATED"] = "Announcement macro \"- Dispenser\" is ready. Open the Macro UI (Game Menu > Macros, or /m) and drag it onto your action bar."
