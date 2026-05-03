@@ -205,7 +205,7 @@ local function MigrateToStacks(db)
                 if type(scopeTable) == "table" then
                     for class, count in pairs(scopeTable) do
                         if type(count) == "number" and count > 0 then
-                            scopeTable[class] = math.ceil(count / stackSize)
+                            scopeTable[class] = math.floor(count / stackSize + 0.5)
                         end
                     end
                 end

@@ -74,27 +74,32 @@ ns.CLASSES = {
 -- Built-in Collections
 --------------------------------------------------------------------------------
 
--- Each collection is two hash maps. Items maps an item ID to its rank
--- within the collection (1 = lowest tier). Spells maps a spell ID to its
--- rank in the same way. Both are one-line-per-id so the IDs are easy to
--- eyeball, and so that horizontal variants (e.g. talented healthstones)
--- can share a rank with their primary form without any extra plumbing.
+-- Each collection is two hash maps. Items maps an item ID to a metadata
+-- table { rank, level, heal? } where rank is the in-collection tier
+-- (1 = lowest), level is the player level required to *use* the item
+-- (authoritative; do not rely on GetItemInfo's itemMinLevel since it
+-- returns 0 or stale values for some conjured items), and heal is the
+-- amount restored by healthstones (purely informational, but kept here
+-- so future features have a single source of truth). Spells maps a spell
+-- ID to the rank it produces.
 --
--- The IDs were verified against Wowhead Classic / TBC Classic. If the
--- addon is ported to a later expansion, just add the new ranks at the
--- bottom of each map and the rest of the codebase picks them up
--- automatically via the reverse-lookup tables below.
+-- Horizontal variants (e.g. talented healthstones at the same rank but
+-- different heal values) share a rank with their primary form so the
+-- player gets credit for the highest tier they can produce regardless of
+-- which variant currently fills the bag.
 ns.COLLECTIONS = {
     MageWater = {
+        -- { rank, level }
         Items = {
-            [5350] = 1, -- Conjured Water
-            [2288] = 2, -- Conjured Fresh Water
-            [2136] = 3, -- Conjured Purified Water
-            [3772] = 4, -- Conjured Spring Water
-            [8077] = 5, -- Conjured Mineral Water
-            [8078] = 6, -- Conjured Sparkling Water
-            [8079] = 7, -- Conjured Crystal Water
-            [22018] = 8 -- Conjured Glacier Water (TBC)
+            [5350] = {rank = 1, level = 1}, -- Conjured Water
+            [2288] = {rank = 2, level = 5}, -- Conjured Fresh Water
+            [2136] = {rank = 3, level = 15}, -- Conjured Purified Water
+            [3772] = {rank = 4, level = 25}, -- Conjured Spring Water
+            [8077] = {rank = 5, level = 35}, -- Conjured Mineral Water
+            [8078] = {rank = 6, level = 45}, -- Conjured Sparkling Water
+            [8079] = {rank = 7, level = 55}, -- Conjured Crystal Water
+            [30703] = {rank = 8, level = 60}, -- Conjured Mountain Spring Water (TBC)
+            [22018] = {rank = 9, level = 65} -- Conjured Glacier Water (TBC)
         },
         Spells = {
             [5504] = 1, -- Conjure Water (rank 1)
@@ -104,18 +109,20 @@ ns.COLLECTIONS = {
             [10138] = 5, -- Conjure Water (rank 5)
             [10139] = 6, -- Conjure Water (rank 6)
             [10140] = 7, -- Conjure Water (rank 7)
-            [27090] = 8 -- Conjure Water (TBC rank 8)
+            [27090] = 9 -- Conjure Water (TBC max rank → Glacier Water)
         }
     },
     MageFood = {
+        -- { rank, level }
         Items = {
-            [5349] = 1, -- Conjured Muffin
-            [1113] = 2, -- Conjured Bread
-            [1114] = 3, -- Conjured Rye
-            [1487] = 4, -- Conjured Pumpernickel
-            [8075] = 5, -- Conjured Sourdough
-            [8076] = 6, -- Conjured Sweet Roll
-            [22895] = 7 -- Conjured Cinnamon Roll (TBC)
+            [5349] = {rank = 1, level = 1}, -- Conjured Muffin
+            [1113] = {rank = 2, level = 5}, -- Conjured Bread
+            [1114] = {rank = 3, level = 15}, -- Conjured Rye
+            [1487] = {rank = 4, level = 25}, -- Conjured Pumpernickel
+            [8075] = {rank = 5, level = 35}, -- Conjured Sourdough
+            [8076] = {rank = 6, level = 45}, -- Conjured Sweet Roll
+            [22895] = {rank = 7, level = 55}, -- Conjured Cinnamon Roll
+            [22019] = {rank = 8, level = 65} -- Conjured Croissant
         },
         Spells = {
             [587] = 1, -- Conjure Food (rank 1)
@@ -124,37 +131,45 @@ ns.COLLECTIONS = {
             [6129] = 4, -- Conjure Food (rank 4)
             [10144] = 5, -- Conjure Food (rank 5)
             [10145] = 6, -- Conjure Food (rank 6)
-            [28612] = 7 -- Conjure Food (TBC rank 7)
+            [28612] = 7 -- Conjure Food (TBC max rank → Cinnamon Roll)
         }
     },
     WarlockHealthstone = {
-        -- Each rank has up to two "horizontal" talented variants. They
-        -- share a rank with their primary form so the player gets credit
-        -- for the highest tier they can produce regardless of which
-        -- variant currently fills the bag.
+        -- { rank, level, heal } — heal is the HP restored by the
+        -- highest-talented variant; horizontal variants stack rank.
         Items = {
-            [5512] = 1, -- Minor Healthstone
-            [19004] = 1, -- Minor Healthstone (horizontal A)
-            [19005] = 1, -- Minor Healthstone (horizontal B)
-            [5511] = 2, -- Lesser Healthstone
-            [19006] = 2,
-            [19007] = 2,
-            [5509] = 3, -- Healthstone
-            [19008] = 3,
-            [19009] = 3,
-            [5510] = 4, -- Greater Healthstone
-            [19010] = 4,
-            [19011] = 4,
-            [9421] = 5, -- Major Healthstone
-            [19012] = 5,
-            [19013] = 5
+            [5512] = {rank = 1, level = 1, heal = 100}, -- Minor Healthstone
+            [19004] = {rank = 1, level = 1, heal = 110}, -- Minor (Improved 1)
+            [19005] = {rank = 1, level = 1, heal = 120}, -- Minor (Improved 2)
+            [5511] = {rank = 2, level = 12, heal = 250}, -- Lesser Healthstone
+            [19006] = {rank = 2, level = 12, heal = 275},
+            [19007] = {rank = 2, level = 12, heal = 300},
+            [5509] = {rank = 3, level = 24, heal = 500}, -- Healthstone
+            [19008] = {rank = 3, level = 24, heal = 550},
+            [19009] = {rank = 3, level = 24, heal = 600},
+            [5510] = {rank = 4, level = 36, heal = 800}, -- Greater Healthstone
+            [19010] = {rank = 4, level = 36, heal = 880},
+            [19011] = {rank = 4, level = 36, heal = 960},
+            [9421] = {rank = 5, level = 48, heal = 1200}, -- Major Healthstone
+            [19012] = {rank = 5, level = 48, heal = 1320},
+            [19013] = {rank = 5, level = 48, heal = 1440},
+            [22103] = {rank = 6, level = 60, heal = 2080}, -- Master Healthstone (TBC)
+            [22104] = {rank = 6, level = 60, heal = 2288},
+            [22105] = {rank = 6, level = 60, heal = 2496},
+            [36889] = {rank = 7, level = 63, heal = 3500}, -- Demonic Healthstone (WotLK+)
+            [36890] = {rank = 7, level = 63, heal = 3850},
+            [36891] = {rank = 7, level = 63, heal = 4200},
+            [36892] = {rank = 8, level = 69, heal = 4280}, -- Fel Healthstone (WotLK+)
+            [36893] = {rank = 8, level = 69, heal = 4708},
+            [36894] = {rank = 8, level = 69, heal = 5136}
         },
         Spells = {
             [6201] = 1, -- Create Healthstone (Minor)
             [6202] = 2, -- Create Healthstone (Lesser)
             [5699] = 3, -- Create Healthstone
             [11729] = 4, -- Create Healthstone (Greater)
-            [11730] = 5 -- Create Healthstone (Major)
+            [11730] = 5, -- Create Healthstone (Major)
+            [27230] = 6 -- Create Healthstone (Master, TBC)
         }
     }
 }
@@ -162,16 +177,18 @@ ns.COLLECTIONS = {
 -- Reverse-lookups built once at file load. ITEM_TO_COLLECTION is the
 -- source of truth for "is this item part of a collection?" — bag scans
 -- consult it to tag inventory entries regardless of whether the player
--- knows the matching conjure spell. ITEM_RANK gives the in-collection
--- rank, used by the announcement and trade fill to pick the highest tier
--- the player has stacks of.
+-- knows the matching conjure spell. ITEM_RANK and ITEM_LEVEL are used
+-- by the announcement and trade fill to pick the highest tier the player
+-- has stacks of, and to filter by what the trade partner can use.
 ns.ITEM_TO_COLLECTION = {}
 ns.SPELL_TO_COLLECTION = {}
 ns.ITEM_RANK = {}
+ns.ITEM_LEVEL = {}
 for key, c in pairs(ns.COLLECTIONS) do
-    for itemId, rank in pairs(c.Items) do
+    for itemId, meta in pairs(c.Items) do
         ns.ITEM_TO_COLLECTION[itemId] = key
-        ns.ITEM_RANK[itemId] = rank
+        ns.ITEM_RANK[itemId] = meta.rank
+        ns.ITEM_LEVEL[itemId] = meta.level
     end
     for spellId in pairs(c.Spells) do
         ns.SPELL_TO_COLLECTION[spellId] = key
@@ -190,18 +207,6 @@ ns.SPELL_PICK_LOCK = 1804
 -- announcement message, and the options sidebar so the three places agree on
 -- "water → food → healthstones."
 ns.BUILTIN_ORDER = {"MageWater", "MageFood", "WarlockHealthstone"}
-
--- Authoritative required-level per rank. GetItemInfo's itemMinLevel returns
--- 0 or stale values for some conjured items (e.g. fresh login, before the
--- cache warms), which would cause the level filter in FillTrade to either
--- pick a too-high-rank item or skip a usable lower-rank one. Hard-coding
--- the levels here keeps the level filter accurate regardless of cache
--- state. Healthstones are intentionally omitted; they're warlock-only
--- giveaways with no partner-level filtering in practice.
-ns.COLLECTION_RANK_LEVELS = {
-    MageWater = {5, 15, 25, 35, 45, 55, 65, 75},
-    MageFood = {5, 15, 25, 35, 45, 55, 65}
-}
 
 -- Keys here match the keys of ns.COLLECTIONS. These are the "virtual"
 -- items the user configures in the options panel even though they resolve to

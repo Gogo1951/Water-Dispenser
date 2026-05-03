@@ -53,7 +53,7 @@ The macro update path (`Announcements.lua`) is also deferred via a `pendingComba
 
 `ns.FillTrade(forced)` runs three phases per call:
 
-1. **Scan** (`ScanInventory` in Dispenser.lua): walks every bag slot, tags collection items via `ns.ITEM_TO_COLLECTION`, and stores per-slot `{Bag, Slot, Count, Full}` records in an `inventory` table keyed by item ID. Each entry's `Level` field comes from `ns.COLLECTION_RANK_LEVELS` when available (authoritative) and falls back to `GetItemInfo`'s `itemMinLevel` for non-collection items. `ScanInventory` returns `true` if the inventory changed in a way that may affect a fill — bag-update retries skip the work otherwise.
+1. **Scan** (`ScanInventory` in Dispenser.lua): walks every bag slot, tags collection items via `ns.ITEM_TO_COLLECTION`, and stores per-slot `{Bag, Slot, Count, Full}` records in an `inventory` table keyed by item ID. Each entry's `Level` field comes from `ns.ITEM_LEVEL` when available (authoritative) and falls back to `GetItemInfo`'s `itemMinLevel` for non-collection items. `ScanInventory` returns `true` if the inventory changed in a way that may affect a fill — bag-update retries skip the work otherwise.
 
 2. **Resolve** (`BestRankItemId` in Dispenser.lua, called per-item): for built-in collections the call site picks two item IDs:
     - `resolvedItemId = BestRankItemId(collectionKey, levelLimit)` — highest rank ≤ partner level when `FactorLevel` is on, otherwise highest rank period.
@@ -70,7 +70,7 @@ If `needed > 0` after the fill loop, `ns.State.MissingStack` is set so `OnBagUpd
 `GetItemInfo` returns nil on a fresh client for items not yet seen. Two mitigations:
 
 1. `OnSpellsChanged` (which fires on `SPELLS_CHANGED` and `LEARNED_SPELL_IN_TAB`) walks every collection item ID and every configured user-added item ID, calling `GetItemInfo` purely to seed the cache. By the time the player opens a trade, item info is warm.
-2. `ns.COLLECTION_RANK_LEVELS` overrides `itemMinLevel` for built-in collection items at scan time. Some conjured items return 0 from `GetItemInfo` even when they have a level requirement (cache miss or stale data); the hard-coded levels keep the partner-level filter accurate regardless of cache state.
+2. `ns.ITEM_LEVEL` overrides `itemMinLevel` for built-in collection items at scan time. Some conjured items return 0 from `GetItemInfo` even when they have a level requirement (cache miss or stale data); the hard-coded levels keep the partner-level filter accurate regardless of cache state.
 
 ### Announcement Macro
 
@@ -126,7 +126,7 @@ When adding a new migration, append to the chain in `InitDB` and bump the versio
 1. Add the spell-ID and item-ID maps to `ns.COLLECTIONS` in `Data.lua`. Each row needs an identifying `-- Name (rank N)` comment; reverse-lookup tables (`ns.ITEM_TO_COLLECTION`, `ns.ITEM_RANK`, `ns.SPELL_TO_COLLECTION`) are built from these automatically.
 2. Add an entry to `ns.COLLECTION_META` with a `NameKey` (locale string) and `Icon` path. The key must match the collection's key in `ns.COLLECTIONS`.
 3. Add the collection key to `ns.BUILTIN_ORDER` in the position you want it to appear in the Distribution Rules sidebar and the announcement message.
-4. If the collection has a meaningful per-rank level requirement (water and food do), add a parallel `ns.COLLECTION_RANK_LEVELS[key] = {level1, level2, ...}` table. Authoritative; bypasses any wonky `GetItemInfo` data.
+4. Each `Items` entry uses `[id] = {rank, level, heal?}` metadata. `level` is the player level required to *use* the item (authoritative; bypasses any wonky `GetItemInfo` data). `heal` is optional metadata used for healthstones. The reverse-lookup tables `ns.ITEM_RANK` and `ns.ITEM_LEVEL` are built from these automatically.
 5. Add the default item config to `ns.DB_DEFAULTS.Items[key]` — `NoRemove = true`, the standard per-item flags, `PlayerClasses` (which classes dispense it), and the `Solo` / `Group` / `Raid` per-class stack counts.
 6. Add the locale key (`L["ITEM_*"]`) and any new chat strings to `Locales/enUS.lua`.
 
@@ -146,7 +146,7 @@ For Spanish, follow the pattern in the style guide: a single `esES.lua` file tha
 
 - **Editing trade slots in combat**: silently fails. The fill path defers via `pendingCombatFill`; do the same for any new code that touches trade slots.
 - **Reading `GetItemInfo` cold**: returns nil on a fresh client. The `OnSpellsChanged` prewarm covers built-in collections; for user-added items, prefer the cached `inventory[itemId]` over a fresh `GetItemInfo` call.
-- **Trusting `itemMinLevel` from `GetItemInfo`**: returns 0 for some conjured items. Use `ns.COLLECTION_RANK_LEVELS` for built-in collections; the cached `inv.Level` already incorporates that override.
+- **Trusting `itemMinLevel` from `GetItemInfo`**: returns 0 for some conjured items. Use `ns.ITEM_LEVEL` for built-in collections; the cached `inv.Level` already incorporates that override.
 - **Splitting partial stacks**: Classic Era's `C_Container.SplitContainerItem` silently ignores its `count` argument when called from an addon. The codebase tracks bag *slots* as "stacks" precisely because of this. If you find yourself wanting to split, you can't.
 - **Macro names past 16 chars**: silently truncated by the WoW client. Keep `MACRO_NAME` short.
 - **Macro bodies past 255 chars**: silently truncated by the WoW client. `BuildMacroBody`'s comma-boundary truncation is the existing solution; don't extend the body without checking the worst case.

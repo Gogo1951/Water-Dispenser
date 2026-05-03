@@ -93,8 +93,8 @@ local function ScanInventory()
     -- trade UI; the bag scan is the source of truth for everything else.
     local function PrimaryItemForRank(collection, targetRank)
         local primary
-        for itemId, rank in pairs(collection.Items) do
-            if rank == targetRank and (not primary or itemId < primary) then
+        for itemId, meta in pairs(collection.Items) do
+            if meta.rank == targetRank and (not primary or itemId < primary) then
                 primary = itemId
             end
         end
@@ -102,7 +102,6 @@ local function ScanInventory()
     end
 
     for collectionKey, c in pairs(ns.COLLECTIONS) do
-        local rankLevels = ns.COLLECTION_RANK_LEVELS[collectionKey]
         for spellId, rank in pairs(c.Spells) do
             if IsSpellLearned(spellId) then
                 local itemId = PrimaryItemForRank(c, rank)
@@ -114,7 +113,7 @@ local function ScanInventory()
                             Link = itemLink,
                             Name = itemName,
                             Icon = itemIcon,
-                            Level = (rankLevels and rankLevels[rank]) or itemMinLevel or 0,
+                            Level = ns.ITEM_LEVEL[itemId] or itemMinLevel or 0,
                             Collection = collectionKey,
                             Rank = rank,
                             SpellId = spellId,
@@ -152,8 +151,7 @@ local function ScanInventory()
                     -- when consumers need a single answer.
                     local collectionKey = ns.ITEM_TO_COLLECTION[itemId]
                     local rank = collectionKey and ns.ITEM_RANK[itemId] or nil
-                    local rankLevels = collectionKey and ns.COLLECTION_RANK_LEVELS[collectionKey]
-                    local effectiveLevel = (rankLevels and rank and rankLevels[rank]) or itemMinLevel or 0
+                    local effectiveLevel = ns.ITEM_LEVEL[itemId] or itemMinLevel or 0
 
                     if not inventory[itemId] then
                         inventory[itemId] = {
@@ -227,6 +225,12 @@ end
 -- level are considered. Rank comes from ns.ITEM_RANK (the index in the
 -- collection's Items list) — more reliable than itemMinLevel from
 -- GetItemInfo, which can be 0 or stale for some conjured items.
+--
+-- If no entry fits the level limit, falls back to the lowest-level rank
+-- the player has so the partner gets the closest-to-usable option rather
+-- than nothing at all. This matches the "give them the best they can
+-- actually use" intent of the Factor in Usage Level toggle even in edge
+-- cases (very low-level partners, partners whose level isn't reported).
 local function BestRankItemId(collectionKey, levelLimit)
     local bestId, bestRank = nil, -1
     for id, item in pairs(inventory or {}) do
@@ -237,7 +241,19 @@ local function BestRankItemId(collectionKey, levelLimit)
             end
         end
     end
-    return bestId
+    if bestId or not levelLimit then
+        return bestId
+    end
+    local fallbackId, fallbackLevel = nil, math.huge
+    for id, item in pairs(inventory or {}) do
+        if item.Collection == collectionKey and #item.Bags > 0 then
+            local level = item.Level or 0
+            if level < fallbackLevel then
+                fallbackId, fallbackLevel = id, level
+            end
+        end
+    end
+    return fallbackId
 end
 
 function ns.ClearTrade()
@@ -255,6 +271,17 @@ function ns.ClearTrade()
         ClickTradeButton(i)
     end
     ClearCursor()
+end
+
+-- Sums actual item counts across every bag entry for an inventory item.
+-- This is what the announcement reports — "x 200" means 200 individual
+-- bottles of water, not 10 stacks of 20.
+local function TotalItemCount(inv)
+    local total = 0
+    for _, bagEntry in ipairs(inv.Bags) do
+        total = total + (bagEntry.Count or 0)
+    end
+    return total
 end
 
 local function CountForScope(itemConfig, scope, class)
@@ -744,17 +771,6 @@ end
 --------------------------------------------------------------------------------
 -- Public Inventory Access for Announcements
 --------------------------------------------------------------------------------
-
--- Sums actual item counts across every bag entry for an inventory item.
--- This is what the announcement reports — "x 200" means 200 individual
--- bottles of water, not 10 stacks of 20.
-local function TotalItemCount(inv)
-    local total = 0
-    for _, bagEntry in ipairs(inv.Bags) do
-        total = total + (bagEntry.Count or 0)
-    end
-    return total
-end
 
 -- Returns a list of giveaway entries for the announcement macro. Order in
 -- the returned list matches the order in which items would be filled into a
