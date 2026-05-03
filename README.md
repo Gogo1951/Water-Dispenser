@@ -63,7 +63,7 @@ Please reach out if you would like to be involved with testing!
 
 ## Links
 
-- [CurseForge](https://www.curseforge.com/wow/addons/water-dispenser)
+- [CurseForge](https://www.curseforge.com/wow/addons/water-dispenser-revisited)
 - [GitHub](https://github.com/Gogo1951/Water-Dispenser)
 - [Discord](https://discord.gg/eh8hKq992Q)
 
