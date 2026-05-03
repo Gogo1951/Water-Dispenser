@@ -5,7 +5,7 @@ if not L then return end
 -- Chat Messages
 --------------------------------------------------------------------------------
 
-L["CHAT_LOADED"] = "Enabled. Use %s to access settings, including turning off this message. Enjoying Water Dispenser? Tell a friend! (="
+L["CHAT_LOADED"] = "Beta Version @project-version@. Use %s to access settings, including turning off this message. Enjoying Water Dispenser? Tell a friend! (="
 L["CHAT_NO_TRADE"] = "No active trade window."
 L["CHAT_COMBAT_PAUSED"] = "Auto-fill paused while in combat."
 L["CHAT_COMBAT_RESUMED"] = "Combat ended. Resuming trade fill."
