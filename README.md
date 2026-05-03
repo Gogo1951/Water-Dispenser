@@ -8,7 +8,7 @@ Whether you're a mage handing out water and food to your raid, a warlock pumping
 
 ## Quick Start
 
-1. Install from [CurseForge](https://www.curseforge.com/wow/addons/water-dispenser) or clone from [GitHub](https://github.com/Gogo1951/Water-Dispenser).
+1. Install from [CurseForge](https://www.curseforge.com/wow/addons/water-dispenser-revisited) or clone from [GitHub](https://github.com/Gogo1951/Water-Dispenser).
 2. Log in. Sensible defaults are set up automatically.
 3. Open a trade with someone — stacks fill in. Done.
 4. Optional: open **Options > AddOns > Water Dispenser > Announcements** and turn on "Enable Announcement Macro." A `- Dispenser` macro is created on your character; drag it from the Macro UI (`/m` or Game Menu > Macros) onto your action bar. Click to announce your giveaway list to your group.
@@ -72,4 +72,4 @@ Please reach out if you would like to be involved with testing!
 This is a continuation of:
 
 * Hoedown's [Water Dispenser](https://www.curseforge.com/wow/addons/water-dispenser-classic-tbc-classic).
-* Junsa's [Water Dispenser Era](https://www.curseforge.com/wow/addons/thanks-for-the-buff).
+* Junsa's [Water Dispenser Era](https://www.curseforge.com/wow/addons/water-dispenser).
