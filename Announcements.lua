@@ -170,10 +170,8 @@ local function BuildMacroBody()
     local channel = ChannelSlash()
 
     if not message then
-        -- Empty inventory placeholder. Keeps the macro present and clickable
-        -- but visually informs the player that there's nothing to announce
-        -- yet — no garbled output if they fire it accidentally.
-        return channel .. MESSAGE_PREFIX .. " " .. (L["CHAT_NOTHING_TO_ANNOUNCE"] or "")
+        -- Empty inventory: silent body so firing the macro does nothing.
+        return ""
     end
 
     local body = channel .. message

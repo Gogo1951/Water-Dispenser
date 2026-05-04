@@ -366,8 +366,13 @@ local eventHandlers = {}
 
 function ns.RegisterEvent(event, handler)
     if not eventHandlers[event] then
+        -- pcall guards against events that exist on some clients but not
+        -- others (e.g. LEARNED_SPELL_IN_TAB is valid on Era/Retail but not TBC).
+        local ok = pcall(eventFrame.RegisterEvent, eventFrame, event)
+        if not ok then
+            return
+        end
         eventHandlers[event] = {}
-        eventFrame:RegisterEvent(event)
     end
     table.insert(eventHandlers[event], handler)
 end
