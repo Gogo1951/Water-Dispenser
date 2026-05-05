@@ -1,75 +1,110 @@
 # Water Dispenser
 
-Auto-fills the trade window with the right consumables for whoever you're trading.
+Auto-fills the trade window with the right consumables for whoever you're trading. Water, food, healthstones, lockboxes — class-aware, level-aware, with separate stacks for solo, party, and raid. Stop dragging stacks one slot at a time.
 
-## What It Does
+## Features
 
-Whether you're a mage handing out water and food to your raid, a warlock pumping out healthstones, or anyone who's tired of dragging stacks one slot at a time — Water Dispenser handles the busywork. Open a trade and the right stacks drop in, sized for the partner's class and ranked for their level. An optional `- Dispenser` macro broadcasts what you have left to give in your group's chat channel.
+💧 **Smart Auto-Fill** // Open a trade and the right stacks drop in — class-aware, level-aware, sized for solo, party, or raid.
 
-## Quick Start
+🧰 **Distribution Rules** // Add any tradable consumable, set per-class quantities, reserve some for yourself, restrict by class or level, allow partial stacks.
 
-1. Install from [CurseForge](https://www.curseforge.com/wow/addons/water-dispenser-revisited) or clone from [GitHub](https://github.com/Gogo1951/Water-Dispenser).
+📣 **Announcement Macro** // The `- Dispenser` macro broadcasts your giveaway list to `/say`, `/party`, or `/raid` with shift-clickable item links.
+
+🗝️ **Rogue Lockbox Slotting** // Drops your locked items into the un-tradeable slot when a rogue trades you for a pick.
+
+## Setup
+
+1. Install the add-on, ideally using [CurseForge](https://www.curseforge.com/wow/addons/water-dispenser-revisited).
 2. Log in. Sensible defaults are set up automatically.
-3. Open a trade with someone — stacks fill in. Done.
-4. Optional: open **Options > AddOns > Water Dispenser > Announcements** and turn on "Enable Announcement Macro." A `- Dispenser` macro is created on your character; drag it from the Macro UI (`/m` or Game Menu > Macros) onto your action bar. Click to announce your giveaway list to your group.
+3. Open a trade with someone — the right stacks drop in.
+4. (Optional) Type `/wd` to tweak Distribution Rules and enable the `- Dispenser` announcement macro.
+5. Hand out water like Oprah hands out cars. (=
 
-## Class Defaults
+## How It Works
+
+### Class Defaults
 
 | Item | Dispensed by | Solo / Group / Raid |
-|---|---|---|
-| Mage Water | Mage | 1 / 2 / 4 stacks for mana classes. |
-| Mage Food | Mage | 1 / 2 / 4 stacks. |
-| Healthstone | Warlock | 1 healthstone for anyone. |
+| --- | --- | --- |
+| Mage Water | Mage | 1 / 2 / 4 stacks for mana classes |
+| Mage Food | Mage | 1 / 2 / 4 stacks |
+| Healthstone | Warlock | 1 healthstone for anyone |
 
 If you have other items to hand out, you can add any consumable you want, as well as tweak any other settings in the Distribution Rules panel.
 
-## Customization
+### Distribution Rules
 
-Type `/wd` or open **Options > AddOns > Water Dispenser** to access the panel.
+Set how many stacks of each item go to each class, in each scope (Strangers / Party Members / Raid Members). Add any tradable consumable from your bags. Per-item rules let you:
 
-**Water Dispenser** — Toggle auto-fill per scope (Strangers / Party Members / Raid Members), enable rogue lockbox slotting, manage chat output, reset to defaults.
+* Reserve some for yourself ("Keep at Least").
+* Restrict to specific player classes ("Only Dispense when Playing These Class(es)").
+* Skip the partner if they can't use it yet ("Factor in Usage Level Requirements").
+* Choose whether the announcement includes the count.
+* Allow partial stacks when you're running low.
 
-**Distribution Rules** — Set how many stacks of each item go to each class, in each scope. Add any tradable consumable from your bags. Per-item rules let you:
+### Announcement Macro
 
-- Reserve some for yourself ("Keep at Least").
-- Restrict to specific player classes ("Only Dispense when Playing These Class(es)").
-- Skip the partner if they can't use it yet ("Factor in Usage Level Requirements").
-- Choose whether the announcement includes the count.
-- Allow partial stacks when you're running low.
+Turn on the `- Dispenser` macro in **Options > AddOns > Water Dispenser > Announcements** and watch the live preview. Drag the macro from the Macro UI (`/m` or Game Menu > Macros) onto your action bar. Click it to broadcast your giveaway list to whichever channel matches your group state — `/say`, `/party`, or `/raid`. Item names are real hyperlinks, so receivers can shift-click for the tooltip.
 
-**Announcements** — Turn on the `- Dispenser` macro and watch the live preview. Click the macro in-game to broadcast your giveaway list to whichever channel matches your group state (`/say`, `/party`, or `/raid`). Item names are real hyperlinks, so receivers can shift-click for the tooltip.
-
-## Slash Commands
+### Slash Commands
 
 | Command | Effect |
-|---|---|
-| `/wd` | Opens the options panel. |
-| `/wd fill` | Fills the trade window now. |
-| `/wd clear` | Clears every slot in the trade window. |
-| `/wd auto solo\|group\|raid on\|off` | Toggles auto-fill for the given scope. |
-| `/wda` | Sends the announcement to your group's channel. |
+| --- | --- |
+| `/wd` | Open the options panel. |
+| `/wd fill` | Fill the trade window now. |
+| `/wd clear` | Clear every slot in the trade window. |
+| `/wd auto solo\|group\|raid on\|off` | Toggle auto-fill for the given scope. |
+| `/wda` | Send the announcement to your group's channel. |
 
-## Testing Status
+## Testing & Localization Status
 
-🟢 World of Warcraft Classic Era
+🟢 World of Warcraft Classic (🟡 Season of Discovery) // WoW 1.15.8
 
-🟢 Burning Crusade Classic Anniversary
+🟢 Burning Crusade Anniversary // WoW 2.5.5
 
-🔴 Mists of Pandaria Classic
+🔴 Mists of Pandaria Classic // WoW 5.5.3
 
-🔴 Retail
+🔴 World of Warcraft // WoW 12.0.5
 
-Please reach out if you would like to be involved with testing!
+**Localization Status** // Works with all Classic WoW Locales (enUS, deDE, esES, esMX, frFR, itIT, koKR, ptBR, ruRU, zhCN, zhTW).
+
+Please reach out if you would like to be involved!
 
 ## Links
 
-- [CurseForge](https://www.curseforge.com/wow/addons/water-dispenser-revisited)
-- [GitHub](https://github.com/Gogo1951/Water-Dispenser)
-- [Discord](https://discord.gg/eh8hKq992Q)
+* [CurseForge](https://www.curseforge.com/wow/addons/water-dispenser-revisited)
+* [GitHub](https://github.com/Gogo1951/Water-Dispenser)
+* [Discord](https://discord.gg/eh8hKq992Q)
 
 ## History
 
-This is a continuation of:
+👾 **I didn't create this add-on, I just updated it.**
 
-* Hoedown's [Water Dispenser](https://www.curseforge.com/wow/addons/water-dispenser-classic-tbc-classic).
-* Junsa's [Water Dispenser Era](https://www.curseforge.com/wow/addons/water-dispenser).
+* Hoedown's [Water Dispenser](https://www.curseforge.com/wow/addons/water-dispenser-classic-tbc-classic)
+* Junsa's [Water Dispenser Era](https://www.curseforge.com/wow/addons/water-dispenser)
+
+## Related Add-ons
+
+🟢 Pairs With // gogo1951's [Connoisseur](https://www.curseforge.com/wow/addons/consumable-connoisseur)
+
+🟢 Pairs With // VithRus's [Warlock Healthstone Tracker](https://www.curseforge.com/wow/addons/warlock-healthstone-tracker)
+
+🟢 Pairs With // VithRus's [Warlock Healthstone Tracker - BlizzUI](https://www.curseforge.com/wow/addons/warlock-healthstone-tracker-blizzui)
+
+🟢 Pairs With // Yarillo's [Warlock Healthstone Tracker Tweaked](https://www.curseforge.com/wow/addons/warlockhealthstonetracker)
+
+🟢 Pairs With // [AutoDrink](https://www.curseforge.com/wow/addons/auto-drink)
+
+🟡 Some Overlap // afrugalpenguin's [WarlockTools](https://www.curseforge.com/wow/addons/warlocktools)
+
+🟡 Some Overlap // [Mage Vendor](https://www.curseforge.com/wow/addons/mage-vendor)
+
+🔴 Direct Alternative // BlessedRabies2's [Water Dispenser Fixed](https://www.curseforge.com/wow/addons/water-dispenser-fixed)
+
+🔴 Direct Alternative // Linae-Kronos's [tradeDispenser](https://github.com/Linae-Kronos/tradeDispenser)
+
+🔴 Direct Alternative // TheLuxSupport's [Mage2Order](https://www.curseforge.com/wow/addons/mage2order)
+
+🔴 Direct Alternative // [TradeFill](https://www.curseforge.com/wow/addons/tradefill)
+
+🔴 Direct Alternative // [TradeStone](https://www.curseforge.com/wow/addons/tradestone)
