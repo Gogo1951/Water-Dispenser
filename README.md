@@ -93,8 +93,6 @@ Please reach out if you would like to be involved!
 
 🟢 Pairs With // Yarillo's [Warlock Healthstone Tracker Tweaked](https://www.curseforge.com/wow/addons/warlockhealthstonetracker)
 
-🟢 Pairs With // [AutoDrink](https://www.curseforge.com/wow/addons/auto-drink)
-
 🟡 Some Overlap // afrugalpenguin's [WarlockTools](https://www.curseforge.com/wow/addons/warlocktools)
 
 🟡 Some Overlap // [Mage Vendor](https://www.curseforge.com/wow/addons/mage-vendor)
