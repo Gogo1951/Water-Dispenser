@@ -14,21 +14,21 @@ Auto-fills the trade window with the right consumables for whoever you're tradin
 
 ## Setup
 
-1. Install the add-on, ideally using [CurseForge](https://www.curseforge.com/wow/addons/water-dispenser-revisited).
-2. Log in. Sensible defaults are set up automatically.
-3. Open a trade with someone — the right stacks drop in.
-4. (Optional) Type `/wd` to tweak Distribution Rules and enable the `- Dispenser` announcement macro.
-5. Hand out water like Oprah hands out cars. (=
+1.  Install the add-on, ideally using [CurseForge](https://www.curseforge.com/wow/addons/water-dispenser-revisited).
+2.  Log in. Sensible defaults are set up automatically.
+3.  Open a trade with someone — the right stacks drop in.
+4.  (Optional) Type `/wd` to tweak Distribution Rules and enable the `- Dispenser` announcement macro.
+5.  Hand out water like Oprah hands out cars. (=
 
 ## How It Works
 
 ### Class Defaults
 
-| Item | Dispensed by | Solo / Group / Raid |
-| --- | --- | --- |
-| Mage Water | Mage | 1 / 2 / 4 stacks for mana classes |
-| Mage Food | Mage | 1 / 2 / 4 stacks |
-| Healthstone | Warlock | 1 healthstone for anyone |
+| Item        |Dispensed by |Solo / Group / Raid               |
+| ----------- |------------ |--------------------------------- |
+| Mage Water  |Mage         |1 / 2 / 4 stacks for mana classes |
+| Mage Food   |Mage         |1 / 2 / 4 stacks                  |
+| Healthstone |Warlock      |1 healthstone for anyone          |
 
 If you have other items to hand out, you can add any consumable you want, as well as tweak any other settings in the Distribution Rules panel.
 
@@ -36,11 +36,11 @@ If you have other items to hand out, you can add any consumable you want, as wel
 
 Set how many stacks of each item go to each class, in each scope (Strangers / Party Members / Raid Members). Add any tradable consumable from your bags. Per-item rules let you:
 
-* Reserve some for yourself ("Keep at Least").
-* Restrict to specific player classes ("Only Dispense when Playing These Class(es)").
-* Skip the partner if they can't use it yet ("Factor in Usage Level Requirements").
-* Choose whether the announcement includes the count.
-* Allow partial stacks when you're running low.
+*   Reserve some for yourself ("Keep at Least").
+*   Restrict to specific player classes ("Only Dispense when Playing These Class(es)").
+*   Skip the partner if they can't use it yet ("Factor in Usage Level Requirements").
+*   Choose whether the announcement includes the count.
+*   Allow partial stacks when you're running low.
 
 ### Announcement Macro
 
@@ -48,13 +48,13 @@ Turn on the `- Dispenser` macro in **Options > AddOns > Water Dispenser > Announ
 
 ### Slash Commands
 
-| Command | Effect |
-| --- | --- |
-| `/wd` | Open the options panel. |
-| `/wd fill` | Fill the trade window now. |
-| `/wd clear` | Clear every slot in the trade window. |
-| `/wd auto solo\|group\|raid on\|off` | Toggle auto-fill for the given scope. |
-| `/wda` | Send the announcement to your group's channel. |
+| Command                         |Effect                                         |
+| ------------------------------- |---------------------------------------------- |
+| <code>/wd</code>                |Open the options panel.                        |
+| <code>/wd fill</code>           |Fill the trade window now.                     |
+| <code>/wd clear</code>          |Clear every slot in the trade window.          |
+| <code>/wd auto solo|group|raid on|off</code> |Toggle auto-fill for the given scope.          |
+| <code>/wda</code>               |Send the announcement to your group's channel. |
 
 ## Testing & Localization Status
 
@@ -72,16 +72,16 @@ Please reach out if you would like to be involved!
 
 ## Links
 
-* [CurseForge](https://www.curseforge.com/wow/addons/water-dispenser-revisited)
-* [GitHub](https://github.com/Gogo1951/Water-Dispenser)
-* [Discord](https://discord.gg/eh8hKq992Q)
+*   [CurseForge](https://www.curseforge.com/wow/addons/water-dispenser-revisited)
+*   [GitHub](https://github.com/Gogo1951/Water-Dispenser)
+*   [Discord](https://discord.gg/eh8hKq992Q)
 
 ## History
 
 👾 **I didn't create this add-on, I just updated it.**
 
-* Hoedown's [Water Dispenser](https://www.curseforge.com/wow/addons/water-dispenser-classic-tbc-classic)
-* Junsa's [Water Dispenser Era](https://www.curseforge.com/wow/addons/water-dispenser)
+*   Hoedown's [Water Dispenser](https://www.curseforge.com/wow/addons/water-dispenser-classic-tbc-classic)
+*   Junsa's [Water Dispenser Era](https://www.curseforge.com/wow/addons/water-dispenser)
 
 ## Related Add-ons
 
