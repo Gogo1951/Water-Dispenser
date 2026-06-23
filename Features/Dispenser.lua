@@ -1,7 +1,6 @@
 local _, ns = ...
 
 local L = ns.L
-local COLORS = ns.COLORS
 
 --------------------------------------------------------------------------------
 -- Constants
@@ -13,248 +12,25 @@ local ICON_COORDS = ns.ICON_COORDS
 -- State
 --------------------------------------------------------------------------------
 
--- Inventory cache. Rebuilt on demand by ScanInventory().
-local inventory = nil
-local lockbox = nil
-
--- Side UI frame. Created once on first trade.
-local tradeUI
-
--- Set to true when FillTrade was requested but skipped due to combat.
+-- FillTrade was requested but deferred by combat.
 local pendingCombatFill = false
 
---------------------------------------------------------------------------------
--- API Compatibility
---------------------------------------------------------------------------------
+-- Latches the "nothing configured for your class" hint to once per session.
+local noneActiveWarned = false
 
-local function GetSpellName(spellId)
-    if C_Spell and C_Spell.GetSpellInfo then
-        local info = C_Spell.GetSpellInfo(spellId)
-        if info and info.name then
-            return info.name
-        end
-    end
-    if GetSpellInfo then
-        return (GetSpellInfo(spellId))
-    end
-    return nil
-end
+-- A conjure queued a restack-then-fill; true from the conjure until the fill
+-- runs, so OnBagUpdate doesn't dispense the partials before they're merged.
+local restackPending = false
 
-local function GetSpellRank(spellId)
-    if C_Spell and C_Spell.GetSpellSubtext then
-        return C_Spell.GetSpellSubtext(spellId)
-    end
-    if GetSpellSubtext then
-        return GetSpellSubtext(spellId)
-    end
-    return nil
-end
+-- The queued restack was deferred by combat; replayed on PLAYER_REGEN_ENABLED.
+local pendingCombatRestack = false
 
-local function IsSpellLearned(spellId)
-    if IsSpellKnown then
-        return IsSpellKnown(spellId)
-    end
-    return false
-end
-
---------------------------------------------------------------------------------
--- Inventory Scan
---------------------------------------------------------------------------------
-
-local function ClearInventory()
-    inventory = nil
-    lockbox = nil
-end
-ns.ClearInventory = ClearInventory
-
--- Scans bags for consumables and builds the inventory table.
--- Each inventory entry has a Bags list of { Bag, Slot, Count } describing
--- exactly how many items live in each occupied bag slot. FillTrade walks
--- this list and can split partial stacks to place arbitrary item counts.
--- Returns true if the inventory changed in a way that may affect a fill.
---
--- Collection tagging: every bag-scanned item is checked against
--- ns.ITEM_TO_COLLECTION. If the item is part of a built-in collection, the
--- inventory entry is tagged with Collection / Rank regardless of whether
--- the player knows the matching conjure spell. This is what lets a non-mage
--- with Conjured Crystal Water in their bags announce it as MageWater, and
--- it's also why a mage's announcement reliably populates even if their
--- spell book is in a weird state.
-local function ScanInventory()
-    local previous = inventory
-    inventory = {}
-    lockbox = nil
-
-    -- Seed collection entries from the spell side: for each conjure spell
-    -- the player knows, find the canonical item ID at that rank and create
-    -- an inventory placeholder. The placeholder stays empty until the bag
-    -- scan below fills in actual bag entries. The seed is only what makes
-    -- "you have nothing in your bags but can conjure this" work in the
-    -- trade UI; the bag scan is the source of truth for everything else.
-    local function PrimaryItemForRank(collection, targetRank)
-        local primary
-        for itemId, meta in pairs(collection.Items) do
-            if meta.rank == targetRank and (not primary or itemId < primary) then
-                primary = itemId
-            end
-        end
-        return primary
-    end
-
-    for collectionKey, c in pairs(ns.COLLECTIONS) do
-        for spellId, rank in pairs(c.Spells) do
-            if IsSpellLearned(spellId) then
-                local itemId = PrimaryItemForRank(c, rank)
-                if itemId then
-                    local itemName, itemLink, _, _, itemMinLevel, _, _, _, _, itemIcon = GetItemInfo(itemId)
-                    if itemName then
-                        inventory[itemId] = {
-                            Id = itemId,
-                            Link = itemLink,
-                            Name = itemName,
-                            Icon = itemIcon,
-                            Level = ns.ITEM_LEVEL[itemId] or itemMinLevel or 0,
-                            Collection = collectionKey,
-                            Rank = rank,
-                            SpellId = spellId,
-                            Bags = {}
-                        }
-                    end
-                end
-            end
-        end
-    end
-
-    for bag = BACKPACK_CONTAINER, NUM_BAG_SLOTS do
-        local slots = C_Container.GetContainerNumSlots(bag)
-        for slot = 1, slots do
-            local info = C_Container.GetContainerItemInfo(bag, slot)
-            if info then
-                local itemId = info.itemID
-                local hasLoot = info.hasLoot
-
-                if hasLoot and not lockbox then
-                    -- Any lootable bag item is considered potentially locked.
-                    -- A full tooltip scan would be more accurate, but the
-                    -- rogue-trade flow is user-initiated and they'll notice
-                    -- if the item they got offered isn't a lockbox.
-                    lockbox = {Bag = bag, Slot = slot}
-                end
-
-                local itemName, _, _, _, itemMinLevel, _, _, itemStackCount, _, itemIcon, _, itemClassID, _, bindType =
-                    GetItemInfo(itemId)
-
-                if itemClassID == LE_ITEM_CLASS_CONSUMABLE and bindType == 0 then
-                    -- Bucket inventory entries by item ID. Different ranks
-                    -- of the same collection live in separate entries;
-                    -- BestRankItemId picks the highest rank across entries
-                    -- when consumers need a single answer.
-                    local collectionKey = ns.ITEM_TO_COLLECTION[itemId]
-                    local rank = collectionKey and ns.ITEM_RANK[itemId] or nil
-                    local effectiveLevel = ns.ITEM_LEVEL[itemId] or itemMinLevel or 0
-
-                    if not inventory[itemId] then
-                        inventory[itemId] = {
-                            Id = itemId,
-                            Link = info.hyperlink,
-                            Name = itemName,
-                            Icon = itemIcon,
-                            Level = effectiveLevel,
-                            Collection = collectionKey,
-                            Rank = rank,
-                            Bags = {}
-                        }
-                    else
-                        -- Backfill collection metadata onto the spell-seeded
-                        -- entry so a player who has the item but not the
-                        -- spell still gets tagged correctly.
-                        if collectionKey and not inventory[itemId].Collection then
-                            inventory[itemId].Collection = collectionKey
-                            inventory[itemId].Rank = rank
-                        end
-                        if not inventory[itemId].Link then
-                            inventory[itemId].Link = info.hyperlink
-                        end
-                    end
-
-                    local slotCount = info.stackCount or 0
-                    table.insert(
-                        inventory[itemId].Bags,
-                        {
-                            Bag = bag,
-                            Slot = slot,
-                            Count = slotCount,
-                            Full = itemStackCount and slotCount == itemStackCount or false
-                        }
-                    )
-                end
-            end
-        end
-    end
-
-    if not previous then
-        return true
-    end
-    for id, item in pairs(inventory) do
-        local prev = previous[id]
-        if not prev or #item.Bags ~= #prev.Bags then
-            return true
-        end
-        for i, bagEntry in ipairs(item.Bags) do
-            local prevEntry = prev.Bags[i]
-            if not prevEntry or bagEntry.Count ~= prevEntry.Count then
-                return true
-            end
-        end
-    end
-    for id in pairs(previous) do
-        if not inventory[id] then
-            return true
-        end
-    end
-    return false
-end
+-- Active restack debounce timer handle, if any.
+local restackTimer = nil
 
 --------------------------------------------------------------------------------
 -- Trade Filling
 --------------------------------------------------------------------------------
-
--- Returns the inventory item ID of the highest-rank entry in the given
--- collection that the player currently has stacks of, or nil if none.
--- When `levelLimit` is non-nil, only entries usable by a partner of that
--- level are considered. Rank comes from ns.ITEM_RANK (the index in the
--- collection's Items list) — more reliable than itemMinLevel from
--- GetItemInfo, which can be 0 or stale for some conjured items.
---
--- If no entry fits the level limit, falls back to the lowest-level rank
--- the player has so the partner gets the closest-to-usable option rather
--- than nothing at all. This matches the "give them the best they can
--- actually use" intent of the Factor in Usage Level toggle even in edge
--- cases (very low-level partners, partners whose level isn't reported).
-local function BestRankItemId(collectionKey, levelLimit)
-    local bestId, bestRank = nil, -1
-    for id, item in pairs(inventory or {}) do
-        if item.Collection == collectionKey and #item.Bags > 0 then
-            local rank = item.Rank or 0
-            if rank > bestRank and (not levelLimit or (item.Level or 0) <= levelLimit) then
-                bestId, bestRank = id, rank
-            end
-        end
-    end
-    if bestId or not levelLimit then
-        return bestId
-    end
-    local fallbackId, fallbackLevel = nil, math.huge
-    for id, item in pairs(inventory or {}) do
-        if item.Collection == collectionKey and #item.Bags > 0 then
-            local level = item.Level or 0
-            if level < fallbackLevel then
-                fallbackId, fallbackLevel = id, level
-            end
-        end
-    end
-    return fallbackId
-end
 
 function ns.ClearTrade()
     if ns.IsInCombat() then
@@ -273,17 +49,6 @@ function ns.ClearTrade()
     ClearCursor()
 end
 
--- Sums actual item counts across every bag entry for an inventory item.
--- This is what the announcement reports — "x 200" means 200 individual
--- bottles of water, not 10 stacks of 20.
-local function TotalItemCount(inv)
-    local total = 0
-    for _, bagEntry in ipairs(inv.Bags) do
-        total = total + (bagEntry.Count or 0)
-    end
-    return total
-end
-
 local function CountForScope(itemConfig, scope, class)
     return (itemConfig[scope] and itemConfig[scope][class]) or 0
 end
@@ -296,20 +61,47 @@ local function PickScope()
     return "Solo"
 end
 
--- Classic Era 1.15.x limitation: C_Container.SplitContainerItem silently
--- ignores its `count` argument when called from an addon — it picks up the
--- whole stack regardless. The legacy global SplitContainerItem has been
--- removed. Partial stack splits are therefore not possible from an addon,
--- so trade fill is done one whole bag slot at a time. Each bag slot counts
--- as one "stack" for configuration purposes regardless of how many items
--- it actually contains.
-local function PickupWhole(bag, slot)
-    if C_Container and C_Container.PickupContainerItem then
-        C_Container.PickupContainerItem(bag, slot)
-        return
+-- Counts the stacks already offered in the player's trade slots, grouped by the
+-- config key they belong to (collection key for built-ins, item-ID key for
+-- user-added items). One occupied slot is one "stack", matching the fill's
+-- whole-slot model. A non-forced refill subtracts these from the target so a
+-- mid-trade restock tops up to the configured count instead of over-filling.
+local function CountOfferedStacks()
+    local offered = {}
+    if not (GetTradePlayerItemLink and GetTradePlayerItemInfo) then
+        return offered
     end
-    if PickupContainerItem then
-        PickupContainerItem(bag, slot)
+    if not (ns.DB and ns.DB.Items) then
+        return offered
+    end
+    for slot = 1, MAX_TRADABLE_ITEMS do
+        local link = GetTradePlayerItemLink(slot)
+        local _, _, slotCount = GetTradePlayerItemInfo(slot)
+        if link and slotCount and slotCount > 0 then
+            local itemId = tonumber(link:match("item:(%d+)"))
+            if itemId then
+                local key = ns.ITEM_TO_COLLECTION[itemId]
+                if not key then
+                    if ns.DB.Items[itemId] ~= nil then
+                        key = itemId
+                    elseif ns.DB.Items[tostring(itemId)] ~= nil then
+                        key = tostring(itemId)
+                    end
+                end
+                if key ~= nil then
+                    offered[key] = (offered[key] or 0) + 1
+                end
+            end
+        end
+    end
+    return offered
+end
+
+-- Classic Era can't split stacks from an addon (SplitContainerItem ignores its
+-- count), so fill is one whole bag slot at a time — each slot is one "stack".
+local function PickupWhole(bag, slot)
+    if ns.PickupContainerItem then
+        ns.PickupContainerItem(bag, slot)
     end
 end
 
@@ -348,7 +140,7 @@ function ns.FillTrade(forced)
         return
     end
 
-    local changed = ScanInventory()
+    local changed = ns.ScanInventory()
     if not changed and not forced then
         return
     end
@@ -358,68 +150,80 @@ function ns.FillTrade(forced)
         ns.ClearTrade()
     end
 
-    -- Rogue locked-item slot: place the lockbox into the non-traded slot.
-    if ns.DB.LockedSlot and lockbox and trade.Class == "ROGUE" then
-        ClearCursor()
-        PickupWhole(lockbox.Bag, lockbox.Slot)
-        ClickTradeButton(TRADE_ENCHANT_SLOT)
-    end
-
     local scope = PickScope()
 
+    -- A non-forced refill keeps whatever is already in the window, so count the
+    -- stacks already offered (per config) and treat them as progress. This stops
+    -- a mid-trade restock from over-filling and lets MissingStack clear once the
+    -- window holds enough. A forced fill clears first, so it starts from empty.
+    local offered = (not forced) and CountOfferedStacks() or {}
+
+    -- Items enabled for the player's class, so a forced fill can report when
+    -- nothing is configured for who they're playing.
+    local activeForPlayer = 0
+
     for configId, itemConfig in pairs(ns.DB.Items) do
-        local needed = ns.IsItemActiveForPlayer(itemConfig) and CountForScope(itemConfig, scope, trade.Class) or 0
+        local isActive = ns.IsItemActiveForPlayer(itemConfig)
+        if isActive then
+            activeForPlayer = activeForPlayer + 1
+        end
+        local needed = isActive and CountForScope(itemConfig, scope, trade.Class) or 0
+        -- Stacks already in the trade window count toward the target.
+        needed = needed - (offered[configId] or 0)
 
         if needed > 0 then
-            local inv, isBestOverall
+            -- Resolve which inventory entries to give from, best (highest) rank
+            -- first. reportInv backs the "missing stack" warning if we fall short.
+            local entries, bestOverallId, reportInv
+
             if ns.COLLECTIONS[configId] then
-                -- For built-in collections, FactorLevel filters the rank
-                -- we resolve to: with it on we pick the highest rank the
-                -- partner can use; with it off we pick the highest rank
-                -- the player has, period. The bestOverallId comparison
-                -- below decides whether KeepAtLeast applies — it only
-                -- protects the player's top-tier stash.
-                -- Belt-and-braces: only apply the level filter when we
-                -- actually have a positive partner level. A stray 0 here
-                -- would silently exclude every real rank.
-                local levelLimit = (itemConfig.FactorLevel and trade.Level and trade.Level > 0) and trade.Level or nil
-                local resolvedItemId = BestRankItemId(configId, levelLimit)
-                local bestOverallId = BestRankItemId(configId, nil)
-                inv = resolvedItemId and inventory[resolvedItemId] or nil
-                isBestOverall = (resolvedItemId ~= nil) and (resolvedItemId == bestOverallId)
+                -- Collections always dispense the best rank the partner can
+                -- actually use -- water/food above their level is useless to
+                -- them -- and cascade down through lower usable ranks when the
+                -- best one runs short. The partner-level cap is intrinsic here,
+                -- so FactorLevel only governs user-added items below.
+                local levelLimit = (trade.Level and trade.Level > 0) and trade.Level or nil
+                entries = ns.UsableRankEntries(configId, levelLimit)
+                -- KeepAtLeast guards only the player's top-tier stash, so it's
+                -- resolved without the partner-level cap.
+                bestOverallId = ns.BestRankItemId(configId, nil)
+                reportInv = entries[1] or (bestOverallId and ns.GetInventoryItem(bestOverallId)) or nil
             else
-                -- User-added item: a single concrete item ID, so the
-                -- level filter has to fire here directly. There's no
-                -- "alternative rank" to fall back to.
-                inv = inventory[configId]
-                isBestOverall = true
-                if itemConfig.FactorLevel and trade.Level then
+                -- User-added item: one concrete ID, no alternate rank, so
+                -- FactorLevel skips it outright when the partner is too low.
+                local inv = ns.GetInventoryItem(configId)
+                local skip = false
+                if itemConfig.FactorLevel and trade.Level and trade.Level > 0 then
                     local requiredLevel = inv and inv.Level
                     if not requiredLevel and type(configId) == "number" then
-                        local _, _, _, _, itemMinLevel = GetItemInfo(configId)
+                        local _, _, _, _, itemMinLevel = ns.GetItemInfo(configId)
                         requiredLevel = itemMinLevel
                     end
                     if requiredLevel and requiredLevel > trade.Level then
-                        needed = 0
+                        skip = true
                     end
                 end
+                entries = (inv and not skip) and {inv} or {}
+                bestOverallId = configId
+                reportInv = inv
             end
 
-            -- "Keep at Least N" is measured in individual items, matching
-            -- both the announcement macro and how the slider reads in
-            -- plain English. Only applies when filling from the
-            -- best-overall rank: lower-rank conjures (the leftover lowbie
-            -- water in a max-level mage's bags) are pure giveaway material
-            -- and aren't worth reserving. Each placed stack is checked
-            -- inline so a stack that would dip us below the reserve is
-            -- skipped instead of capping the count up front.
-            local keep = (isBestOverall and (itemConfig.KeepAtLeast or 0)) or 0
-            local remaining = inv and TotalItemCount(inv) or 0
+            -- Fill from the resolved entries, best rank first. Within each rank,
+            -- full stacks go first, then partial stacks if the item allows --
+            -- one bag slot per "stack" (Classic Era can't split from an addon).
+            -- KeepAtLeast is a count of individual items and reserves only the
+            -- best-overall rank; lower-rank leftovers are pure giveaway. Each
+            -- placement is checked so a stack that would dip below it is skipped.
+            local aborted = false
+            for _, entry in ipairs(entries) do
+                if needed <= 0 or aborted then
+                    break
+                end
+                local keep = (entry.Id == bestOverallId) and (itemConfig.KeepAtLeast or 0) or 0
+                local remaining = ns.TotalItemCount(entry)
 
-            if needed > 0 and inv then
-                -- Place full stacks first, one bag slot per "stack" in the
-                -- configuration. Each placement fills one trade slot.
-                for _, bagEntry in ipairs(inv.Bags) do
+                -- Full stacks of this rank first.
+                for _, bagEntry in ipairs(entry.Bags) do
                     if needed <= 0 then
                         break
                     end
@@ -427,6 +231,7 @@ function ns.FillTrade(forced)
                         local count = bagEntry.Count or 0
                         if remaining - count >= keep then
                             if not PlaceStack(bagEntry.Bag, bagEntry.Slot) then
+                                aborted = true
                                 break
                             end
                             needed = needed - 1
@@ -435,11 +240,9 @@ function ns.FillTrade(forced)
                     end
                 end
 
-                -- If still short and the item allows partial fills, use
-                -- smaller stacks as substitutes. Each partial stack still
-                -- counts as one "stack" toward the configured count.
-                if needed > 0 and itemConfig.UseNotFullStack then
-                    for _, bagEntry in ipairs(inv.Bags) do
+                -- Then partial stacks of this rank, if the item allows.
+                if needed > 0 and not aborted and itemConfig.UseNotFullStack then
+                    for _, bagEntry in ipairs(entry.Bags) do
                         if needed <= 0 then
                             break
                         end
@@ -447,6 +250,7 @@ function ns.FillTrade(forced)
                             local count = bagEntry.Count or 0
                             if remaining - count >= keep then
                                 if not PlaceStack(bagEntry.Bag, bagEntry.Slot) then
+                                    aborted = true
                                     break
                                 end
                                 needed = needed - 1
@@ -458,151 +262,150 @@ function ns.FillTrade(forced)
             end
 
             if needed > 0 then
-                -- MissingStack flag is always set so OnBagUpdate can retry
-                -- the fill once the player restocks. The chat warning is
-                -- gated by an explicit user opt-in.
+                -- Always flag so OnBagUpdate retries after a restock; the chat
+                -- warning is opt-in.
                 ns.State.MissingStack = true
                 if ns.DB.MissingStackWarnings then
-                    ReportMissing(itemConfig, inv, needed)
-                end
-
-                if inv and inv.SpellId and inv.Collection and tradeUI and tradeUI.CollectionButtons[inv.Collection] then
-                    tradeUI.CollectionButtons[inv.Collection]:SetSpell(inv.SpellId)
+                    ReportMissing(itemConfig, reportInv, needed)
                 end
             end
         end
     end
 
-    -- Rogue pick-lock convenience button.
-    if IsSpellLearned(ns.SPELL_PICK_LOCK) and tradeUI and tradeUI.PickLockButton then
-        tradeUI.PickLockButton:SetSpell(ns.SPELL_PICK_LOCK)
+    -- On a forced fill with nothing eligible for the player's class, explain why.
+    -- Opt-in and latched to once per session so it never becomes noise.
+    if forced and activeForPlayer == 0 and ns.DB.MissingStackWarnings and not noneActiveWarned then
+        noneActiveWarned = true
+        local _, playerClass = UnitClass("player")
+        ns.PrintMessage(format(L["CHAT_NONE_ACTIVE_FOR_CLASS"], ns.GetClassName(playerClass)))
     end
 end
 
 --------------------------------------------------------------------------------
--- Trade UI Frame
+-- Stack Consolidation
 --------------------------------------------------------------------------------
 
--- Creates a plain UIPanelButton attached to the parent frame.
-local function MakeButton(parent, anchorTo, anchorPos, yOffset, secure)
-    local template = secure and "UIPanelButtonTemplate,SecureActionButtonTemplate" or "UIPanelButtonTemplate"
-    local button = CreateFrame("Button", nil, parent, template)
-    button:SetPoint("TOPLEFT", anchorTo, anchorPos or "BOTTOMLEFT", 0, yOffset or 0)
-    button:SetSize(160, 22)
-    return button
+-- Debounce so a burst of conjures (each fires UNIT_SPELLCAST_SUCCEEDED) collapses
+-- into one restack-then-fill.
+local RESTACK_DEBOUNCE = 0.2
+
+-- Merges a list of partial stacks of one item into as few stacks as possible. We
+-- can only pick up whole stacks (Classic Era blocks addon stack splitting), so
+-- each step drops a whole stack onto the running target: the target tops off at
+-- maxStack and any overflow is dropped back into the now-empty source slot, which
+-- becomes the next target. Planned from the passed-in snapshot, so no
+-- mid-operation bag re-reads are needed.
+local function ConsolidatePartials(slots, maxStack)
+    local targetIndex = 1
+    for i = 2, #slots do
+        local target = slots[targetIndex]
+        local source = slots[i]
+        local total = target.Count + source.Count
+
+        ns.PickupContainerItem(source.Bag, source.Slot)
+        ns.PickupContainerItem(target.Bag, target.Slot)
+
+        if total > maxStack then
+            -- Target full; the overflow returns to the now-empty source slot,
+            -- which seeds the next target.
+            ns.PickupContainerItem(source.Bag, source.Slot)
+            target.Count = maxStack
+            source.Count = total - maxStack
+            targetIndex = i
+        else
+            target.Count = total
+            source.Count = 0
+        end
+    end
 end
 
--- Assigns a /cast macro to a secure button. Skipped during combat to avoid
--- protected SetAttribute errors; the caller can retry on PLAYER_REGEN_ENABLED.
-local function SecureButton_SetSpell(self, spellId)
+-- Consolidates partial stacks of every built-in collection item the player holds
+-- in their bags, so the fill can hand over full stacks instead of the leftovers
+-- from two half-size conjures. One bag walk, grouped by item.
+local function RestackCollections()
+    if not (ns.PickupContainerItem and ns.GetContainerNumSlots and ns.GetContainerItemInfo) then
+        return
+    end
+
+    local partialsById = {}
+    for bag = BACKPACK_CONTAINER, NUM_BAG_SLOTS do
+        local slots = ns.GetContainerNumSlots(bag)
+        for slot = 1, slots do
+            local info = ns.GetContainerItemInfo(bag, slot)
+            if info and ns.ITEM_TO_COLLECTION[info.itemID] then
+                local _, _, _, _, _, _, _, maxStack = ns.GetItemInfo(info.itemID)
+                local count = info.stackCount or 0
+                if maxStack and maxStack > 1 and count > 0 and count < maxStack then
+                    local entry = partialsById[info.itemID]
+                    if not entry then
+                        entry = {MaxStack = maxStack, Slots = {}}
+                        partialsById[info.itemID] = entry
+                    end
+                    entry.Slots[#entry.Slots + 1] = {Bag = bag, Slot = slot, Count = count}
+                end
+            end
+        end
+    end
+
+    local merged = false
+    for _, entry in pairs(partialsById) do
+        if #entry.Slots >= 2 then
+            ConsolidatePartials(entry.Slots, entry.MaxStack)
+            merged = true
+        end
+    end
+
+    if merged then
+        -- Safety: drop anything still on the cursor (e.g. a maxStack mismatch)
+        -- back to its origin rather than leaving it stuck.
+        ClearCursor()
+    end
+end
+
+-- Runs the queued conjure response: merge partials first, then dispense, so the
+-- trade gets full stacks. Defers in combat (bag edits) and replays on combat end.
+local function RunRestackThenFill()
+    restackTimer = nil
+    if not ns.State.Trade.Active then
+        restackPending = false
+        return
+    end
     if ns.IsInCombat() then
-        self._PendingSpell = spellId
+        pendingCombatRestack = true
         return
     end
-    self._PendingSpell = nil
-
-    local name = GetSpellName(spellId)
-    if not name then
-        self:Hide()
-        return
-    end
-
-    local rank = GetSpellRank(spellId)
-    local castLine = (rank and rank ~= "") and (name .. "(" .. rank .. ")") or name
-
-    self:SetAttribute("type", "macro")
-    self:SetAttribute("macrotext", "/cast " .. castLine)
-    self:SetText(castLine)
-    self:SetWidth(math.max(160, self:GetTextWidth() + 30))
-    self:Show()
+    RestackCollections()
+    restackPending = false
+    ns.FillTrade(false)
 end
 
-local function CreateTradeUI()
-    local frame = CreateFrame("Frame", nil, UIParent)
-    frame:SetSize(180, 220)
-    frame:EnableMouse(false)
-    frame:Hide()
-
-    local btnClear = MakeButton(frame, frame, "TOPLEFT", 0, false)
-    btnClear:SetText(L["BTN_CLEAR"])
-    btnClear:SetScript(
-        "OnClick",
-        function()
-            ns.ClearTrade()
-        end
-    )
-
-    local btnFill = MakeButton(frame, btnClear, "BOTTOMLEFT", -2, false)
-    btnFill:SetText(L["BTN_FILL"])
-    btnFill:SetScript(
-        "OnClick",
-        function()
-            ns.FillTrade(true)
-        end
-    )
-
-    local btnConfig = MakeButton(frame, btnFill, "BOTTOMLEFT", -2, false)
-    btnConfig:SetText(L["BTN_CONFIG"])
-    btnConfig:SetScript(
-        "OnClick",
-        function()
-            if ns.OpenOptions then
-                ns.OpenOptions()
-            end
-        end
-    )
-
-    local btnAccept = MakeButton(frame, btnConfig, "BOTTOMLEFT", -6, false)
-    btnAccept:SetText(L["BTN_ACCEPT"])
-    btnAccept:SetScript(
-        "OnClick",
-        function()
-            AcceptTrade()
-        end
-    )
-
-    -- Secure buttons for casting missing conjurables / pick-lock.
-    local btnSpell1 = MakeButton(frame, btnAccept, "BOTTOMLEFT", -6, true)
-    local btnSpell2 = MakeButton(frame, btnSpell1, "BOTTOMLEFT", -2, true)
-    local btnSpell3 = MakeButton(frame, btnSpell2, "BOTTOMLEFT", -2, true)
-
-    for _, b in ipairs({btnSpell1, btnSpell2, btnSpell3}) do
-        b.SetSpell = SecureButton_SetSpell
-        b:Hide()
+-- Debounced trigger. restackPending latches immediately so OnBagUpdate holds off
+-- dispensing the conjured partials until the restack has merged them.
+local function ScheduleRestack()
+    restackPending = true
+    if restackTimer then
+        return
     end
-
-    frame.CollectionButtons = {
-        MageWater = btnSpell1,
-        MageFood = btnSpell2,
-        WarlockHealthstone = btnSpell3
-    }
-    frame.PickLockButton = btnSpell3
-
-    function frame:Attach(parent)
-        self:SetParent(parent)
-        self:ClearAllPoints()
-        self:SetPoint("TOPLEFT", parent, "TOPRIGHT", 2, 0)
-        self:Show()
-        btnSpell1:Hide()
-        btnSpell2:Hide()
-        btnSpell3:Hide()
+    if not (C_Timer and C_Timer.NewTimer) then
+        RunRestackThenFill()
+        return
     end
+    restackTimer = C_Timer.NewTimer(RESTACK_DEBOUNCE, RunRestackThenFill)
+end
 
-    function frame:Detach()
-        self:SetParent(UIParent)
-        self:Hide()
+-- A successful conjure of a collection spell queues the restack-then-fill. Gated
+-- to an active trade so the add-on never reshuffles bags during normal play.
+local function OnSpellcastSucceeded(_, unit, _, spellId)
+    if unit ~= "player" then
+        return
     end
-
-    -- Re-applies any spell assignments that were deferred during combat.
-    function frame:FlushPendingSpells()
-        for _, b in ipairs({btnSpell1, btnSpell2, btnSpell3}) do
-            if b._PendingSpell then
-                b:SetSpell(b._PendingSpell)
-            end
-        end
+    if not ns.SPELL_TO_COLLECTION[spellId] then
+        return
     end
-
-    return frame
+    if not ns.State.Trade.Active then
+        return
+    end
+    ScheduleRestack()
 end
 
 --------------------------------------------------------------------------------
@@ -615,26 +418,24 @@ local function OnTradeShow()
     local _, npcClass = UnitClass("NPC")
     trade.Class = npcClass
     trade.Level = UnitLevel("NPC")
-    -- UnitLevel returns nil (can't resolve), -1 (level too far above to
-    -- estimate), or sometimes 0 in the brief window before the unit's data
-    -- finishes loading. Any of those means "unknown"; fall back to the
-    -- player's level + 10 so the level filter doesn't lock everything out.
+    -- UnitLevel can be nil, -1, or 0 (unknown / still loading). Fall back to
+    -- player level + 10 so the level filter doesn't lock everything out.
     if not trade.Level or trade.Level <= 0 then
         trade.Level = UnitLevel("player") + 10
     end
     trade.Party = UnitInParty("NPC") or UnitInRaid("NPC")
 
-    if tradeUI then
-        tradeUI:Attach(TradeFrame)
+    if ns.TradeUI then
+        ns.TradeUI:Attach(TradeFrame)
     end
-    ClearInventory()
+    ns.ClearInventory()
 
-    local autoKey = "AutoFillSolo"
+    local dispenseKey = "DispenseSolo"
     if trade.Party then
-        autoKey = IsInRaid() and "AutoFillRaid" or "AutoFillGroup"
+        dispenseKey = IsInRaid() and "DispenseRaid" or "DispenseGroup"
     end
 
-    if ns.DB[autoKey] then
+    if ns.DB.Dispense and ns.DB[dispenseKey] then
         if ns.IsInCombat() then
             pendingCombatFill = true
             ns.PrintMessage(L["CHAT_COMBAT_PAUSED"])
@@ -652,14 +453,25 @@ local function OnTradeClosed()
     trade.Party = false
 
     pendingCombatFill = false
-    ClearInventory()
-    if tradeUI then
-        tradeUI:Detach()
+    pendingCombatRestack = false
+    restackPending = false
+    if restackTimer then
+        restackTimer:Cancel()
+        restackTimer = nil
+    end
+    ns.ClearInventory()
+    if ns.TradeUI then
+        ns.TradeUI:Detach()
     end
 end
 
 local function OnBagUpdate()
     if not ns.State.Trade.Active then
+        return
+    end
+    if restackPending then
+        -- A conjure-triggered restack is queued; it merges the partials and then
+        -- fills, so don't dispense the half-size stacks early.
         return
     end
     if not ns.State.MissingStack then
@@ -672,23 +484,17 @@ local function OnBagUpdate()
     ns.FillTrade(false)
 end
 
-local function OnCombatStart()
-    -- Secure-button attribute changes are disallowed during combat, so the
-    -- cast shortcuts are hidden rather than updated mid-trade.
-    if tradeUI then
-        tradeUI.CollectionButtons.MageWater:Hide()
-        tradeUI.CollectionButtons.MageFood:Hide()
-        tradeUI.CollectionButtons.WarlockHealthstone:Hide()
-    end
-end
-
 local function OnCombatEnd()
     if not ns.State.Trade.Active then
         return
     end
 
-    if tradeUI then
-        tradeUI:FlushPendingSpells()
+    if pendingCombatRestack then
+        pendingCombatRestack = false
+        pendingCombatFill = false
+        ns.PrintMessage(L["CHAT_COMBAT_RESUMED"])
+        ScheduleRestack()
+        return
     end
 
     if pendingCombatFill then
@@ -699,20 +505,18 @@ local function OnCombatEnd()
 end
 
 local function OnSpellsChanged()
-    -- Pre-warm the item cache so GetItemInfo returns synchronously later.
-    -- We touch every collection item (not just the ones the player can
-    -- conjure) so a non-mage with mage water in their bags still gets
-    -- proper item info on the very first ScanInventory.
+    -- Pre-warm the item cache so the first ScanInventory resolves synchronously.
+    -- Every collection item, so a non-mage holding mage water also benefits.
     for _, c in pairs(ns.COLLECTIONS) do
         for itemId in pairs(c.Items) do
-            GetItemInfo(itemId)
+            ns.GetItemInfo(itemId)
         end
     end
     if ns.DB and ns.DB.Items then
         for id in pairs(ns.DB.Items) do
             local numericId = tonumber(id)
             if numericId then
-                GetItemInfo(numericId)
+                ns.GetItemInfo(numericId)
             end
         end
     end
@@ -723,147 +527,18 @@ end
 --------------------------------------------------------------------------------
 
 function ns.InitDispenser()
-    tradeUI = CreateTradeUI()
-    ns.TradeUI = tradeUI
+    ns.TradeUI = ns.CreateTradeUI()
 
     ns.RegisterEvent("TRADE_SHOW", OnTradeShow)
     ns.RegisterEvent("TRADE_CLOSED", OnTradeClosed)
     ns.RegisterEvent("BAG_UPDATE", OnBagUpdate)
-    ns.RegisterEvent("PLAYER_REGEN_DISABLED", OnCombatStart)
     ns.RegisterEvent("PLAYER_REGEN_ENABLED", OnCombatEnd)
+    -- SPELLS_CHANGED covers the cache pre-warm on its own; it fires on login and
+    -- whenever the spellbook changes (including learning a rank). The old
+    -- LEARNED_SPELL_IN_TAB companion was redundant and isn't a valid event on
+    -- TBC (2.5.5), so it's dropped.
     ns.RegisterEvent("SPELLS_CHANGED", OnSpellsChanged)
-    ns.RegisterEvent("LEARNED_SPELL_IN_TAB", OnSpellsChanged)
-end
-
---------------------------------------------------------------------------------
--- Public Inventory Access for Options
---------------------------------------------------------------------------------
-
-function ns.GetAvailableItemsToAdd()
-    ScanInventory()
-    local list = {}
-    if not inventory then
-        return list
-    end
-    for id, item in pairs(inventory) do
-        local isCollectionItem = item.Collection ~= nil
-        local isConfigured = ns.DB.Items[id] ~= nil
-        if not isCollectionItem and not isConfigured then
-            table.insert(
-                list,
-                {
-                    Id = id,
-                    Name = item.Name,
-                    Icon = item.Icon
-                }
-            )
-        end
-    end
-    table.sort(
-        list,
-        function(a, b)
-            return (a.Name or "") < (b.Name or "")
-        end
-    )
-    return list
-end
-
---------------------------------------------------------------------------------
--- Public Inventory Access for Announcements
---------------------------------------------------------------------------------
-
--- Returns a list of giveaway entries for the announcement macro. Order in
--- the returned list matches the order in which items would be filled into a
--- trade: collections first (in built-in order: water, food, healthstones)
--- then user-added items alphabetically.
---
--- Each entry: { Link, Name, Count, IncludeQuantity, Collection }
---   Count is the total number of individual items currently giveable, i.e.
---   the sum of stack counts across bag slots minus the item's KeepAtLeast
---   value. Items where the player has nothing left to give after
---   subtracting Keep are omitted.
---   IncludeQuantity is the per-item toggle from the options panel. When
---   false the announcement says "[Greater Healthstone]" with no count;
---   when true it says "[Conjured Crystal Water] x 200".
-function ns.BuildAnnouncementSnapshot()
-    ScanInventory()
-
-    local entries = {}
-    if not inventory or not ns.DB or not ns.DB.Items then
-        return entries
-    end
-
-    -- Built-in collections first, in stable display order.
-    for _, key in ipairs(ns.BUILTIN_ORDER) do
-        local itemConfig = ns.DB.Items[key]
-        if itemConfig and ns.IsItemActiveForPlayer(itemConfig) then
-            local bestId = BestRankItemId(key)
-            local inv = bestId and inventory[bestId] or nil
-            if inv and #inv.Bags > 0 then
-                local total = TotalItemCount(inv)
-                local keep = itemConfig.KeepAtLeast or 0
-                local count = math.max(0, total - keep)
-                if count > 0 then
-                    -- IncludeQuantity defaults to true if missing so that an
-                    -- old saved-variables file without the field still
-                    -- announces with counts. The migration backfills this,
-                    -- but defending against nil is cheap.
-                    local includeQty = itemConfig.IncludeQuantity
-                    if includeQty == nil then
-                        includeQty = true
-                    end
-                    table.insert(
-                        entries,
-                        {
-                            Link = inv.Link or ("[" .. (inv.Name or "?") .. "]"),
-                            Name = inv.Name,
-                            Count = count,
-                            IncludeQuantity = includeQty,
-                            Collection = key
-                        }
-                    )
-                end
-            end
-        end
-    end
-
-    -- User-added items, sorted by name.
-    local custom = {}
-    for id, itemConfig in pairs(ns.DB.Items) do
-        if not ns.COLLECTION_META[id] and ns.IsItemActiveForPlayer(itemConfig) then
-            local inv = inventory[id]
-            if inv and #inv.Bags > 0 then
-                local total = TotalItemCount(inv)
-                local keep = itemConfig.KeepAtLeast or 0
-                local count = math.max(0, total - keep)
-                if count > 0 then
-                    local includeQty = itemConfig.IncludeQuantity
-                    if includeQty == nil then
-                        includeQty = true
-                    end
-                    table.insert(
-                        custom,
-                        {
-                            Link = inv.Link or ("[" .. (inv.Name or "?") .. "]"),
-                            Name = inv.Name or tostring(id),
-                            Count = count,
-                            IncludeQuantity = includeQty,
-                            Collection = nil
-                        }
-                    )
-                end
-            end
-        end
-    end
-    table.sort(
-        custom,
-        function(a, b)
-            return (a.Name or "") < (b.Name or "")
-        end
-    )
-    for _, entry in ipairs(custom) do
-        table.insert(entries, entry)
-    end
-
-    return entries
+    -- A conjure of water/food/healthstone triggers a restack (merge partial
+    -- stacks into full ones) and then a fill, so the trade gets full stacks.
+    ns.RegisterEvent("UNIT_SPELLCAST_SUCCEEDED", OnSpellcastSucceeded)
 end

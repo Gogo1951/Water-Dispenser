@@ -1,19 +1,18 @@
 local _, ns = ...
 
 local L = ns.L
-local COLORS = ns.COLORS
+local GetColor = ns.GetColor
 
 local AceConfig = LibStub("AceConfig-3.0")
 local AceConfigDialog = LibStub("AceConfigDialog-3.0")
 
-local Header, Desc, Spacer = ns.OptionsHelpers.Header, ns.OptionsHelpers.Desc, ns.OptionsHelpers.Spacer
+local Header, Desc, Spacer = ns.OptionsHeader, ns.OptionsDesc, ns.OptionsSpacer
 
 --------------------------------------------------------------------------------
 -- DB Accessors
 --------------------------------------------------------------------------------
 
--- Lazy-fetched so we don't capture a stale ns.DB reference if the user
--- ResetToDefaults() between option-panel opens.
+-- Lazy-fetched so a ResetToDefaults() between opens can't leave a stale ns.DB.
 local function GetAnnouncements()
     if not ns.DB then
         return nil
@@ -33,9 +32,7 @@ local function SetEnabled(_, value)
         return
     end
     a.Enabled = value and true or false
-    -- The macro is auto-managed: enabling creates and starts auto-updating
-    -- it; disabling deletes it. SyncMacroState (via ScheduleUpdate) handles
-    -- the actual transition.
+    -- Macro is auto-managed: enabling creates it, disabling deletes it.
     if ns.RefreshAnnouncementMacro then
         ns.RefreshAnnouncementMacro()
     end
@@ -45,17 +42,16 @@ end
 -- Live Preview
 --------------------------------------------------------------------------------
 
--- Returns the current macro body as a single colored string for the
--- preview pane. Falls back to the "nothing to announce" notice (in muted
--- color) when there is nothing to say.
+-- Current macro message colored for the preview pane, or a muted "nothing to
+-- announce" notice when empty.
 local function GetPreviewText()
     if ns.BuildAnnouncementMessage then
         local message = ns.BuildAnnouncementMessage()
         if message then
-            return COLORS.TEXT .. message .. "|r"
+            return GetColor("TEXT") .. message .. "|r"
         end
     end
-    return COLORS.MUTED .. (L["OPTIONS_ANNOUNCEMENTS_PREVIEW_EMPTY"] or "") .. "|r"
+    return GetColor("MUTED") .. (L["OPTIONS_ANNOUNCEMENTS_PREVIEW_EMPTY"] or "") .. "|r"
 end
 
 --------------------------------------------------------------------------------

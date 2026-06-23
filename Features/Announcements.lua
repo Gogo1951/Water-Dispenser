@@ -1,61 +1,69 @@
 local _, ns = ...
 
 local L = ns.L
+local GetColor = ns.GetColor
+
+--[[
+    Messaging deviation (intentional): Water Dispenser never calls
+    SendChatMessage. Instead of the Style Guide's ns:Announce /
+    ns:BuildAnnounceMessage / ns:GetGroupChatChannel send path, this file keeps a
+    player-clicked "- Dispenser" macro up to date; the player presses it to
+    broadcast their giveaway list. The add-on initiates no chat by design, so
+    those send helpers are intentionally absent; do not add them back.
+
+    ns.PrintMessage stays here: player-only prints are this file's job per the
+    guide.
+]]
+
+--------------------------------------------------------------------------------
+-- Chat Output
+--------------------------------------------------------------------------------
+
+-- Prints a branded line to the player's chat: title // message [detail].
+function ns.PrintMessage(msg, detail)
+    local line =
+        GetColor("INFO") .. L["ADDON_TITLE"] .. "|r " .. GetColor("SEPARATOR") .. "//|r " .. GetColor("TEXT") .. tostring(msg) .. "|r"
+    if detail then
+        line = line .. " " .. GetColor("MUTED") .. tostring(detail) .. "|r"
+    end
+    print(line)
+end
 
 --------------------------------------------------------------------------------
 -- Constants
 --------------------------------------------------------------------------------
 
--- Macro name. Per-character so each alt has a body sized to its own bags.
--- Kept as a constant rather than localized so /macro searches are stable.
--- Leading "- " sorts the macro to the top of the alphabetical macro list,
--- making it quick to find when dragging onto an action bar. Kept short
--- because WoW's macro UI silently truncates names past 16 characters.
+-- Per-character macro. Leading "- " sorts it to the top of the macro list;
+-- kept under 16 chars because WoW truncates longer names.
 local MACRO_NAME = "- Dispenser"
 
--- Texture name resolved by Blizzard's icon DB. Drink icon to match the
--- addon's water-pitcher branding.
+-- Drink icon, matching the addon branding.
 local MACRO_ICON = "INV_Drink_18"
 
--- Macro body hard limit imposed by Blizzard. We truncate before this so the
--- update never silently fails.
+-- Blizzard's macro body limit; we truncate before it so updates never fail.
 local MACRO_BODY_LIMIT = 255
 
--- Debounce window for auto-update triggers. BAG_UPDATE_DELAYED can still
--- fire several times in a row when many slot changes happen at once
--- (looting a chest, mass mailbox pickup), so we coalesce.
+-- Debounce window: coalesces bursts of BAG_UPDATE_DELAYED into one update.
 local UPDATE_DEBOUNCE = 0.25
-
--- Fixed chrome that wraps every announcement: the {rt6} raid target marker,
--- the addon name, and the // separator. Kept out of the locale strings so
--- translators only have to handle the actual sentence ("I have ..." /
--- "Open trade!") without re-embedding the marker, branding, or punctuation
--- — and so adjusting any of those three doesn't churn every locale file.
-local MESSAGE_PREFIX = "{rt6} Water Dispenser //"
 
 --------------------------------------------------------------------------------
 -- State
 --------------------------------------------------------------------------------
 
--- Set true if a macro update was deferred due to combat. The combat-end
--- event handler picks this up and runs the update once it's safe.
+-- A macro update was deferred by combat; replayed on PLAYER_REGEN_ENABLED.
 local pendingCombatUpdate = false
 
--- Outstanding C_Timer.NewTimer handle for the debounce window.
+-- Active debounce timer handle, if any.
 local updateTimer
 
--- Latched so we don't spam the "macro slots full" warning on every bag
--- update while the player still hasn't freed a slot.
+-- Latches the "macro slots full" warning to once until a slot frees up.
 local macroFullWarned = false
 
 --------------------------------------------------------------------------------
 -- Channel Resolution
 --------------------------------------------------------------------------------
 
--- Channel slash for the literal macro body. The macro body itself does the
--- routing — when you click it WoW sends the message to whichever chat
--- channel matches the slash. The addon rewrites this when group state
--- changes.
+-- Channel slash for the macro body: /raid in a raid, /p in a party, /s solo.
 local function ChannelSlash()
     if IsInRaid() then
         return "/raid "
@@ -64,18 +72,6 @@ local function ChannelSlash()
         return "/p "
     end
     return "/s "
-end
-
--- SendChatMessage channel token, used when /wda is invoked outside of the
--- macro. SAY/PARTY/RAID matches the slash mapping above.
-local function ChannelToken()
-    if IsInRaid() then
-        return "RAID"
-    end
-    if IsInGroup() then
-        return "PARTY"
-    end
-    return "SAY"
 end
 
 --------------------------------------------------------------------------------
@@ -101,12 +97,8 @@ local function JoinList(parts)
     return head .. ", " .. andWord .. " " .. last
 end
 
--- Returns the announcement body text (no channel slash). Real item
--- hyperlinks are used so listeners can shift-click or hover for the full
--- tooltip; the smart-comma truncation in BuildMacroBody keeps the result
--- inside the 255-char macro budget by dropping later items.
---
--- Returns nil if the player has nothing left to give out.
+-- Announcement body text (no channel slash), using real item hyperlinks so
+-- listeners can hover or shift-click. Returns nil if there's nothing to give.
 function ns.BuildAnnouncementMessage()
     if not ns.BuildAnnouncementSnapshot then
         return nil
@@ -123,10 +115,7 @@ function ns.BuildAnnouncementMessage()
         if entry.IncludeQuantity then
             table.insert(parts, label .. " x " .. entry.Count)
         else
-            -- Per-item "Include quantity remaining" toggle is off — just
-            -- name the item. Listeners care that you have one to spare,
-            -- not the exact count. This is the default for healthstones
-            -- but any item can be set this way.
+            -- "Include quantity" off: name the item without a count.
             table.insert(parts, label)
         end
     end
@@ -134,29 +123,12 @@ function ns.BuildAnnouncementMessage()
     local intro = L["ANNOUNCEMENTS_INTRO"]
     local outro = L["ANNOUNCEMENTS_OUTRO"]
 
-    -- Outro carries its own leading punctuation (". Open trade!" in enUS) so
-    -- the join doesn't insert a space between the last item and the period.
-    -- This also lets translators choose the right sentence-ender for their
-    -- locale (period, full stop, ideographic stop, etc.).
+    -- Outro carries its own leading punctuation (". Open trade!") so the join
+    -- adds no space before it and translators pick their own sentence-ender.
+    -- Marker and brand are assembled here rather than repeated per locale.
+    local prefix = ns.TARGET_MARKER .. " " .. L["ADDON_TITLE"] .. " //"
     local list = JoinList(parts)
-    return MESSAGE_PREFIX .. " " .. intro .. " " .. list .. outro
-end
-
---------------------------------------------------------------------------------
--- /wda — Send Announcement Now
---------------------------------------------------------------------------------
-
--- Hooked from Core.lua's /wda slash command. Sends the announcement to the
--- right channel without going through the macro at all. This path is
--- useful for users who want to bind the announcement to a button outside
--- the standard macro UI.
-function ns.Announce()
-    local message = ns.BuildAnnouncementMessage()
-    if not message then
-        ns.PrintMessage(L["CHAT_NOTHING_TO_ANNOUNCE"])
-        return
-    end
-    SendChatMessage(message, ChannelToken())
+    return prefix .. " " .. intro .. " " .. list .. outro
 end
 
 --------------------------------------------------------------------------------
@@ -176,10 +148,8 @@ local function BuildMacroBody()
 
     local body = channel .. message
     if #body > MACRO_BODY_LIMIT then
-        -- Truncate at the last comma that fits so we don't slice through a
-        -- bracketed item name and produce orphaned brackets like
-        -- "[Crystal Wa...". Falls back to a hard cut if there's no comma in
-        -- the safe range.
+        -- Truncate at the last comma that fits so we never slice through a
+        -- bracketed item name; hard-cut if there's no comma in range.
         local safe = MACRO_BODY_LIMIT - 4
         local prefix = body:sub(1, safe)
         local lastComma = prefix:match(".*()(,)")
@@ -191,9 +161,6 @@ local function BuildMacroBody()
     end
     return body
 end
-
--- Public for the Options preview pane.
-ns.BuildMacroBody = BuildMacroBody
 
 --------------------------------------------------------------------------------
 -- Macro Slot Management
@@ -209,16 +176,9 @@ function ns.HasAnnouncementMacro()
     return ns.GetAnnouncementMacroIndex() ~= 0
 end
 
--- Internal: brings the per-character macro into the state requested by
--- ns.DB.Announcements.Enabled. Creates it on first enable, edits it on
--- subsequent bag changes, deletes it when disabled. Combat-deferred via
--- ScheduleUpdate so this only runs when SetAttribute is safe.
---
--- Chat output rules:
---   * CHAT_MACRO_CREATED on first create (per session)
---   * CHAT_MACRO_DELETED on auto-delete (e.g. user toggled off)
---   * CHAT_MACRO_FULL once per "slots full" run; suppressed on retries
---   * Silent on routine bag-change refreshes
+-- Brings the per-character macro in line with ns.DB.Announcements.Enabled:
+-- creates on first enable, edits on bag changes, deletes when disabled. Chat
+-- output only on create / delete / slots-full; routine refreshes stay silent.
 local function SyncMacroState()
     if not ns.DB or not ns.DB.Announcements then
         return
@@ -234,8 +194,7 @@ local function SyncMacroState()
             EditMacro(index, MACRO_NAME, MACRO_ICON, body)
             macroFullWarned = false
         else
-            -- 1 = per-character macro slot. Per-char so each alt has a
-            -- body that matches that alt's bags and class.
+            -- 1 = per-character macro slot, so each alt gets its own body.
             local newIndex = CreateMacro(MACRO_NAME, MACRO_ICON, body, 1)
             if not newIndex or newIndex == 0 then
                 if not macroFullWarned then
@@ -288,8 +247,7 @@ local function ScheduleUpdate()
     )
 end
 
--- Public so Options-Announcements.lua can poke a refresh after the user
--- edits the prefix / intro / outro fields.
+-- Public so the options panel can refresh the macro after a settings change.
 ns.RefreshAnnouncementMacro = ScheduleUpdate
 
 --------------------------------------------------------------------------------
@@ -297,9 +255,7 @@ ns.RefreshAnnouncementMacro = ScheduleUpdate
 --------------------------------------------------------------------------------
 
 function ns.InitAnnouncements()
-    -- Bag changes — pickup, drop, conjure, vendor, mail. BAG_UPDATE_DELAYED
-    -- is preferred over BAG_UPDATE because it fires once after a batch of
-    -- slot changes settles instead of per-slot.
+    -- Bag changes. BAG_UPDATE_DELAYED fires once after a batch settles.
     ns.RegisterEvent(
         "BAG_UPDATE_DELAYED",
         function()
@@ -307,8 +263,7 @@ function ns.InitAnnouncements()
         end
     )
 
-    -- Group state changes — switching from solo to party to raid changes
-    -- the channel slash prefix, so we must rewrite the macro body.
+    -- Group state change: the channel slash prefix may need rewriting.
     ns.RegisterEvent(
         "GROUP_ROSTER_UPDATE",
         function()
@@ -316,9 +271,7 @@ function ns.InitAnnouncements()
         end
     )
 
-    -- Initial sync once the player is fully in the world. Item names are
-    -- not always cached yet at ADDON_LOADED; PEW gives GetItemInfo time to
-    -- warm up.
+    -- Initial sync once in the world, when item names are cached.
     ns.RegisterEvent(
         "PLAYER_ENTERING_WORLD",
         function()
@@ -326,9 +279,7 @@ function ns.InitAnnouncements()
         end
     )
 
-    -- Combat-end retry: replay any update we deferred during combat. The
-    -- macro APIs aren't strictly protected, but combat is a noisy time to
-    -- be touching the macro UI and we'd rather not race with anything.
+    -- Combat-end retry for any update deferred during combat.
     ns.RegisterEvent(
         "PLAYER_REGEN_ENABLED",
         function()

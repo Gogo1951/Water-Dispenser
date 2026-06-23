@@ -1,30 +1,29 @@
 local _, ns = ...
 
 local L = ns.L
-local COLORS = ns.COLORS
+local GetColor = ns.GetColor
 local CLASS_COLORS = ns.CLASS_COLORS
 
 local AceConfig = LibStub("AceConfig-3.0")
 local AceConfigDialog = LibStub("AceConfigDialog-3.0")
 local AceConfigRegistry = LibStub("AceConfigRegistry-3.0")
 
-local Desc = ns.OptionsHelpers.Desc
-local Spacer = ns.OptionsHelpers.Spacer
+local Desc = ns.OptionsDesc
+local Spacer = ns.OptionsSpacer
 
 --------------------------------------------------------------------------------
 -- State
 --------------------------------------------------------------------------------
 
-local itemsAppName
+local distributionRulesAppName
 local selectedItemToAdd
 
 --------------------------------------------------------------------------------
 -- Slider bounds
 --------------------------------------------------------------------------------
 
--- Stacks-per-class sliders are capped at 6; more than six stacks of any one
--- consumable per player is vanishingly rare in practice and a lower cap gives
--- the sliders meaningful granularity.
+-- Per-class stack sliders cap at 6; more is rare and a low cap keeps the
+-- slider granular.
 local STACK_MIN = 0
 local STACK_MAX = 6
 
@@ -32,9 +31,8 @@ local STACK_MAX = 6
 -- Class Ordering (alphabetical by localized name)
 --------------------------------------------------------------------------------
 
--- ns.CLASSES is the file-order list (Warrior, Paladin, Hunter, ...). The new
--- layout sorts classes alphabetically by their localized name so that the
--- slider stack reads naturally top-to-bottom.
+-- Classes sorted alphabetically by localized name so the slider stack reads
+-- naturally top-to-bottom.
 local function GetSortedClasses()
     local list = {}
     for _, class in ipairs(ns.CLASSES) do
@@ -53,10 +51,8 @@ end
 -- Item Key Encoding
 --------------------------------------------------------------------------------
 
--- AceConfig requires string keys in an args table. Built-in item keys are
--- already strings ("MageWater") but user-added items are keyed by their
--- numeric item ID in the DB. We prefix those with "item_" for use as arg keys
--- and strip the prefix back off when looking them up in the DB.
+-- AceConfig arg keys must be strings. Built-in keys already are; user items are
+-- keyed by numeric ID in the DB, so prefix them "item_" and strip it back off.
 
 local function EncodeItemKey(dbKey)
     if type(dbKey) == "number" then
@@ -81,7 +77,7 @@ local function ItemDisplayName(itemId, itemConfig)
     local icon = itemConfig.Icon
     local name = itemConfig.Name
     if not name then
-        local itemName, _, _, _, _, _, _, _, _, itemIcon = GetItemInfo(itemId)
+        local itemName, _, _, _, _, _, _, _, _, itemIcon = ns.GetItemInfo(itemId)
         name = itemName or tostring(itemId)
         icon = icon or itemIcon
     end
@@ -98,12 +94,9 @@ end
 -- Item Config Accessors
 --------------------------------------------------------------------------------
 
--- Options args are nested as:
---     [itemKey] -> [scopeKey] -> [classField]
--- where scopeKey is "solo" / "group" / "raid" and classField is the raw
--- class token ("HUNTER", "MAGE", ...). info[1] is the item key, info[2] is
--- the scope node, and info[#info] is the slider field.
-
+-- Args nest as [itemKey] -> [scopeKey] -> [classField]. In the info path,
+-- info[1] is the item key, info[2] the scope ("solo"/"group"/"raid"), and
+-- info[#info] the class token.
 local SCOPE_DB_KEY = {
     solo = "Solo",
     group = "Group",
@@ -177,8 +170,7 @@ local function SetKeepAtLeast(info, value)
     if config then
         config.KeepAtLeast = math.floor((tonumber(value) or 0) + 0.5)
     end
-    -- Live-update the announcement macro so a slider move is reflected in
-    -- the next click instead of waiting for a bag event.
+    -- Live-update the announcement macro so the change shows without a bag event.
     if ns.RefreshAnnouncementMacro then
         ns.RefreshAnnouncementMacro()
     end
@@ -189,8 +181,7 @@ local function GetIncludeQuantity(info)
     if not config then
         return true
     end
-    -- Defaults to true when nil so a freshly-added item or a saved-vars
-    -- file that pre-dates this toggle still announces with counts.
+    -- Default true when missing (old saved data).
     if config.IncludeQuantity == nil then
         return true
     end
@@ -202,15 +193,13 @@ local function SetIncludeQuantity(info, value)
     if config then
         config.IncludeQuantity = value and true or false
     end
-    -- Live-update the announcement macro so the change is visible in
-    -- chat without waiting for the next bag event.
+    -- Live-update the announcement macro so the change shows without a bag event.
     if ns.RefreshAnnouncementMacro then
         ns.RefreshAnnouncementMacro()
     end
 end
 
--- Player-class filter accessors. info[#info] is the class token (e.g.
--- "MAGE") since each class is a separate toggle widget keyed by its token.
+-- Player-class filter accessors; info[#info] is the class token.
 local function GetPlayerClass(info)
     local config = GetItemConfig(info)
     if not config or not config.PlayerClasses then
@@ -225,8 +214,7 @@ local function SetPlayerClass(info, value)
         return
     end
     config.PlayerClasses = config.PlayerClasses or {}
-    -- Store nil instead of false so a freshly migrated table looks the
-    -- same as one set explicitly via the UI.
+    -- Store nil, not false, to match a freshly migrated table.
     config.PlayerClasses[info[#info]] = value and true or nil
     if ns.RefreshAnnouncementMacro then
         ns.RefreshAnnouncementMacro()
@@ -237,10 +225,9 @@ end
 -- Scope Panels
 --------------------------------------------------------------------------------
 
--- Each scope (Strangers / Party Members / Raid Members) is its own sub-group
--- in the left sidebar. The body is a vertical stack of one full-width slider
--- per class, in alphabetical order, capped at STACK_MAX.
-local function BuildScopePanel(scopeLabel, order)
+-- One scope sub-group: a full-width slider per class, alphabetical. maxCount
+-- caps each slider (1 for unique items, STACK_MAX otherwise).
+local function BuildScopePanel(scopeLabel, order, maxCount)
     local args = {}
     local sortedClasses = GetSortedClasses()
     for index, class in ipairs(sortedClasses) do
@@ -249,7 +236,7 @@ local function BuildScopePanel(scopeLabel, order)
             width = "full",
             name = ClassLabel(class),
             min = STACK_MIN,
-            max = STACK_MAX,
+            max = maxCount or STACK_MAX,
             step = 1,
             order = index,
             get = GetCountValue,
@@ -269,9 +256,8 @@ end
 -- Settings Sub-Panel
 --------------------------------------------------------------------------------
 
--- Holds the per-item switches that used to live on the same page as the
--- sliders. Remove is optional: built-in collections (MageWater, MageFood,
--- WarlockHealthstone) have NoRemove = true and skip the button.
+-- Per-item switches. The Remove button is skipped for built-in collections
+-- (NoRemove = true).
 local function BuildSettingsPanel(itemKey, itemConfig, order)
     local args = {
         UseNotFullStack = {
@@ -289,6 +275,9 @@ local function BuildSettingsPanel(itemKey, itemConfig, order)
             name = L["OPTIONS_ITEM_FACTOR_LEVEL"],
             desc = L["OPTIONS_ITEM_FACTOR_LEVEL_DESC"],
             order = 2,
+            -- Built-in collections always dispense the best rank the partner can
+            -- use, so this toggle only applies to single-rank user-added items.
+            hidden = ns.COLLECTION_META[itemKey] ~= nil,
             get = GetFactorLevel,
             set = SetFactorLevel
         },
@@ -298,8 +287,7 @@ local function BuildSettingsPanel(itemKey, itemConfig, order)
             width = "full",
             name = L["OPTIONS_ITEM_KEEP_AT_LEAST"],
             desc = L["OPTIONS_ITEM_KEEP_AT_LEAST_DESC"],
-            -- Range starts at 0 even though the user spec said 1-100, because
-            -- warlocks' default for healthstones is 0 (they can summon more).
+            -- Starts at 0: the healthstone default is 0 (warlocks resummon).
             min = 0,
             max = 100,
             step = 1,
@@ -353,7 +341,10 @@ local function BuildSettingsPanel(itemKey, itemConfig, order)
                 local name = itemConfig.Name or tostring(itemKey)
                 ns.DB.Items[itemKey] = nil
                 ns.PrintMessage(L["CHAT_ITEM_REMOVED"], name)
-                ns.RebuildItemsOptions()
+                ns.RebuildDistributionRulesOptions()
+                if ns.RefreshAnnouncementMacro then
+                    ns.RefreshAnnouncementMacro()
+                end
             end
         }
     end
@@ -370,19 +361,21 @@ end
 -- Item Panel Builder
 --------------------------------------------------------------------------------
 
--- Each item becomes a tree node in the left sidebar. Its children are the
--- three scope panels plus a Settings panel. childGroups = "tree" makes the
--- scope/settings entries appear as a nested sidebar under the item.
+-- Each item is a tree node with three scope panels plus a Settings panel.
 local function BuildItemPanel(itemKey, itemConfig, order)
+    -- Unique items (healthstones) trade 0 or 1, so their sliders cap at 1.
+    local meta = ns.COLLECTION_META[itemKey]
+    local maxCount = (meta and meta.Unique) and 1 or STACK_MAX
+
     return {
         type = "group",
         name = ItemDisplayName(itemKey, itemConfig),
         order = order,
         childGroups = "tree",
         args = {
-            solo = BuildScopePanel(L["OPTIONS_SCOPE_SOLO"], 1),
-            group = BuildScopePanel(L["OPTIONS_SCOPE_GROUP"], 2),
-            raid = BuildScopePanel(L["OPTIONS_SCOPE_RAID"], 3),
+            solo = BuildScopePanel(L["OPTIONS_SCOPE_SOLO"], 1, maxCount),
+            group = BuildScopePanel(L["OPTIONS_SCOPE_GROUP"], 2, maxCount),
+            raid = BuildScopePanel(L["OPTIONS_SCOPE_RAID"], 3, maxCount),
             settings = BuildSettingsPanel(itemKey, itemConfig, 4)
         }
     }
@@ -411,10 +404,8 @@ local function NoAddableItems()
 end
 
 local function BuildAddItemPanel(order)
-    -- The picker (dropdown + spacers + add button) is hidden when no items
-    -- qualify, so the player sees the empty-bag notice instead of an empty
-    -- dropdown. Spacers must be inlined here because the Spacer() helper
-    -- does not support `hidden`.
+    -- The picker is hidden when nothing qualifies, showing the empty notice
+    -- instead. Spacers are inlined here because Spacer() has no `hidden`.
     return {
         type = "group",
         name = L["OPTIONS_ADD_ITEM"],
@@ -452,7 +443,7 @@ local function BuildAddItemPanel(order)
                         return
                     end
 
-                    local itemName, _, _, _, _, _, _, _, _, itemIcon = GetItemInfo(id)
+                    local itemName, _, _, _, _, _, _, _, _, itemIcon = ns.GetItemInfo(id)
                     local empty = {}
                     for _, class in ipairs(ns.CLASSES) do
                         empty[class] = 0
@@ -472,7 +463,10 @@ local function BuildAddItemPanel(order)
                     }
                     ns.PrintMessage(L["CHAT_ITEM_SAVED"], itemName or tostring(id))
                     selectedItemToAdd = nil
-                    ns.RebuildItemsOptions()
+                    ns.RebuildDistributionRulesOptions()
+                    if ns.RefreshAnnouncementMacro then
+                        ns.RefreshAnnouncementMacro()
+                    end
                 end
             },
             spaceEmpty = {type = "description", name = " ", order = 6, hidden = HasAddableItems},
@@ -480,7 +474,7 @@ local function BuildAddItemPanel(order)
                 type = "description",
                 fontSize = "medium",
                 order = 7,
-                name = COLORS.DESC .. L["OPTIONS_ADD_EMPTY"] .. "|r",
+                name = GetColor("BODY") .. L["OPTIONS_ADD_EMPTY"] .. "|r",
                 hidden = HasAddableItems
             }
         }
@@ -536,7 +530,7 @@ local function BuildItemList()
     return list
 end
 
-local function BuildItemsOptions()
+local function BuildDistributionRulesOptions()
     local args = {
         intro = Desc(L["OPTIONS_ITEMS_DESC"], 1),
         introSpacer = Spacer(2)
@@ -545,7 +539,7 @@ local function BuildItemsOptions()
     local list = BuildItemList()
 
     if #list == 0 then
-        args.emptyNotice = Desc(COLORS.DESC .. L["OPTIONS_ITEMS_EMPTY"] .. "|r", 3)
+        args.emptyNotice = Desc(GetColor("BODY") .. L["OPTIONS_ITEMS_EMPTY"] .. "|r", 3)
     end
 
     local order = 10
@@ -568,20 +562,20 @@ end
 -- Rebuild Hook
 --------------------------------------------------------------------------------
 
-function ns.RebuildItemsOptions()
-    if not itemsAppName then
+function ns.RebuildDistributionRulesOptions()
+    if not distributionRulesAppName then
         return
     end
-    AceConfig:RegisterOptionsTable(itemsAppName, BuildItemsOptions())
-    AceConfigRegistry:NotifyChange(itemsAppName)
+    AceConfig:RegisterOptionsTable(distributionRulesAppName, BuildDistributionRulesOptions())
+    AceConfigRegistry:NotifyChange(distributionRulesAppName)
 end
 
 --------------------------------------------------------------------------------
 -- Initialization
 --------------------------------------------------------------------------------
 
-function ns.InitOptionsItems(appName, parentDisplayName)
-    itemsAppName = appName
-    AceConfig:RegisterOptionsTable(appName, BuildItemsOptions())
+function ns.InitOptionsDistributionRules(appName, parentDisplayName)
+    distributionRulesAppName = appName
+    AceConfig:RegisterOptionsTable(appName, BuildDistributionRulesOptions())
     AceConfigDialog:AddToBlizOptions(appName, L["OPTIONS_ITEMS"], parentDisplayName)
 end
