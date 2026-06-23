@@ -1,60 +1,47 @@
 # Water Dispenser
 
-Auto-fills the trade window with the right consumables for whoever you're trading. Water, food, healthstones, lockboxes — class-aware, level-aware, with separate stacks for solo, party, and raid. Stop dragging stacks one slot at a time.
+Auto-fill the trade window with the best water, food, and healthstones for whoever you're trading — chosen by their class and level. Mages and warlocks hand out conjured consumables in one click, then announce what's left to give.
 
 ## Features
 
-💧 **Smart Auto-Fill** // Open a trade and the right stacks drop in — class-aware, level-aware, sized for solo, party, or raid.
-
-🧰 **Distribution Rules** // Add any tradable consumable, set per-class quantities, reserve some for yourself, restrict by class or level, allow partial stacks.
-
-📣 **Announcement Macro** // The `- Dispenser` macro broadcasts your giveaway list to `/say`, `/party`, or `/raid` with shift-clickable item links.
-
-🗝️ **Rogue Lockbox Slotting** // Drops your locked items into the un-tradeable slot when a rogue trades you for a pick.
+- 🎯 **Right Item, Right Rank** // Never hands over water or food the partner is too low to use — it drops to the best rank they *can* take and matches the amount their class needs.
+- ⚙️ **Highly Customizable** // Set how many stacks each class gets solo, in a party, or in a raid, and add any tradable consumable straight from your bags.
+- 🍺 **Keep Some for Yourself** // "Keep at Least" walls off your personal stash so only the surplus goes out, full stacks first.
+- 📣 **Broadcast Your Leftovers** // An optional one-click macro posts what you still have to give to say, party, or raid chat, with shift-clickable item links.
+- 🦺 **Safety First** // Only ever moves the consumables you've set up — never anything else. Never trades in combat.
 
 ## Setup
 
-1.  Install the add-on, ideally using [CurseForge](https://www.curseforge.com/wow/addons/water-dispenser-revisited).
-2.  Log in. Sensible defaults are set up automatically.
-3.  Open a trade with someone — the right stacks drop in.
-4.  (Optional) Type `/wd` to tweak Distribution Rules and enable the `- Dispenser` announcement macro.
-5.  Hand out water like Oprah hands out cars. (=
+1. **Install** from [CurseForge](https://www.curseforge.com/wow/addons/water-dispenser-revisited).
+2. Log in — sensible class defaults are already configured, so it works right away.
+3. Open a trade with someone and the right stacks drop into the trade window automatically.
+4. Want different amounts? Type `/wd` and set per-class, per-scope rules in Distribution Rules.
+5. Optional: under the Announcements tab, enable the `- Dispenser` macro and drag it to your action bar to share what you have to give.
+6. *"You had me at H₂O."*
 
 ## How It Works
 
-### Class Defaults
+### In the trade window
 
-| Item        |Dispensed by |Solo / Group / Raid               |
-| ----------- |------------ |--------------------------------- |
-| Mage Water  |Mage         |1 / 2 / 4 stacks for mana classes |
-| Mage Food   |Mage         |1 / 2 / 4 stacks                  |
-| Healthstone |Warlock      |1 healthstone for anyone          |
+Open a trade and a small panel appears beside it. It shows one-click **Conjure** buttons for whatever you can make at that partner's level, plus **Clear** and **Fill** buttons to redo the fill by hand whenever you like.
 
-If you have other items to hand out, you can add any consumable you want, as well as tweak any other settings in the Distribution Rules panel.
+### Class defaults
 
-### Distribution Rules
+| Item | Conjured by | Solo / Group / Raid |
+|---|---|---|
+| Water | Mage | 1 / 1 / 2 stacks to mana users |
+| Food | Mage | 1 / 1 / 2 stacks to everyone |
+| Healthstone | Warlock | 1 to everyone |
 
-Set how many stacks of each item go to each class, in each scope (Strangers / Party Members / Raid Members). Add any tradable consumable from your bags. Per-item rules let you:
+These are just starting points — change the amounts per class and per scope, or add your own consumables, in the Distribution Rules panel.
 
-*   Reserve some for yourself ("Keep at Least").
-*   Restrict to specific player classes ("Only Dispense when Playing These Class(es)").
-*   Skip the partner if they can't use it yet ("Factor in Usage Level Requirements").
-*   Choose whether the announcement includes the count.
-*   Allow partial stacks when you're running low.
+### Minimap button & slash command
 
-### Announcement Macro
+Left-click the minimap button to toggle auto-fill on or off; hover it to see the current state. Type `/wd` (or `/waterdispenser`) to open the full options panel.
 
-Turn on the `- Dispenser` macro in **Options > AddOns > Water Dispenser > Announcements** and watch the live preview. Drag the macro from the Macro UI (`/m` or Game Menu > Macros) onto your action bar. Click it to broadcast your giveaway list to whichever channel matches your group state — `/say`, `/party`, or `/raid`. Item names are real hyperlinks, so receivers can shift-click for the tooltip.
+### The announcement macro
 
-### Slash Commands
-
-| Command                         |Effect                                         |
-| ------------------------------- |---------------------------------------------- |
-| <code>/wd</code>                |Open the options panel.                        |
-| <code>/wd fill</code>           |Fill the trade window now.                     |
-| <code>/wd clear</code>          |Clear every slot in the trade window.          |
-| <code>/wd auto solo|group|raid on|off</code> |Toggle auto-fill for the given scope.          |
-| <code>/wda</code>               |Send the announcement to your group's channel. |
+Turn it on under the Announcements tab and a `- Dispenser` macro appears on your character. Click it to post your leftover giveaways to the channel that matches your group — `/say`, `/party`, or `/raid`. Item names are real hyperlinks, so people can shift-click them for the tooltip.
 
 ## Testing & Localization Status
 
@@ -72,37 +59,37 @@ Please reach out if you would like to be involved!
 
 ## Links
 
-*   [CurseForge](https://www.curseforge.com/wow/addons/water-dispenser-revisited)
-*   [GitHub](https://github.com/Gogo1951/Water-Dispenser)
-*   [Discord](https://discord.gg/eh8hKq992Q)
+- [CurseForge](https://www.curseforge.com/wow/addons/water-dispenser-revisited)
+- [GitHub](https://github.com/Gogo1951/Water-Dispenser)
+- [Discord](https://discord.gg/eh8hKq992Q)
 
 ## History
 
 👾 **I didn't create this add-on, I just updated it.**
 
-*   Hoedown's [Water Dispenser](https://www.curseforge.com/wow/addons/water-dispenser-classic-tbc-classic)
-*   Junsa's [Water Dispenser Era](https://www.curseforge.com/wow/addons/water-dispenser)
+- Hoedown's [Water Dispenser](https://www.curseforge.com/wow/addons/water-dispenser-classic-tbc-classic)
+- Junsa's [Water Dispenser Era](https://www.curseforge.com/wow/addons/water-dispenser)
 
 ## Related Add-ons
 
-🟢 Pairs With // gogo1951's [Connoisseur](https://www.curseforge.com/wow/addons/consumable-connoisseur)
+🟢 Pairs With // Gogo1951's [Connoisseur](https://www.curseforge.com/wow/addons/consumable-connoisseur)
 
-🟢 Pairs With // VithRus's [Warlock Healthstone Tracker](https://www.curseforge.com/wow/addons/warlock-healthstone-tracker)
+🟢 Pairs With // CWollinger's [Soulstone Watcher](https://www.curseforge.com/wow/addons/soulstone-watcher)
 
-🟢 Pairs With // VithRus's [Warlock Healthstone Tracker - BlizzUI](https://www.curseforge.com/wow/addons/warlock-healthstone-tracker-blizzui)
+🟢 Pairs With // draon12's [Warlock Healthstone Tracker](https://www.curseforge.com/wow/addons/warlock-healthstone-tracker)
 
-🟢 Pairs With // Yarillo's [Warlock Healthstone Tracker Tweaked](https://www.curseforge.com/wow/addons/warlockhealthstonetracker)
+🟡 Some Overlap // funki's [DrinkBot](https://www.curseforge.com/wow/addons/drinkbot)
+
+🟡 Some Overlap // Rainsphere2k's [Mage Vendor](https://www.curseforge.com/wow/addons/mage-vendor)
+
+🟡 Some Overlap // afrugalpenguin's [MageTools](https://www.curseforge.com/wow/addons/magetools)
+
+🟡 Some Overlap // kricklen's [Necrosis Classic](https://www.curseforge.com/wow/addons/necrosis-classic)
 
 🟡 Some Overlap // afrugalpenguin's [WarlockTools](https://www.curseforge.com/wow/addons/warlocktools)
 
-🟡 Some Overlap // [Mage Vendor](https://www.curseforge.com/wow/addons/mage-vendor)
-
-🔴 Direct Alternative // BlessedRabies2's [Water Dispenser Fixed](https://www.curseforge.com/wow/addons/water-dispenser-fixed)
+🔴 Direct Alternative // TheLuxSupport's [Mage2Order](https://www.curseforge.com/wow/addons/mage2order)
 
 🔴 Direct Alternative // Linae-Kronos's [tradeDispenser](https://github.com/Linae-Kronos/tradeDispenser)
 
-🔴 Direct Alternative // TheLuxSupport's [Mage2Order](https://www.curseforge.com/wow/addons/mage2order)
-
-🔴 Direct Alternative // [TradeFill](https://www.curseforge.com/wow/addons/tradefill)
-
-🔴 Direct Alternative // [TradeStone](https://www.curseforge.com/wow/addons/tradestone)
+🔴 Direct Alternative // Mafkees's [TradeFill](https://www.curseforge.com/wow/addons/tradefill)

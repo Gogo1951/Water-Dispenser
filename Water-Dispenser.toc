@@ -2,7 +2,7 @@
 ## Notes: Automatically fill the trade window with class-aware consumables
 ## Author: Gogo1951
 
-## IconTexture: Interface/AddOns/Water-Dispenser/Water-Dispenser.tga
+## IconTexture: Interface/AddOns/Water-Dispenser/Includes/Images/Water-Dispenser.tga
 ## Category-enUS: Trade
 ## X-License: MIT
 
@@ -10,36 +10,56 @@
 ## Version: @project-version@
 ## X-Curse-Project-ID: 1531217
 
-## X-Discord: https://discord.gg/eh8hKq992Q
-
-## SavedVariablesPerCharacter: WaterDispenserCharDB, WaterDispenserDB
+## SavedVariables: WaterDispenserDB
+## SavedVariablesPerCharacter: WaterDispenserCharDB
 
 # Includes
-Includes/LibStub/LibStub.lua
-Includes/CallbackHandler-1.0/CallbackHandler-1.0.lua
-Includes/AceLocale-3.0/AceLocale-3.0.lua
-Includes/AceGUI-3.0/AceGUI-3.0.xml
-Includes/AceConfig-3.0/AceConfigRegistry-3.0/AceConfigRegistry-3.0.lua
-Includes/AceConfig-3.0/AceConfigDialog-3.0/AceConfigDialog-3.0.lua
-Includes/AceConfig-3.0/AceConfig-3.0.lua
-Includes/LibDataBroker-1.1/LibDataBroker-1.1.lua
-Includes/LibDBIcon-1.0/LibDBIcon-1.0.lua
+Includes/Libraries/LibStub/LibStub.lua
+Includes/Libraries/CallbackHandler-1.0/CallbackHandler-1.0.lua
+Includes/Libraries/AceLocale-3.0/AceLocale-3.0.lua
+Includes/Libraries/AceGUI-3.0/AceGUI-3.0.xml
+Includes/Libraries/AceConfig-3.0/AceConfigRegistry-3.0/AceConfigRegistry-3.0.lua
+Includes/Libraries/AceConfig-3.0/AceConfigCmd-3.0/AceConfigCmd-3.0.lua
+Includes/Libraries/AceConfig-3.0/AceConfigDialog-3.0/AceConfigDialog-3.0.lua
+Includes/Libraries/AceConfig-3.0/AceConfig-3.0.lua
+Includes/Libraries/LibDataBroker-1.1/LibDataBroker-1.1.lua
+Includes/Libraries/LibDBIcon-1.0/LibDBIcon-1.0.lua
 
 # Localization
 Locales/enUS.lua
+Locales/deDE.lua
+Locales/esES.lua
+Locales/esMX.lua
+Locales/frFR.lua
+Locales/itIT.lua
+Locales/koKR.lua
+Locales/ptBR.lua
+Locales/ruRU.lua
+Locales/zhCN.lua
+Locales/zhTW.lua
 
 # Data
-Data.lua
+Data/Data.lua
+Data/Collections.lua
+Data/Default-Settings.lua
 
 # Water Dispenser
-Core.lua
-Dispenser.lua
-Announcements.lua
+Features/Core.lua
+Features/Utilities.lua
+Features/Announcements.lua
+Features/Inventory-Scanner.lua
+Features/Dispenser.lua
+Features/Trade-UI.lua
+Features/Diagnostics.lua
+Features/Minimap-Button.lua
 
 # Options
-Options-Distribution-Rules.lua
-Options-Announcements.lua
-Options.lua
+Options/Options-Utilities.lua
+Options/Options-General.lua
+Options/Options-Distribution-Rules.lua
+Options/Options-Announcements.lua
+Options/Options-Diagnostics.lua
+Options/Options.lua
 
 # Feedback Welcome! (=
 # Water Dispenser on CurseForge // https://www.curseforge.com/wow/addons/water-dispenser-revisited
