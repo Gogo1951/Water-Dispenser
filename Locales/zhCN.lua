@@ -1,5 +1,7 @@
 local L = LibStub("AceLocale-3.0"):NewLocale("WaterDispenser", "zhCN")
-if not L then return end
+if not L then
+	return
+end
 
 --------------------------------------------------------------------------------
 -- Add-on Identity
@@ -12,16 +14,18 @@ L["ADDON_TITLE"] = "Water Dispenser"
 --------------------------------------------------------------------------------
 
 -- All player-facing chat prints live here, regardless of which feature emits them.
-L["CHAT_LOADED"] = "版本 %s。设置（包含关闭此信息的选项）可以在 选项 > 插件 > Water Dispenser 中找到。喜欢 Water Dispenser 吗？分享给你的朋友吧！(="
+L["CHAT_LOADED"] =
+	"版本 %s。设置（包含关闭此信息的选项）可以在 选项 > 插件 > Water Dispenser 中找到。喜欢 Water Dispenser 吗？分享给你的朋友吧！(="
 L["CHAT_NO_TRADE"] = "没有打开的交易窗口。"
 L["CHAT_COMBAT_PAUSED"] = "战斗中已暂停自动填充。"
 L["CHAT_COMBAT_RESUMED"] = "战斗结束。恢复交易填充。"
 L["CHAT_MISSING_STACK"] = "缺失的堆叠数："
-L["CHAT_NONE_ACTIVE_FOR_CLASS"] = "当你使用 %s 游玩时，没有设置任何要分发的物品。请打开 选项 > 分发规则 启用适用于此职业的物品。"
+L["CHAT_NONE_ACTIVE_FOR_CLASS"] =
+	"当你使用 %s 游玩时，没有设置任何要分发的物品。请打开 选项 > 分发规则 启用适用于此职业的物品。"
 L["CHAT_ITEM_SAVED"] = "已保存："
 L["CHAT_ITEM_REMOVED"] = "已移除："
-L["CHAT_RESET"] = "所有选项已重置为默认值。"
-L["CHAT_MACRO_CREATED"] = "喊话宏“- Dispenser”已准备就绪。打开宏界面（游戏菜单 > 宏，或输入 /m），将其拖放到动作条上即可使用。"
+L["CHAT_MACRO_CREATED"] =
+	"喊话宏“- Dispenser”已准备就绪。打开宏界面（游戏菜单 > 宏，或输入 /m），将其拖放到动作条上即可使用。"
 L["CHAT_MACRO_DELETED"] = "喊话宏“- Dispenser”已删除。"
 L["CHAT_MACRO_FULL"] = "无法创建宏：角色专属宏数量已达上限。"
 
@@ -29,42 +33,41 @@ L["CHAT_MACRO_FULL"] = "无法创建宏：角色专属宏数量已达上限。"
 -- Trade Side Panel
 --------------------------------------------------------------------------------
 
-L["BTN_CLEAR"] = "清空交易"
-L["BTN_FILL"] = "填充交易"
+L["BUTTON_CLEAR"] = "清空交易窗口"
+L["BUTTON_FILL"] = "填充交易窗口"
 
 --------------------------------------------------------------------------------
 -- Minimap Button
 --------------------------------------------------------------------------------
 
 L["MINIMAP_DISPENSE"] = "分发"
-L["MINIMAP_DISPENSE_DESC"] = "根据你的设置自动填充交易窗口。"
 L["UI_ENABLED"] = "已启用"
 L["UI_DISABLED"] = "已禁用"
 L["UI_LEFT_CLICK"] = "左键点击"
 L["UI_TOGGLE"] = "切换"
-L["MINIMAP_HINT"] = "更多设置可以在 选项 > 插件 > Water Dispenser 中找到。"
+L["MINIMAP_OPTIONS"] = "Water Dispenser 选项"
+L["MINIMAP_OPTIONS_KEYBIND"] = "Shift + 中键点击"
 
 --------------------------------------------------------------------------------
 -- Options — General
 --------------------------------------------------------------------------------
 
-L["OPTIONS_TITLE"] = "Water Dispenser"
-L["OPTIONS_DESC"] = "根据交易对象的职业、等级和队伍状态，自动用设定好的水、食物、治疗石或其他消耗品来填充交易窗口。"
+L["OPTIONS_DESC"] =
+	"根据交易对象的职业、等级和队伍状态，自动用设定好的水、食物、治疗石或其他消耗品来填充交易窗口。"
 
 L["OPTIONS_WELCOME_MESSAGE"] = "启用欢迎信息"
 L["OPTIONS_WELCOME_MESSAGE_DESC"] = "当 Water Dispenser 加载时，在聊天框显示一行简单的问候语。"
 L["OPTIONS_MINIMAP"] = "启用小地图按钮"
 L["OPTIONS_MINIMAP_DESC"] = "显示 Water Dispenser 小地图按钮。"
-L["OPTIONS_CONJURE_BUTTONS"] = "为法师和术士启用交易窗口制造按钮"
-L["OPTIONS_CONJURE_BUTTONS_DESC"] = "在交易窗口旁边显示智能等级匹配的造水、造食和制造治疗石按钮。"
-L["OPTIONS_MISSING_STACK_WARNINGS"] = "显示堆叠不足警告"
-L["OPTIONS_MISSING_STACK_WARNINGS_DESC"] = "当背包中配置的物品不足以填满交易窗口时，在聊天框中输出提示。"
+L["OPTIONS_MISSING_STACK_WARNINGS"] = "启用堆叠不足警告"
+L["OPTIONS_MISSING_STACK_WARNINGS_DESC"] =
+	"当背包中配置的物品不足以填满交易窗口时，在聊天框中输出提示。"
 
 L["OPTIONS_COMMANDS"] = "/命令行"
 L["OPTIONS_COMMANDS_WD"] = "打开 Water Dispenser 选项界面。"
 
 L["OPTIONS_DISPENSE_HEADER"] = "分发"
-L["OPTIONS_DISPENSE_DESC"] = "在打开交易窗口时自动填充。每种范围均可独立切换。"
+L["OPTIONS_DISPENSE_DESC"] = "在交易窗口打开时自动填充。下方每个选项均可独立开关。"
 L["OPTIONS_DISPENSE_MASTER"] = "启用分发"
 L["OPTIONS_DISPENSE_MASTER_DESC"] = "根据你的设置自动填充交易窗口。"
 L["OPTIONS_DISPENSE_SOLO"] = "为陌生人填充"
@@ -75,32 +78,33 @@ L["OPTIONS_DISPENSE_RAID"] = "为团队成员填充"
 L["OPTIONS_DISPENSE_RAID_DESC"] = "当与团队成员交易时，自动填充交易窗口。"
 
 L["OPTIONS_COMBAT_HEADER"] = "战斗"
-L["OPTIONS_COMBAT_DESC"] = "为了防止出现界面错误，进入战斗时自动填充功能将始终暂停，并在聊天框发送提醒。脱离战斗后，如果交易窗口依然处于开启状态，交易将自动恢复。"
-
-L["OPTIONS_RESET_HEADER"] = "重置"
-L["OPTIONS_RESET_DESC"] = "将当前角色的所有 Water Dispenser 设置恢复为默认值，包括你的自定义物品列表。"
-L["OPTIONS_RESET_BUTTON"] = "重置所有选项"
-L["OPTIONS_RESET_CONFIRM"] = "你确定要将当前角色的所有 Water Dispenser 设置恢复为默认值吗？"
+L["OPTIONS_COMBAT_DESC"] =
+	"为了防止出现界面错误，进入战斗时自动填充功能将始终暂停，并在聊天框发送提醒。脱离战斗后，如果交易窗口依然处于开启状态，交易将自动恢复。"
 
 --------------------------------------------------------------------------------
 -- Options — Distribution Rules
 --------------------------------------------------------------------------------
 
 L["OPTIONS_ITEMS"] = "分发规则"
-L["OPTIONS_ITEMS_DESC"] = "配置要分发每种物品的堆叠数量。注意：永久 60 级和 TBC 纪念服不支持自动拆分堆叠。抱歉！"
+L["OPTIONS_ITEMS_DESC"] =
+	"配置要分发每种物品的堆叠数量。注意：永久 60 级和 TBC 纪念服不支持自动拆分堆叠。抱歉！"
 L["OPTIONS_ITEMS_EMPTY"] = "未配置物品。请打开“添加物品”标签页，从背包中添加消耗品。"
 
 L["OPTIONS_ITEM_SETTINGS"] = "物品设置"
 L["OPTIONS_ITEM_USE_NOT_FULL"] = "使用不完整的堆叠填充"
-L["OPTIONS_ITEM_USE_NOT_FULL_DESC"] = "当无法凑齐完整堆叠时，使用背包里现有的零散数量进行填充。"
+L["OPTIONS_ITEM_USE_NOT_FULL_DESC"] =
+	"当无法凑齐完整堆叠时，使用背包里现有的零散数量进行填充。"
 L["OPTIONS_ITEM_FACTOR_LEVEL"] = "考虑使用等级要求"
 L["OPTIONS_ITEM_FACTOR_LEVEL_DESC"] = "当交易对象未达到该物品的使用等级时，跳过该物品。"
 L["OPTIONS_ITEM_KEEP_AT_LEAST"] = "最少保留数量"
-L["OPTIONS_ITEM_KEEP_AT_LEAST_DESC"] = "包里始终至少保留这些数量。只有超过此数量的部分才会被视为可赠送的物品。"
+L["OPTIONS_ITEM_KEEP_AT_LEAST_DESC"] =
+	"包里始终至少保留这些数量。只有超过此数量的部分才会被视为可赠送的物品。"
 L["OPTIONS_ITEM_INCLUDE_QUANTITY"] = "在喊话宏中包含剩余数量"
-L["OPTIONS_ITEM_INCLUDE_QUANTITY_DESC"] = "当宏列出此物品时，包含你还剩下多少。如果你只想说你有该物品而不提数量（如治疗石），请关闭此选项。"
+L["OPTIONS_ITEM_INCLUDE_QUANTITY_DESC"] =
+	"当宏列出此物品时，包含你还剩下多少。如果你只想说你有该物品而不提数量（如治疗石），请关闭此选项。"
 L["OPTIONS_ITEM_PLAYER_CLASSES"] = "仅在游玩指定职业时分发"
-L["OPTIONS_ITEM_PLAYER_CLASSES_DESC"] = "仅当你的角色是以下所选职业时，才会填充该物品并将其加入喊话中。"
+L["OPTIONS_ITEM_PLAYER_CLASSES_DESC"] =
+	"仅当你的角色是以下所选职业时，才会填充该物品并将其加入喊话中。"
 L["OPTIONS_ITEM_REMOVE"] = "移除物品"
 L["OPTIONS_ITEM_REMOVE_CONFIRM"] = "是否从交易配置中移除此物品？"
 
@@ -109,7 +113,8 @@ L["OPTIONS_SCOPE_GROUP"] = "小队成员"
 L["OPTIONS_SCOPE_RAID"] = "团队成员"
 
 L["OPTIONS_ADD_ITEM"] = "添加物品"
-L["OPTIONS_ADD_DESC"] = "从背包中选择一个可交易的消耗品添加到配置中。已配置或已绑定的物品不会出现在此处。"
+L["OPTIONS_ADD_DESC"] =
+	"从背包中选择一个可交易的消耗品添加到配置中。已配置或已绑定的物品不会出现在此处。"
 L["OPTIONS_ADD_SELECT"] = "可用物品"
 L["OPTIONS_ADD_BUTTON"] = "添加到配置"
 L["OPTIONS_ADD_EMPTY"] = "背包中未找到符合条件的消耗品。"
@@ -119,12 +124,15 @@ L["OPTIONS_ADD_EMPTY"] = "背包中未找到符合条件的消耗品。"
 --------------------------------------------------------------------------------
 
 L["OPTIONS_ANNOUNCEMENTS"] = "喊话"
-L["OPTIONS_ANNOUNCEMENTS_DESC"] = "Water Dispenser 可以创建一个宏，喊出你可以提供的物品。宏会自动选择合适的频道（/说、/小队、/团队），并使用背包中的最新数量。"
+L["OPTIONS_ANNOUNCEMENTS_DESC"] =
+	"Water Dispenser 可以创建一个宏，喊出你可以提供的物品。宏会自动选择合适的频道（/说、/小队、/团队），并使用背包中的最新数量。"
 L["OPTIONS_ANNOUNCEMENTS_ENABLE"] = "启用喊话宏"
-L["OPTIONS_ANNOUNCEMENTS_ENABLE_DESC"] = "维护一个名为“- Dispenser”的角色专属宏，其中包含最新的分发列表。禁用此选项将删除该宏。"
+L["OPTIONS_ANNOUNCEMENTS_ENABLE_DESC"] =
+	"维护一个名为“- Dispenser”的角色专属宏，其中包含最新的分发列表。禁用此选项将删除该宏。"
 L["OPTIONS_ANNOUNCEMENTS_PREVIEW_HEADER"] = "实时预览"
 L["OPTIONS_ANNOUNCEMENTS_PREVIEW_DESC"] = "如果你现在点击宏，它将发送以下内容。"
-L["OPTIONS_ANNOUNCEMENTS_PREVIEW_EMPTY"] = "没有可喊话的内容。配置物品，补充背包，或降低“最少保留数量”的值。"
+L["OPTIONS_ANNOUNCEMENTS_PREVIEW_EMPTY"] =
+	"没有可喊话的内容。配置物品，补充背包，或降低“最少保留数量”的值。"
 
 -- Message-body fragments the macro stitches together.
 L["ANNOUNCEMENTS_INTRO"] = "我有"
@@ -140,11 +148,12 @@ L["SUPPORT_DESC"] = "在 Discord 上报告问题、请求功能或来打个招�
 L["SUPPORT_CURSEFORGE"] = "CurseForge"
 L["SUPPORT_GITHUB"] = "GitHub"
 L["SUPPORT_DISCORD"] = "Discord"
+L["SUPPORT_WAGO"] = "Wago"
 
 --------------------------------------------------------------------------------
 -- Built-in Collections
 --------------------------------------------------------------------------------
 
-L["ITEM_MAGE_WATER"] = "任何魔法制造的水"
-L["ITEM_MAGE_FOOD"] = "任何魔法制造的食物"
-L["ITEM_WARLOCK_HEALTHSTONE"] = "任何治疗石"
+L["ITEM_MAGE_WATER"] = "魔法制造的水"
+L["ITEM_MAGE_FOOD"] = "魔法制造的食物"
+L["ITEM_WARLOCK_HEALTHSTONE"] = "治疗石"

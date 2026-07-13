@@ -12,7 +12,7 @@ local inventory = nil
 --------------------------------------------------------------------------------
 
 function ns.GetInventoryItem(id)
-    return inventory and inventory[id] or nil
+	return inventory and inventory[id] or nil
 end
 
 --------------------------------------------------------------------------------
@@ -20,7 +20,7 @@ end
 --------------------------------------------------------------------------------
 
 local function ClearInventory()
-    inventory = nil
+	inventory = nil
 end
 ns.ClearInventory = ClearInventory
 
@@ -34,110 +34,120 @@ ns.ClearInventory = ClearInventory
     conjured water still announces it as MageWater.
 ]]
 local function ScanInventory()
-    local previous = inventory
-    inventory = {}
+	local previous = inventory
+	inventory = {}
 
-    for bag = BACKPACK_CONTAINER, NUM_BAG_SLOTS do
-        local slots = ns.GetContainerNumSlots(bag)
-        for slot = 1, slots do
-            local info = ns.GetContainerItemInfo(bag, slot)
-            if info then
-                local itemId = info.itemID
+	for bag = BACKPACK_CONTAINER, NUM_BAG_SLOTS do
+		local slots = ns.GetContainerNumSlots(bag)
+		for slot = 1, slots do
+			local info = ns.GetContainerItemInfo(bag, slot)
+			if info then
+				local itemId = info.itemID
 
-                local itemName, _, _, _, itemMinLevel, _, _, itemStackCount, _, itemIcon, _, itemClassID =
-                    ns.GetItemInfo(itemId)
+				local itemName, _, _, _, itemMinLevel, _, _, itemStackCount, _, itemIcon, _, itemClassID =
+					ns.GetItemInfo(itemId)
 
-                -- nil itemName = uncached item. Request a load so the next
-                -- scan is warm; don't trust the other returns this pass.
-                if not itemName and C_Item and C_Item.RequestLoadItemDataByID then
-                    C_Item.RequestLoadItemDataByID(itemId)
-                end
+				-- nil itemName = uncached item. Request a load so the next scan is warm; don't trust the other returns this pass.
+				if not itemName and C_Item and C_Item.RequestLoadItemDataByID then
+					C_Item.RequestLoadItemDataByID(itemId)
+				end
 
-                -- Track consumables. Collection and configured items are known
-                -- statically (tracked even while GetItemInfo is cold); others
-                -- wait for the class to resolve. No bindType gate — conjured
-                -- items report BoP but trade fine.
-                local collectionKey = ns.ITEM_TO_COLLECTION[itemId]
-                local isConfigured = ns.DB and ns.DB.Items and ns.DB.Items[itemId] ~= nil
-                local isConsumable = collectionKey ~= nil or isConfigured or itemClassID == ns.CONSUMABLE_ITEM_CLASS
+				--[[
+					Track consumables. Collection and configured items are known statically
+					(tracked even while GetItemInfo is cold); others wait for the class to
+					resolve. No bindType gate -- conjured items report BoP but trade fine.
+				]]
+				local collectionKey = ns.ITEM_TO_COLLECTION[itemId]
+				local isConfigured = ns.db and ns.db.profile.Items and ns.db.profile.Items[itemId] ~= nil
+				local isConsumable = collectionKey ~= nil or isConfigured or itemClassID == ns.CONSUMABLE_ITEM_CLASS
 
-                if isConsumable then
-                    -- One entry per item ID; ranks of a collection stay
-                    -- separate and BestRankItemId picks across them.
-                    local rank = collectionKey and ns.ITEM_RANK[itemId] or nil
-                    local effectiveLevel = ns.ITEM_LEVEL[itemId] or itemMinLevel or 0
+				if isConsumable then
+					-- One entry per item ID; ranks of a collection stay separate and BestRankItemId picks across them.
+					local rank = collectionKey and ns.ITEM_RANK[itemId] or nil
+					local effectiveLevel = ns.ITEM_LEVEL[itemId] or itemMinLevel or 0
 
-                    if not inventory[itemId] then
-                        inventory[itemId] = {
-                            Id = itemId,
-                            Link = info.hyperlink,
-                            Name = itemName,
-                            Icon = itemIcon,
-                            Level = effectiveLevel,
-                            Collection = collectionKey,
-                            Rank = rank,
-                            Bags = {}
-                        }
-                    else
-                        -- Backfill only missing fields so a cold GetItemInfo
-                        -- can't blank out good values; tag the collection here
-                        -- for players who have the item but not the spell.
-                        local existing = inventory[itemId]
-                        if collectionKey and not existing.Collection then
-                            existing.Collection = collectionKey
-                            existing.Rank = rank
-                        end
-                        existing.Link = existing.Link or info.hyperlink
-                        existing.Name = existing.Name or itemName
-                        existing.Icon = existing.Icon or itemIcon
-                        if (not existing.Level or existing.Level == 0) and effectiveLevel > 0 then
-                            existing.Level = effectiveLevel
-                        end
-                    end
+					if not inventory[itemId] then
+						inventory[itemId] = {
+							Id = itemId,
+							Link = info.hyperlink,
+							Name = itemName,
+							Icon = itemIcon,
+							Level = effectiveLevel,
+							Collection = collectionKey,
+							Rank = rank,
+							-- True once any tradable (unbound) slot is seen. Drives the Add Item picker and user-item announcement counts.
+							HasUnbound = false,
+							Bags = {},
+						}
+					else
+						--[[
+							Backfill only missing fields so a cold GetItemInfo can't blank out good
+							values; tag the collection here for players who have the item but not the spell.
+						]]
+						local existing = inventory[itemId]
+						if collectionKey and not existing.Collection then
+							existing.Collection = collectionKey
+							existing.Rank = rank
+						end
+						existing.Link = existing.Link or info.hyperlink
+						existing.Name = existing.Name or itemName
+						existing.Icon = existing.Icon or itemIcon
+						if (not existing.Level or existing.Level == 0) and effectiveLevel > 0 then
+							existing.Level = effectiveLevel
+						end
+					end
 
-                    -- Max stack is nil while uncached; treat unknown as full so a
-                    -- genuine full stack isn't skipped for full-stack-only items.
-                    -- The next warm scan corrects it.
-                    local slotCount = info.stackCount or 0
-                    local isFull = true
-                    if itemStackCount then
-                        isFull = slotCount == itemStackCount
-                    end
-                    table.insert(
-                        inventory[itemId].Bags,
-                        {
-                            Bag = bag,
-                            Slot = slot,
-                            Count = slotCount,
-                            Full = isFull
-                        }
-                    )
-                end
-            end
-        end
-    end
+					--[[
+						Max stack is nil while uncached; treat unknown as full so a genuine full
+						stack isn't skipped for full-stack-only items. The next warm scan corrects it.
+					]]
+					local slotCount = info.stackCount or 0
+					local isFull = true
+					if itemStackCount then
+						isFull = slotCount == itemStackCount
+					end
 
-    if not previous then
-        return true
-    end
-    for id, item in pairs(inventory) do
-        local prev = previous[id]
-        if not prev or #item.Bags ~= #prev.Bags then
-            return true
-        end
-        for i, bagEntry in ipairs(item.Bags) do
-            local prevEntry = prev.Bags[i]
-            if not prevEntry or bagEntry.Count ~= prevEntry.Count then
-                return true
-            end
-        end
-    end
-    for id in pairs(previous) do
-        if not inventory[id] then
-            return true
-        end
-    end
-    return false
+					--[[
+						Soulbound slots can't be traded. Built-in collections are exempt downstream
+						(conjured items report bound but trade fine); this flag gates only user-added items.
+					]]
+					local bound = info.isBound and true or false
+					table.insert(inventory[itemId].Bags, {
+						Bag = bag,
+						Slot = slot,
+						Count = slotCount,
+						Full = isFull,
+						Bound = bound,
+					})
+					if not bound then
+						inventory[itemId].HasUnbound = true
+					end
+				end
+			end
+		end
+	end
+
+	if not previous then
+		return true
+	end
+	for id, item in pairs(inventory) do
+		local prev = previous[id]
+		if not prev or #item.Bags ~= #prev.Bags then
+			return true
+		end
+		for i, bagEntry in ipairs(item.Bags) do
+			local prevEntry = prev.Bags[i]
+			if not prevEntry or bagEntry.Count ~= prevEntry.Count then
+				return true
+			end
+		end
+	end
+	for id in pairs(previous) do
+		if not inventory[id] then
+			return true
+		end
+	end
+	return false
 end
 ns.ScanInventory = ScanInventory
 
@@ -151,11 +161,11 @@ ns.ScanInventory = ScanInventory
 ]]
 local lastDisplayScan = nil
 local function ScanInventoryForDisplay()
-    local now = GetTime and GetTime()
-    if inventory == nil or now == nil or now ~= lastDisplayScan then
-        ScanInventory()
-        lastDisplayScan = now
-    end
+	local now = GetTime and GetTime()
+	if inventory == nil or now == nil or now ~= lastDisplayScan then
+		ScanInventory()
+		lastDisplayScan = now
+	end
 end
 
 --------------------------------------------------------------------------------
@@ -164,80 +174,91 @@ end
 
 -- Total individual items across all bag slots (announcement counts, not stacks).
 local function TotalItemCount(inv)
-    local total = 0
-    for _, bagEntry in ipairs(inv.Bags) do
-        total = total + (bagEntry.Count or 0)
-    end
-    return total
+	local total = 0
+	for _, bagEntry in ipairs(inv.Bags) do
+		total = total + (bagEntry.Count or 0)
+	end
+	return total
 end
 ns.TotalItemCount = TotalItemCount
 
--- Highest-rank item the player has stacks of in a collection, or nil. With a
--- levelLimit, only entries usable at that level count; if none fit, falls back
--- to the lowest rank held so a low-level partner gets the closest usable option.
+-- Total individual items across tradable (unbound) slots only, so a user-item announcement never advertises what can't be given.
+local function UnboundItemCount(inv)
+	local total = 0
+	for _, bagEntry in ipairs(inv.Bags) do
+		if not bagEntry.Bound then
+			total = total + (bagEntry.Count or 0)
+		end
+	end
+	return total
+end
+
+--[[
+	Highest-rank item the player has stacks of in a collection, or nil. With a
+	levelLimit, only entries usable at that level count; if none fit, falls back
+	to the lowest rank held so a low-level partner gets the closest usable option.
+]]
 local function BestRankItemId(collectionKey, levelLimit)
-    local bestId, bestRank = nil, -1
-    for id, item in pairs(inventory or {}) do
-        if item.Collection == collectionKey and #item.Bags > 0 then
-            local rank = item.Rank or 0
-            if rank > bestRank and (not levelLimit or (item.Level or 0) <= levelLimit) then
-                bestId, bestRank = id, rank
-            end
-        end
-    end
-    if bestId or not levelLimit then
-        return bestId
-    end
-    local fallbackId, fallbackLevel = nil, math.huge
-    for id, item in pairs(inventory or {}) do
-        if item.Collection == collectionKey and #item.Bags > 0 then
-            local level = item.Level or 0
-            if level < fallbackLevel then
-                fallbackId, fallbackLevel = id, level
-            end
-        end
-    end
-    return fallbackId
+	local bestId, bestRank = nil, -1
+	for id, item in pairs(inventory or {}) do
+		if item.Collection == collectionKey and #item.Bags > 0 then
+			local rank = item.Rank or 0
+			if rank > bestRank and (not levelLimit or (item.Level or 0) <= levelLimit) then
+				bestId, bestRank = id, rank
+			end
+		end
+	end
+	if bestId or not levelLimit then
+		return bestId
+	end
+	local fallbackId, fallbackLevel = nil, math.huge
+	for id, item in pairs(inventory or {}) do
+		if item.Collection == collectionKey and #item.Bags > 0 then
+			local level = item.Level or 0
+			if level < fallbackLevel then
+				fallbackId, fallbackLevel = id, level
+			end
+		end
+	end
+	return fallbackId
 end
 ns.BestRankItemId = BestRankItemId
 
--- Inventory entries for a collection the partner can use, ordered best (highest)
--- rank first, so a fill can cascade down through ranks. Only ranks usable at
--- levelLimit are included -- handing over water/food above the partner's level is
--- useless to them. If none qualify (the partner is below every rank held, or no
--- level is known), the single lowest-rank stack on hand is returned as the
--- closest usable option.
+--[[
+	Inventory entries for a collection the partner can use, ordered best (highest)
+	rank first, so a fill can cascade down through ranks. Only ranks usable at
+	levelLimit are included -- handing over water/food above the partner's level is
+	useless to them. If none qualify (partner below every rank held, or no level
+	known), the single lowest-rank stack on hand is returned as the closest option.
+]]
 local function UsableRankEntries(collectionKey, levelLimit)
-    local entries = {}
-    if levelLimit and levelLimit > 0 then
-        for _, item in pairs(inventory or {}) do
-            if item.Collection == collectionKey and #item.Bags > 0 and (item.Level or 0) <= levelLimit then
-                entries[#entries + 1] = item
-            end
-        end
-    end
+	local entries = {}
+	if levelLimit and levelLimit > 0 then
+		for _, item in pairs(inventory or {}) do
+			if item.Collection == collectionKey and #item.Bags > 0 and (item.Level or 0) <= levelLimit then
+				entries[#entries + 1] = item
+			end
+		end
+	end
 
-    if #entries == 0 then
-        local lowest
-        for _, item in pairs(inventory or {}) do
-            if item.Collection == collectionKey and #item.Bags > 0 then
-                if not lowest or (item.Level or 0) < (lowest.Level or 0) then
-                    lowest = item
-                end
-            end
-        end
-        if lowest then
-            entries[1] = lowest
-        end
-    end
+	if #entries == 0 then
+		local lowest
+		for _, item in pairs(inventory or {}) do
+			if item.Collection == collectionKey and #item.Bags > 0 then
+				if not lowest or (item.Level or 0) < (lowest.Level or 0) then
+					lowest = item
+				end
+			end
+		end
+		if lowest then
+			entries[1] = lowest
+		end
+	end
 
-    table.sort(
-        entries,
-        function(a, b)
-            return (a.Rank or 0) > (b.Rank or 0)
-        end
-    )
-    return entries
+	table.sort(entries, function(a, b)
+		return (a.Rank or 0) > (b.Rank or 0)
+	end)
+	return entries
 end
 ns.UsableRankEntries = UsableRankEntries
 
@@ -246,32 +267,27 @@ ns.UsableRankEntries = UsableRankEntries
 --------------------------------------------------------------------------------
 
 function ns.GetAvailableItemsToAdd()
-    ScanInventoryForDisplay()
-    local list = {}
-    if not inventory then
-        return list
-    end
-    for id, item in pairs(inventory) do
-        local isCollectionItem = item.Collection ~= nil
-        local isConfigured = ns.DB.Items[id] ~= nil
-        if not isCollectionItem and not isConfigured then
-            table.insert(
-                list,
-                {
-                    Id = id,
-                    Name = item.Name,
-                    Icon = item.Icon
-                }
-            )
-        end
-    end
-    table.sort(
-        list,
-        function(a, b)
-            return (a.Name or "") < (b.Name or "")
-        end
-    )
-    return list
+	ScanInventoryForDisplay()
+	local list = {}
+	if not inventory then
+		return list
+	end
+	for id, item in pairs(inventory) do
+		local isCollectionItem = item.Collection ~= nil
+		local isConfigured = ns.db.profile.Items[id] ~= nil
+		-- Only offer items with at least one tradable copy, matching the L["OPTIONS_ADD_DESC"] promise that soulbound items won't appear.
+		if not isCollectionItem and not isConfigured and item.HasUnbound then
+			table.insert(list, {
+				Id = id,
+				Name = item.Name,
+				Icon = item.Icon,
+			})
+		end
+	end
+	table.sort(list, function(a, b)
+		return (a.Name or "") < (b.Name or "")
+	end)
+	return list
 end
 
 --------------------------------------------------------------------------------
@@ -286,81 +302,73 @@ end
     omitted. IncludeQuantity is the per-item "show count" toggle.
 ]]
 function ns.BuildAnnouncementSnapshot()
-    ScanInventoryForDisplay()
+	ScanInventoryForDisplay()
 
-    local entries = {}
-    if not inventory or not ns.DB or not ns.DB.Items then
-        return entries
-    end
+	local entries = {}
+	if not inventory or not ns.db or not ns.db.profile.Items then
+		return entries
+	end
 
-    -- Built-in collections first, in stable display order.
-    for _, key in ipairs(ns.BUILTIN_ORDER) do
-        local itemConfig = ns.DB.Items[key]
-        if itemConfig and ns.IsItemActiveForPlayer(itemConfig) then
-            local bestId = BestRankItemId(key)
-            local inv = bestId and inventory[bestId] or nil
-            if inv and #inv.Bags > 0 then
-                local total = TotalItemCount(inv)
-                local keep = itemConfig.KeepAtLeast or 0
-                local count = math.max(0, total - keep)
-                if count > 0 then
-                    -- Default true when missing (old saved data).
-                    local includeQty = itemConfig.IncludeQuantity
-                    if includeQty == nil then
-                        includeQty = true
-                    end
-                    table.insert(
-                        entries,
-                        {
-                            Link = inv.Link or ("[" .. (inv.Name or "?") .. "]"),
-                            Name = inv.Name,
-                            Count = count,
-                            IncludeQuantity = includeQty,
-                            Collection = key
-                        }
-                    )
-                end
-            end
-        end
-    end
+	-- Built-in collections first, in stable display order.
+	for _, key in ipairs(ns.BUILTIN_ORDER) do
+		local itemConfig = ns.db.profile.Items[key]
+		if itemConfig and ns.IsItemActiveForPlayer(itemConfig) then
+			local bestId = BestRankItemId(key)
+			local inv = bestId and inventory[bestId] or nil
+			if inv and #inv.Bags > 0 then
+				local total = TotalItemCount(inv)
+				local keep = itemConfig.KeepAtLeast or 0
+				local count = math.max(0, total - keep)
+				if count > 0 then
+					-- Default true when missing (old saved data).
+					local includeQty = itemConfig.IncludeQuantity
+					if includeQty == nil then
+						includeQty = true
+					end
+					table.insert(entries, {
+						Link = inv.Link or ("[" .. (inv.Name or "?") .. "]"),
+						Name = inv.Name,
+						Count = count,
+						IncludeQuantity = includeQty,
+						Collection = key,
+					})
+				end
+			end
+		end
+	end
 
-    -- User-added items, sorted by name.
-    local custom = {}
-    for id, itemConfig in pairs(ns.DB.Items) do
-        if not ns.COLLECTION_META[id] and ns.IsItemActiveForPlayer(itemConfig) then
-            local inv = inventory[id]
-            if inv and #inv.Bags > 0 then
-                local total = TotalItemCount(inv)
-                local keep = itemConfig.KeepAtLeast or 0
-                local count = math.max(0, total - keep)
-                if count > 0 then
-                    local includeQty = itemConfig.IncludeQuantity
-                    if includeQty == nil then
-                        includeQty = true
-                    end
-                    table.insert(
-                        custom,
-                        {
-                            Link = inv.Link or ("[" .. (inv.Name or "?") .. "]"),
-                            Name = inv.Name or tostring(id),
-                            Count = count,
-                            IncludeQuantity = includeQty,
-                            Collection = nil
-                        }
-                    )
-                end
-            end
-        end
-    end
-    table.sort(
-        custom,
-        function(a, b)
-            return (a.Name or "") < (b.Name or "")
-        end
-    )
-    for _, entry in ipairs(custom) do
-        table.insert(entries, entry)
-    end
+	-- User-added items, sorted by name.
+	local custom = {}
+	for id, itemConfig in pairs(ns.db.profile.Items) do
+		if not ns.COLLECTION_META[id] and ns.IsItemActiveForPlayer(itemConfig) then
+			local inv = inventory[id]
+			if inv and #inv.Bags > 0 then
+				-- Only tradable copies count: soulbound ones can't be given.
+				local total = UnboundItemCount(inv)
+				local keep = itemConfig.KeepAtLeast or 0
+				local count = math.max(0, total - keep)
+				if count > 0 then
+					local includeQty = itemConfig.IncludeQuantity
+					if includeQty == nil then
+						includeQty = true
+					end
+					table.insert(custom, {
+						Link = inv.Link or ("[" .. (inv.Name or "?") .. "]"),
+						Name = inv.Name or tostring(id),
+						Count = count,
+						IncludeQuantity = includeQty,
+						Collection = nil,
+					})
+				end
+			end
+		end
+	end
+	table.sort(custom, function(a, b)
+		return (a.Name or "") < (b.Name or "")
+	end)
+	for _, entry in ipairs(custom) do
+		table.insert(entries, entry)
+	end
 
-    return entries
+	return entries
 end
