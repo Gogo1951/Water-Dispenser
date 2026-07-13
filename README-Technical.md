@@ -14,7 +14,7 @@ Water-Dispenser/
 ├── Data/
 │   ├── Data.lua                         Locale handle, colors, classes, URLs, option-registry IDs, icon coords
 │   ├── Collections.lua                  Built-in collections: item/spell/rank/level tables + ns.COLLECTION_META
-│   └── Default-Settings.lua             ns.DEFAULT_CONFIGURATION — per-character defaults
+│   └── Default-Settings.lua             ns.DATABASE_DEFAULTS — AceDB profile/global defaults
 ├── Features/
 │   ├── Core.lua                         Shared ns.State, version, event dispatcher, PLAYER_LOGIN lifecycle
 │   ├── Utilities.lua                    API shims, color/class helpers, collection reverse-lookups, SavedVariables + migrations
@@ -29,8 +29,9 @@ Water-Dispenser/
 │   ├── Options-General.lua              General page (auto-fill toggles, support links)
 │   ├── Options-Distribution-Rules.lua   Per-item rules: per-class stack sliders, settings, class filter, add-item
 │   ├── Options-Announcements.lua        Announcement-macro toggle + live preview
+│   ├── Options-Profiles.lua             Stock AceDBOptions-3.0 profiles panel
 │   ├── Options-Diagnostics.lua          Diagnostic Tools panel
-│   └── Options.lua                      Slash commands (/wd, /waterdispenser) + InitOptions orchestration
+│   └── Options.lua                      Slash commands (/wd, /waterdispenser) + ns.RegisterOptionsPanels orchestration
 ├── Includes/                            Bundled libraries (LibStub, Ace3, LibDataBroker, LibDBIcon, CallbackHandler)
 └── Locales/
     ├── enUS.lua                         English strings + default fallback (NewLocale(..., true))
@@ -39,8 +40,8 @@ Water-Dispenser/
 
 The `.toc` load order is `Includes → Locales → Data → Features → Options`. Two ordering constraints matter:
 
-- Within `Features`, `Core.lua` loads first (it defines `ns.State` and `ns.RegisterEvent`), and `Utilities.lua` next (it builds the collection reverse-lookups from `Data/Collections.lua` and owns `InitDB`).
-- Within `Options`, `Options-Utilities.lua` loads first (it defines the shared `ns.OptionsDesc` / `ns.OptionsSpacer` helpers the sub-pages use) and `Options.lua` loads last, so its `InitOptions` can call each sub-page's `ns.InitOptions*` registrar.
+- Within `Features`, `Core.lua` loads first (it defines `ns.State`, `ns.RegisterEvent`, and `SetupDatabase`), and `Utilities.lua` next (it builds the collection reverse-lookups from `Data/Collections.lua` and owns the legacy migrations and `ns.RefreshCollectionMeta`).
+- Within `Options`, `Options-Utilities.lua` loads first (it defines the shared `ns.OptionsDesc` / `ns.OptionsSpacer` helpers the sub-pages use) and `Options.lua` loads last, so its `ns.RegisterOptionsPanels` can register each sub-page's `ns.Build*Options` builder.
 
 No dead or deprecated files — keep it that way.
 
@@ -54,7 +55,7 @@ No dead or deprecated files — keep it that way.
 
 Events handled:
 
-- `PLAYER_LOGIN` (Core) — runs `InitDB`, then each module's `Init*()`, then prints the welcome message if opted in.
+- `PLAYER_LOGIN` (Core) — runs `SetupDatabase` (AceDB creation + legacy seed), registers the options panels, runs each feature module's `Init*()`, then prints the welcome message if opted in.
 - `TRADE_SHOW` / `TRADE_CLOSED` (Dispenser) — captures or clears the partner's class, level, and group state; attaches/detaches the side panel; kicks off auto-fill if the matching Dispense toggle is on.
 - `BAG_UPDATE` (Dispenser) — retries the fill if a previous attempt flagged `ns.State.MissingStack`.
 - `SPELLS_CHANGED` (Dispenser) — pre-warms the item cache (see **Item Data Caching**). Fires on login and on any spellbook change, including learning a rank, so it covers the prewarm on its own. (The old `LEARNED_SPELL_IN_TAB` companion was dropped: redundant here, and not a valid event on TBC 2.5.5.)
@@ -135,7 +136,7 @@ The whole lifecycle runs through `SyncMacroState`, invoked via a debounced `Sche
 
 ### 255-Character Macro Body
 
-`BuildMacroBody` prepends the channel slash (`/raid`, `/p`, or `/s`) to the message. If the result exceeds 255 characters it truncates at the last comma that fits and appends ` ...`, never slicing through a bracketed item name like `[Crystal Wa...`. With item hyperlinks averaging 50–60 characters, truncation kicks in around three or four items — walk this worst case (full hyperlinks, longest spell names) before changing the body composition.
+`BuildMacroBody` prepends the channel slash (`/raid`, `/p`, or `/s`). If the full message fits the 255-**byte** `SendChatMessage` limit it is sent as-is (the list joined with a localized "and", closed by the outro). If not, it is rebuilt from the parts list: the decorated prefix (channel + marker + title + separator + intro) is laid down once, then whole item parts (link + optional count) are appended with `, ` joiners while the running byte total stays within 255 minus the ` ...` reserve; the first part that would overflow stops the loop and ` ...` is appended. Truncation happens only at **part boundaries** — never inside an item link (which `SendChatMessage` rejects), and never via a comma search, since item names can themselves contain commas. Byte length, not character count, is what governs: `#string` counts bytes, matching the client's limit. With item hyperlinks averaging 50–60 bytes, truncation kicks in around three or four items — walk this worst case (full hyperlinks, longest names) before changing the body composition.
 
 The macro name is deliberately short: WoW silently truncates macro names past 16 characters, so `- Dispenser` (11) was chosen over `- Water Dispenser` (17), and the leading `- ` sorts it to the top of the macro list.
 
@@ -149,26 +150,36 @@ The macro name is deliberately short: WoW silently truncates macro names past 16
 
 ## Saved Variables
 
-Two tables, declared in the `.toc`:
+One account-wide table, `WaterDispenserDB`, managed by **AceDB-3.0** (declared in the `.toc`). AceDB owns the standard `profiles` / `global` / `profileKeys` structure:
 
-- **`WaterDispenserDB`** (account-wide) — `minimap` (the table LibDBIcon reads, e.g. `minimap.hide`) and `WelcomeMessage` (the login greeting toggle). `WelcomeMessage` moved here from per-character; `InitDB` seeds the account value once from any legacy per-character setting, then clears the old key.
-- **`WaterDispenserCharDB`** (per-character) — `Version`, `MissingStackWarnings`, the `Dispense` / `DispenseSolo` / `DispenseGroup` / `DispenseRaid` toggles, `Announcements.Enabled`, and `Items`. Each `Items` entry (built-in `MageWater` / `MageFood` / `WarlockHealthstone` plus any user-added numeric IDs) holds `UseNotFullStack`, `FactorLevel`, `KeepAtLeast`, `IncludeQuantity`, `PlayerClasses`, and per-class `Solo` / `Group` / `Raid` stack counts; built-ins also carry `NoRemove`, `Name`, `Icon`.
+- **`ns.db.profile`** — every user setting: `showWelcome`, `MissingStackWarnings`, the `Dispense` / `DispenseSolo` / `DispenseGroup` / `DispenseRaid` toggles, `Announcements.Enabled`, and `Items`. Each `Items` entry (built-in `MageWater` / `MageFood` / `WarlockHealthstone` plus any user-added numeric IDs) holds `UseNotFullStack`, `FactorLevel`, `KeepAtLeast`, `IncludeQuantity`, `PlayerClasses`, and per-class `Solo` / `Group` / `Raid` stack counts; built-ins also carry `NoRemove`, `Name`, `Icon`.
+- **`ns.db.global`** — only `minimap` (the table LibDBIcon reads, e.g. `minimap.hide`), account-wide and profile-independent so switching or resetting profiles never moves the button.
 
-`InitDB` (Utilities.lua) seeds the account-wide `WelcomeMessage`, runs the migration chain in order, applies `EnsureDefaults`, then refreshes each built-in collection's `Name` / `Icon` / `NoRemove` so they follow code rather than stale saved data.
+Every character starts on one shared **Default** profile (`AceDB:New("WaterDispenserDB", ns.DATABASE_DEFAULTS, true)` — the `true` is mandatory). Per-character setups are opt-in via the stock **Profiles** panel (`Options/Options-Profiles.lua`, the unmodified AceDBOptions-3.0 table). Reset is the stock **Reset Profile** on that panel; there is no custom reset. Defaults live in `ns.DATABASE_DEFAULTS` (`Data/Default-Settings.lua`) and are applied by AceDB via metatables — no hand-merge.
 
-### Migration Chain
+`Features/Core.lua` (`SetupDatabase`, run on `PLAYER_LOGIN`) creates the database, seeds the profile from any legacy data (below), calls `ns.RefreshCollectionMeta()` to point each built-in collection's `Name` / `Icon` / `NoRemove` at code rather than stored data, and registers `OnProfileChanged` / `OnProfileCopied` / `OnProfileReset` callbacks that re-run that refresh, rebuild the Distribution Rules panel, and resync the announcement macro on any profile switch.
+
+**`PlayerClasses` is stored explicitly.** A class the player unchecks is written as an explicit `false`, never `nil` — AceDB re-supplies a missing key from the built-in default (e.g. `MageWater`'s `MAGE = true`), so an unchecked class must be a concrete `false` or it would reappear next login.
+
+### Legacy Migration (temporary — remove after 2026-10-12)
+
+The pre-AceDB build kept two raw tables: account-wide `WaterDispenserDB` (with root-level `minimap` and `WelcomeMessage`) and per-character `WaterDispenserCharDB` (`Version`, the toggles, `Items`, `Announcements`). `SetupDatabase` folds these into AceDB on first login, per the "first login seeds Default" ruling:
+
+- The account-wide flag `ns.db.global.legacySeedDone` makes the seed a one-time move. The **first** character to log in runs the v4 → v11 chain (`ns.RunLegacyMigrations`, Utilities.lua) against its own `WaterDispenserCharDB`, copies the normalized toggles / `Announcements` / `Items` into `ns.db.profile`, and seeds `showWelcome` from the legacy account `WelcomeMessage`. **Later** characters skip the seed and inherit Default.
+- Every character clears its `WaterDispenserCharDB` after the check, and the stray root `WaterDispenserDB.minimap` / `.WelcomeMessage` keys are moved to their new homes and niled.
+- The `.toc` keeps `SavedVariablesPerCharacter: WaterDispenserCharDB` listed (tagged) so the client still loads the legacy table for the seed.
+
+The whole path — the tagged blocks in `Core.lua`, `ns.RunLegacyMigrations` and the seven `Migrate*` steps in `Utilities.lua`, the legacy dump in `Diagnostics.lua`, and the `.toc` line — is deleted when the window closes.
+
+The v4 → v11 chain, applied only to a legacy table before its values are folded in:
 
 1. `MigrateToStacks` (≤ v4 → v5) — older builds tracked per-class item *counts*; Classic Era can't split partial stacks from an addon, so counts are divided by stack size into stack counts. v3 data already stored stacks, so it just bumps the version.
 2. `MigrateAddPerItemRules` (v5 → v6) — adds `FactorLevel` and `KeepAtLeast`, defaulting to off / 0.
 3. `MigrateAddIncludeQuantity` (v6 → v7) — adds `IncludeQuantity`, true for everything except healthstones.
-4. `MigrateAddPlayerClasses` (v7 → v8) — adds `PlayerClasses` to user-added items (all classes); built-ins get their canonical restriction via `EnsureDefaults`.
+4. `MigrateAddPlayerClasses` (v7 → v8) — adds `PlayerClasses` to user-added items (all classes); built-ins get their canonical restriction from `ns.DATABASE_DEFAULTS` via AceDB.
 5. `MigrateConjuredPartialStacks` (v8 → v9) — set `UseNotFullStack` for `MageWater` and `MageFood` (later reversed by v11).
 6. `MigrateRenameDispenseFields` (v9 → v10) — renames the `AutoFill*` toggles to `Dispense*`, carrying each character's choice forward.
 7. `MigrateConjuredFullStacksOnly` (v10 → v11) — clears `UseNotFullStack` on `MageWater` / `MageFood`: the restack now consolidates conjured partials into full stacks, so the built-in collections dispense full stacks only.
-
-When adding a migration, append it to `InitDB` and bump `Version` (currently `11`); since `EnsureDefaults` runs after migrations, a newly-introduced field can pick up a default the same release. Note that `EnsureDefaults` only fills nil fields, so changes to default *values* (e.g. raising `KeepAtLeast` to 20 for Mage Water) land only for fresh characters — existing characters keep their stored value until a global Reset.
-
-> `EnsureDefaults` runs *after* migrations; fills nil fields only; never overrides explicit user values. The one exception is `PlayerClasses`, treated as atomic (`ATOMIC_DEFAULT_KEYS`): it is seeded whole only when an item has none, and never deep-merged — otherwise a class the player unchecked would be re-added every login.
 
 ---
 
@@ -177,7 +188,7 @@ When adding a migration, append it to `InitDB` and bump `Version` (currently `11
 1. Add the spell-ID and item-ID maps to `ns.COLLECTIONS` in `Data/Collections.lua`. Each `Items` row is a **positional array** — `[itemId] = {rank, level}` for water/food, `[itemId] = {rank, level, heal}` for healthstones: `[1]` rank (in-collection tier, 1 = lowest, shared by horizontal variants), `[2]` level (player level required to *use* it — authoritative, bypasses wonky `GetItemInfo` data), `[3]` heal (healthstone-only, informational). Each `Spells` row is `[spellId] = rank`. Keep the one-line column-legend comment above each table. The reverse-lookups (`ns.ITEM_TO_COLLECTION`, `ns.ITEM_RANK`, `ns.ITEM_LEVEL`, `ns.SPELL_TO_COLLECTION`) are built in `Utilities.lua` by index (`meta[1]`, `meta[2]`), so any column-order change must be mirrored there.
 2. Add an entry to `ns.COLLECTION_META` (`Data/Collections.lua`) with a `NameKey` (locale string) and `Icon`; set `Unique = true` for items that only ever trade 0 or 1 (healthstones). The key must match the `ns.COLLECTIONS` key.
 3. Add the collection key to `ns.BUILTIN_ORDER` in the position you want it in the Distribution Rules sidebar and the announcement message.
-4. Add the default config to `ns.DEFAULT_CONFIGURATION.Items[key]` in `Data/Default-Settings.lua` — `NoRemove = true`, the per-item flags (`UseNotFullStack`, `FactorLevel`, `KeepAtLeast`, `IncludeQuantity`), `PlayerClasses`, and the `Solo` / `Group` / `Raid` per-class stack counts.
+4. Add the default config to `ns.DATABASE_DEFAULTS.profile.Items[key]` in `Data/Default-Settings.lua` — `NoRemove = true`, the per-item flags (`UseNotFullStack`, `FactorLevel`, `KeepAtLeast`, `IncludeQuantity`), `PlayerClasses`, and the `Solo` / `Group` / `Raid` per-class stack counts.
 5. Add the locale key (`L["ITEM_*"]`) and any new chat strings to `Locales/enUS.lua`. Watch length: announcement strings feed the **255-character macro body**, and German (the usual overflow canary) runs long — re-check truncation with the longest translation.
 
 The restack trigger picks up the new collection automatically once `c.Spells` is populated, since `ns.SPELL_TO_COLLECTION` is rebuilt from it.
@@ -202,7 +213,7 @@ German is the usual overflow canary — after translating, sanity-check that the
 - **Re-gating the collection rank cap on `FactorLevel`**: don't. For built-in collections the partner-level cap is intrinsic, and the `FactorLevel` toggle is hidden for them — it governs only single-rank user-added items.
 - **Splitting partial stacks**: Classic Era's `C_Container.SplitContainerItem` ignores its `count` from an addon. The code tracks bag *slots* as "stacks" because of this — you can't split.
 - **Assuming an event or legacy global exists on every client**: `LEARNED_SPELL_IN_TAB` is invalid on TBC; the `GetContainerNumSlots` / `PickupContainerItem` globals are gone on both Era and TBC (use `C_Container`). Register events through `ns.RegisterEvent` (it `pcall`-guards) and resolve APIs through the shims in `Utilities.lua`.
-- **Macro names past 16 chars / bodies past 255 chars**: both silently truncated by the client. Keep `MACRO_NAME` short; rely on `BuildMacroBody`'s comma-boundary truncation and re-walk the worst case before changing the body.
+- **Macro names past 16 chars / bodies past 255 bytes**: both silently truncated by the client. Keep `MACRO_NAME` short; rely on `BuildMacroBody`'s part-boundary truncation (never mid-link) and re-walk the worst case before changing the body.
 
 ---
 
@@ -221,7 +232,7 @@ When opening a PR:
 
 - Keep changes scoped — one concern per PR.
 - Match the existing style (4-space indent, no trailing whitespace, 80-char dashed dividers between logical sections; see the project's Add-on Coding & Style Guide).
-- If you change saved-variable structure, append a migration to `InitDB` and bump `Version`.
+- If you add a saved-variable field, add it to `ns.DATABASE_DEFAULTS` — AceDB applies it via metatables. For a reshaping change (renamed or moved keys), add a dated migration in `SetupDatabase` following the SavedVariables migration-window rule in the style guide.
 - If you change the macro body, walk the worst-case 255-character check with full item hyperlinks and the longest spell names.
 - Update this document if the architecture or file map changes.
 - **Write commit and PR descriptions as a User Story.** Don't just say "I changed X." Frame it by who it helps and why:
