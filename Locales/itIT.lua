@@ -17,9 +17,9 @@ L["ADDON_TITLE"] = "Water Dispenser"
 L["CHAT_LOADED"] =
 	"Versione %s. Le impostazioni (inclusa l'opzione per disattivare questo messaggio) si trovano in Opzioni > AddOns > Water Dispenser. Ti piace Water Dispenser? Dillo a un amico! (="
 L["CHAT_NO_TRADE"] = "Nessuna finestra di scambio attiva."
-L["CHAT_COMBAT_PAUSED"] = "Riempimento automatico in pausa in combattimento."
-L["CHAT_COMBAT_RESUMED"] = "Combattimento terminato. Ripresa del riempimento."
-L["CHAT_MISSING_STACK"] = "Pile mancanti:"
+L["CHAT_COMBAT_PAUSED"] = "Distribuzione in pausa in combattimento."
+L["CHAT_COMBAT_RESUMED"] = "Combattimento terminato. Ripresa della distribuzione."
+L["CHAT_MISSING_STACK"] = "Mancante:"
 L["CHAT_NONE_ACTIVE_FOR_CLASS"] =
 	"Nessun oggetto è impostato per essere distribuito mentre giochi come %s. Apri Opzioni > Regole di Distribuzione per abilitare gli oggetti per questa classe."
 L["CHAT_ITEM_SAVED"] = "Salvato:"
@@ -68,7 +68,7 @@ L["OPTIONS_COMMANDS_WD"] = "Apre il pannello delle opzioni di Water Dispenser."
 
 L["OPTIONS_DISPENSE_HEADER"] = "Distribuisci"
 L["OPTIONS_DISPENSE_DESC"] =
-	"Riempie automaticamente la finestra di scambio all'apertura. Ogni opzione qui sotto può essere attivata in modo indipendente."
+	"Riempie automaticamente la finestra di scambio quando si apre uno scambio. Attiva ogni opzione qui sotto in modo indipendente."
 L["OPTIONS_DISPENSE_MASTER"] = "Abilita Distribuzione"
 L["OPTIONS_DISPENSE_MASTER_DESC"] = "Riempie automaticamente la finestra di scambio in base alle tue impostazioni."
 L["OPTIONS_DISPENSE_SOLO"] = "Abilita per gli Sconosciuti"
@@ -81,7 +81,7 @@ L["OPTIONS_DISPENSE_RAID_DESC"] = "Riempie automaticamente la finestra quando sc
 
 L["OPTIONS_COMBAT_HEADER"] = "Combattimento"
 L["OPTIONS_COMBAT_DESC"] =
-	"Il riempimento automatico è sempre in pausa durante il combattimento per evitare errori dell'interfaccia. Riceverai un promemoria in chat. Gli scambi riprendono automaticamente a fine combattimento se la finestra è ancora aperta."
+	"La distribuzione viene sempre messa in pausa in combattimento per evitare errori dell'interfaccia. Un messaggio in chat te lo ricorda quando accade. Gli scambi riprendono automaticamente al termine del combattimento se la finestra è ancora aperta."
 
 --------------------------------------------------------------------------------
 -- Options — Distribution Rules
@@ -102,7 +102,7 @@ L["OPTIONS_ITEM_FACTOR_LEVEL_DESC"] =
 	"Salta questo oggetto se il compagno di scambio ha un livello inferiore a quello richiesto."
 L["OPTIONS_ITEM_KEEP_AT_LEAST"] = "Mantieni almeno"
 L["OPTIONS_ITEM_KEEP_AT_LEAST_DESC"] =
-	"Tieni sempre almeno questa quantità nelle borse. Qualsiasi cosa oltre questo numero sarà disponibile per lo scambio."
+	"Tieni sempre almeno questa quantità nelle tue borse. La distribuzione e la macro di annuncio considerano tutto ciò che supera questo numero come disponibile da regalare."
 L["OPTIONS_ITEM_INCLUDE_QUANTITY"] = "Includi Quantità Rimanente nella Macro"
 L["OPTIONS_ITEM_INCLUDE_QUANTITY_DESC"] =
 	"Quando la macro di annuncio elenca questo oggetto, includi quanti ne hai ancora. Disattiva se preferisci solo dire di averlo (tipico per le pietre della salute)."
@@ -129,7 +129,7 @@ L["OPTIONS_ADD_EMPTY"] = "Nessun consumabile idoneo trovato nelle tue borse."
 
 L["OPTIONS_ANNOUNCEMENTS"] = "Annunci"
 L["OPTIONS_ANNOUNCEMENTS_DESC"] =
-	"Water Dispenser può creare una macro che annuncia cosa hai da offrire. La macro sceglie automaticamente il canale corretto (/dici, /gruppo, /incursione) usando le quantità aggiornate delle tue borse."
+	"Water Dispenser può creare una macro che annuncia ciò che ti resta da distribuire. La macro sceglie il canale automaticamente (Dire senza gruppo, Gruppo in un gruppo, Incursione in un'incursione) e usa le quantità aggiornate dalle tue borse."
 L["OPTIONS_ANNOUNCEMENTS_ENABLE"] = "Abilita Macro di Annuncio"
 L["OPTIONS_ANNOUNCEMENTS_ENABLE_DESC"] =
 	'Mantiene aggiornata una macro specifica del personaggio chiamata "- Dispenser". Disattivandola, la macro verrà eliminata.'
@@ -138,9 +138,8 @@ L["OPTIONS_ANNOUNCEMENTS_PREVIEW_DESC"] = "Questo è ciò che dirà la macro se 
 L["OPTIONS_ANNOUNCEMENTS_PREVIEW_EMPTY"] =
 	'Niente da annunciare. Configura oggetti, riempi le borse o abbassa il valore "Mantieni almeno".'
 
--- Message-body fragments the macro stitches together.
-L["ANNOUNCEMENTS_INTRO"] = "Ho"
-L["ANNOUNCEMENTS_OUTRO"] = ". Apri lo scambio!"
+-- Macro message template (%s is the item list) and the connector before the last list entry.
+L["ANNOUNCEMENTS_BODY"] = "Ho %s. Apri lo scambio!"
 L["ANNOUNCEMENTS_AND"] = "e"
 
 --------------------------------------------------------------------------------

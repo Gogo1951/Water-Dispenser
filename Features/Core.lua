@@ -43,14 +43,20 @@ local eventHandlers = {}
 ns.EVENT_NAMES = {}
 local seenEvents = {}
 
-function ns.RegisterEvent(event, handler)
+-- Trailing unit tokens filter the event to those units; the first registration of an event fixes its filter, since RegisterUnitEvent binds per frame-and-event and every module shares this frame.
+function ns.RegisterEvent(event, handler, ...)
 	if not seenEvents[event] then
 		seenEvents[event] = true
 		ns.EVENT_NAMES[#ns.EVENT_NAMES + 1] = event
 	end
 	if not eventHandlers[event] then
 		-- pcall-guarded: RegisterEvent errors on a name invalid for this client, so skip it cleanly.
-		local ok = pcall(eventFrame.RegisterEvent, eventFrame, event)
+		local ok
+		if select("#", ...) > 0 then
+			ok = pcall(eventFrame.RegisterUnitEvent, eventFrame, event, ...)
+		else
+			ok = pcall(eventFrame.RegisterEvent, eventFrame, event)
+		end
 		if not ok then
 			return
 		end

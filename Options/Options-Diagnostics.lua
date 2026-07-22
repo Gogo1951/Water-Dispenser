@@ -103,7 +103,7 @@ function ns.BuildDiagnosticsOptions()
 			outputEventLog = ReportOutput("eventLogReport", 9),
 			descEventLogHint = {
 				type = "description",
-				name = GetColor("BODY") .. D.EVENT_LOG_HINT .. "|r",
+				name = GetColor("HELP") .. D.EVENT_LOG_HINT .. "|r",
 				fontSize = "medium",
 				order = 10,
 				hidden = Hidden,
@@ -226,7 +226,7 @@ function ns.BuildDiagnosticsOptions()
 			},
 			descTaintHint = {
 				type = "description",
-				name = GetColor("BODY") .. D.TAINT_HINT .. "|r",
+				name = GetColor("HELP") .. D.TAINT_HINT .. "|r",
 				fontSize = "medium",
 				order = 64,
 				hidden = Hidden,
@@ -236,9 +236,9 @@ function ns.BuildDiagnosticsOptions()
 			headerTools = SectionHeader(D.TOOLS_TITLE, 70),
 			descToolsErrors = {
 				type = "description",
-				name = GetColor("BODY") .. string.format(
+				name = GetColor("HELP") .. string.format(
 					D.TOOLS_ERRORS,
-					GetColor("INFO") .. "/console scriptErrors 1|r" .. GetColor("BODY")
+					GetColor("INFO") .. "/console scriptErrors 1|r" .. GetColor("HELP")
 				) .. "|r",
 				fontSize = "medium",
 				order = 71,
@@ -246,8 +246,8 @@ function ns.BuildDiagnosticsOptions()
 			},
 			descToolsEtrace = {
 				type = "description",
-				name = GetColor("BODY")
-					.. string.format(D.TOOLS_ETRACE, GetColor("INFO") .. "/etrace|r" .. GetColor("BODY"))
+				name = GetColor("HELP")
+					.. string.format(D.TOOLS_ETRACE, GetColor("INFO") .. "/etrace|r" .. GetColor("HELP"))
 					.. "|r",
 				fontSize = "medium",
 				order = 72,

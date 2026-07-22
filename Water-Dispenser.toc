@@ -17,7 +17,7 @@
 ## IconTexture: Interface/AddOns/Water-Dispenser/Includes/Images/Water-Dispenser.tga
 ## X-License: MIT
 
-## Interface: 11508, 20506
+## Interface: 11509, 20506
 ## Version: @project-version@
 ## X-Curse-Project-ID: 1531217
 ## X-Wago-ID: vNAgAgKo

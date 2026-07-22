@@ -17,9 +17,9 @@ L["ADDON_TITLE"] = "Water Dispenser"
 L["CHAT_LOADED"] =
 	"Versão %s. As configurações (incluindo a opção de desativar esta mensagem) podem ser encontradas em Opções > AddOns > Water Dispenser. Está gostando do Water Dispenser? Conte a um amigo! (="
 L["CHAT_NO_TRADE"] = "Nenhuma janela de troca ativa."
-L["CHAT_COMBAT_PAUSED"] = "Preenchimento automático pausado durante o combate."
-L["CHAT_COMBAT_RESUMED"] = "Combate finalizado. Retomando o preenchimento da troca."
-L["CHAT_MISSING_STACK"] = "Pilhas faltando:"
+L["CHAT_COMBAT_PAUSED"] = "Distribuição pausada durante o combate."
+L["CHAT_COMBAT_RESUMED"] = "Combate finalizado. Retomando a distribuição."
+L["CHAT_MISSING_STACK"] = "Faltando:"
 L["CHAT_NONE_ACTIVE_FOR_CLASS"] =
 	"Nenhum item está configurado para distribuição enquanto você joga de %s. Abra Opções > Regras de Distribuição para ativar itens para esta classe."
 L["CHAT_ITEM_SAVED"] = "Salvo:"
@@ -68,7 +68,7 @@ L["OPTIONS_COMMANDS_WD"] = "Abre o painel de opções do Water Dispenser."
 
 L["OPTIONS_DISPENSE_HEADER"] = "Distribuir"
 L["OPTIONS_DISPENSE_DESC"] =
-	"Preenche a janela de troca automaticamente ao abrir. Cada opção abaixo pode ser ativada de forma independente."
+	"Preenche automaticamente a janela de troca quando uma troca é aberta. Alterne cada opção abaixo de forma independente."
 L["OPTIONS_DISPENSE_MASTER"] = "Ativar Distribuição"
 L["OPTIONS_DISPENSE_MASTER_DESC"] = "Preenche automaticamente a janela de troca com base nas suas configurações."
 L["OPTIONS_DISPENSE_SOLO"] = "Preencher para Desconhecidos"
@@ -80,7 +80,7 @@ L["OPTIONS_DISPENSE_RAID_DESC"] = "Preenche a troca automaticamente ao negociar 
 
 L["OPTIONS_COMBAT_HEADER"] = "Combate"
 L["OPTIONS_COMBAT_DESC"] =
-	"O preenchimento automático sempre é pausado em combate para evitar erros de interface. Você verá um lembrete no chat. As trocas são retomadas sozinhas ao sair de combate se a janela ainda estiver aberta."
+	"A distribuição é sempre pausada durante o combate para evitar erros de interface. Uma mensagem no chat te lembra quando isso acontece. As trocas são retomadas automaticamente ao fim do combate se a janela ainda estiver aberta."
 
 --------------------------------------------------------------------------------
 -- Options — Distribution Rules
@@ -101,7 +101,7 @@ L["OPTIONS_ITEM_FACTOR_LEVEL_DESC"] =
 	"Ignora este item caso o parceiro de troca esteja abaixo do nível necessário para usá-lo."
 L["OPTIONS_ITEM_KEEP_AT_LEAST"] = "Manter no mínimo"
 L["OPTIONS_ITEM_KEEP_AT_LEAST_DESC"] =
-	"Sempre guarde pelo menos essa quantidade nas suas bolsas. Tudo acima disso será considerado como disponível para doação."
+	"Mantenha sempre pelo menos esta quantidade nas suas bolsas. A distribuição e a macro de anúncio tratam tudo além deste número como disponível para doar."
 L["OPTIONS_ITEM_INCLUDE_QUANTITY"] = "Incluir Quantidade Restante na Macro"
 L["OPTIONS_ITEM_INCLUDE_QUANTITY_DESC"] =
 	"Quando a macro anunciar este item, mostrará quantos você ainda tem. Desative caso prefira apenas dizer que tem o item (comum para Pedras de Vida)."
@@ -128,7 +128,7 @@ L["OPTIONS_ADD_EMPTY"] = "Nenhum consumível elegível encontrado em suas bolsas
 
 L["OPTIONS_ANNOUNCEMENTS"] = "Anúncios"
 L["OPTIONS_ANNOUNCEMENTS_DESC"] =
-	"O Water Dispenser pode criar uma macro para anunciar o que você tem a distribuir. A macro escolhe o canal certo (/dizer, /grupo, /raide) e usa as quantidades reais das bolsas."
+	"O Water Dispenser pode criar uma macro que anuncia o que você ainda tem para distribuir. A macro escolhe o canal automaticamente (Dizer sem grupo, Grupo em um grupo, Raide em uma raide) e usa as quantidades atuais das suas bolsas."
 L["OPTIONS_ANNOUNCEMENTS_ENABLE"] = "Ativar Macro de Anúncio"
 L["OPTIONS_ANNOUNCEMENTS_ENABLE_DESC"] =
 	'Mantém uma macro específica do personagem chamada "- Dispenser" sempre atualizada. Desativar exclui a macro.'
@@ -137,9 +137,8 @@ L["OPTIONS_ANNOUNCEMENTS_PREVIEW_DESC"] = "Isto é o que a macro dirá se você 
 L["OPTIONS_ANNOUNCEMENTS_PREVIEW_EMPTY"] =
 	'Nada a anunciar. Configure os itens, reabasteça as bolsas ou baixe o valor de "Manter no mínimo".'
 
--- Message-body fragments the macro stitches together.
-L["ANNOUNCEMENTS_INTRO"] = "Eu tenho"
-L["ANNOUNCEMENTS_OUTRO"] = ". Abra troca!"
+-- Macro message template (%s is the item list) and the connector before the last list entry.
+L["ANNOUNCEMENTS_BODY"] = "Eu tenho %s. Abra troca!"
 L["ANNOUNCEMENTS_AND"] = "e"
 
 --------------------------------------------------------------------------------

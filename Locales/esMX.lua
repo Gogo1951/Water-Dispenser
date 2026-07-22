@@ -17,9 +17,9 @@ L["ADDON_TITLE"] = "Water Dispenser"
 L["CHAT_LOADED"] =
 	"Versión %s. Los ajustes (incluyendo la opción de desactivar este mensaje) se encuentran en Opciones > Accesorios > Water Dispenser. ¿Te gusta Water Dispenser? ¡Cuéntaselo a un amigo! (="
 L["CHAT_NO_TRADE"] = "No hay ninguna ventana de comercio activa."
-L["CHAT_COMBAT_PAUSED"] = "Autocompletado pausado en combate."
-L["CHAT_COMBAT_RESUMED"] = "Combate terminado. Reanudando autocompletado de comercio."
-L["CHAT_MISSING_STACK"] = "Montones faltantes:"
+L["CHAT_COMBAT_PAUSED"] = "Dispensado pausado durante el combate."
+L["CHAT_COMBAT_RESUMED"] = "Combate terminado. Reanudando el dispensado."
+L["CHAT_MISSING_STACK"] = "Falta:"
 L["CHAT_NONE_ACTIVE_FOR_CLASS"] =
 	"No hay objetos configurados para dispensar mientras juegas con un %s. Abre Opciones > Reglas de distribución para habilitar objetos para esta clase."
 L["CHAT_ITEM_SAVED"] = "Guardado:"
@@ -68,7 +68,7 @@ L["OPTIONS_COMMANDS_WD"] = "Abre el panel de opciones de Water Dispenser."
 
 L["OPTIONS_DISPENSE_HEADER"] = "Dispensar"
 L["OPTIONS_DISPENSE_DESC"] =
-	"Llena la ventana de comercio automáticamente al abrirse. Cada opción de abajo se puede alternar de forma independiente."
+	"Llena automáticamente la ventana de comercio al abrirse un intercambio. Activa o desactiva cada opción de abajo por separado."
 L["OPTIONS_DISPENSE_MASTER"] = "Activar dispensador"
 L["OPTIONS_DISPENSE_MASTER_DESC"] = "Llena automáticamente la ventana de comercio según tus ajustes."
 L["OPTIONS_DISPENSE_SOLO"] = "Llenar para desconocidos"
@@ -83,7 +83,7 @@ L["OPTIONS_DISPENSE_RAID_DESC"] =
 
 L["OPTIONS_COMBAT_HEADER"] = "Combate"
 L["OPTIONS_COMBAT_DESC"] =
-	"El autocompletado siempre se pausa en combate para evitar errores de interfaz. Se mostrará un recordatorio en el chat. Los comercios se reanudarán automáticamente una vez termine el combate si la ventana sigue abierta."
+	"El dispensado siempre se pausa en combate para evitar errores de interfaz. Un mensaje de chat te lo recuerda cuando ocurre. Los intercambios se reanudan automáticamente al terminar el combate si la ventana sigue abierta."
 
 --------------------------------------------------------------------------------
 -- Options — Distribution Rules
@@ -104,7 +104,7 @@ L["OPTIONS_ITEM_FACTOR_LEVEL_DESC"] =
 	"Omite este objeto cuando el compañero de comercio esté por debajo del nivel requerido del objeto."
 L["OPTIONS_ITEM_KEEP_AT_LEAST"] = "Mantener al menos"
 L["OPTIONS_ITEM_KEEP_AT_LEAST_DESC"] =
-	"Mantén siempre al menos esta cantidad en tus bolsas. Lo que supere este número se considerará disponible para regalar."
+	"Guarda siempre al menos esta cantidad en tus bolsas. El dispensado y la macro de anuncio tratan todo lo que exceda este número como disponible para regalar."
 L["OPTIONS_ITEM_INCLUDE_QUANTITY"] = "Incluir cantidad restante en la macro"
 L["OPTIONS_ITEM_INCLUDE_QUANTITY_DESC"] =
 	"Incluye la cantidad restante al anunciar este objeto. Desactívalo si prefieres solo decir que lo tienes sin el recuento (típico para piedras de salud)."
@@ -131,7 +131,7 @@ L["OPTIONS_ADD_EMPTY"] = "No se encontraron consumibles elegibles en tus bolsas.
 
 L["OPTIONS_ANNOUNCEMENTS"] = "Anuncios"
 L["OPTIONS_ANNOUNCEMENTS_DESC"] =
-	"Water Dispenser puede crear una macro que anuncie lo que tienes para repartir. La macro elige el canal correcto automáticamente (/decir, /grupo, /banda) y usa el recuento actual de tus bolsas."
+	"Water Dispenser puede crear una macro que anuncia lo que te queda por repartir. La macro elige el canal automáticamente (Decir sin grupo, Grupo en un grupo, Banda en una banda) y usa las cantidades actuales de tus bolsas."
 L["OPTIONS_ANNOUNCEMENTS_ENABLE"] = "Activar macro de anuncio"
 L["OPTIONS_ANNOUNCEMENTS_ENABLE_DESC"] =
 	'Mantiene actualizada una macro específica del personaje llamada "- Dispenser". Desactivarla elimina la macro.'
@@ -140,9 +140,8 @@ L["OPTIONS_ANNOUNCEMENTS_PREVIEW_DESC"] = "Esto es lo que dirá la macro si la p
 L["OPTIONS_ANNOUNCEMENTS_PREVIEW_EMPTY"] =
 	'Nada que anunciar. Configura objetos, repón tus bolsas o baja el valor de "Mantener al menos".'
 
--- Message-body fragments the macro stitches together.
-L["ANNOUNCEMENTS_INTRO"] = "Tengo"
-L["ANNOUNCEMENTS_OUTRO"] = ". ¡Abre comercio!"
+-- Macro message template (%s is the item list) and the connector before the last list entry.
+L["ANNOUNCEMENTS_BODY"] = "Tengo %s. ¡Abre comercio!"
 L["ANNOUNCEMENTS_AND"] = "y"
 
 --------------------------------------------------------------------------------
