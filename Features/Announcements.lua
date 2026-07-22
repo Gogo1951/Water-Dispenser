@@ -121,23 +121,38 @@ local function BuildAnnouncementParts()
 	return parts
 end
 
--- Shared lead for the full message and macro body: "{marker} {title} // {intro} " (assembled here, not per locale).
+-- Shared lead for the full message and macro body: "{marker} {title} // " (assembled here, not per locale).
 local function AnnouncementPrefix()
-	return ns.TARGET_MARKER .. " " .. L["ADDON_TITLE"] .. " // " .. L["ANNOUNCEMENTS_INTRO"] .. " "
+	return ns.TARGET_MARKER .. " " .. L["ADDON_TITLE"] .. " // "
+end
+
+--[[
+	Splits the localized body template around its %s into the text before the item
+	list and the text after it. Kept as two pieces rather than one string.format so
+	the macro builder can lay the lead down once and truncate at part boundaries.
+	A template without %s degrades to lead-only, never an error.
+]]
+local function BodyTemplateParts()
+	local template = L["ANNOUNCEMENTS_BODY"]
+	local head, tail = template:match("^(.-)%%s(.*)$")
+	if not head then
+		return template, ""
+	end
+	return head, tail
 end
 
 --[[
 	Full announcement body (no channel slash, no truncation) for the live preview:
-	prefix, the list joined with a localized "and", then the outro. The outro
-	carries its own leading punctuation (". Open trade!") so the join adds no space
-	before it and translators pick their own sentence-ender. Nil if nothing to give.
+	prefix, then the template wrapped around the list joined with a localized "and".
+	Nil if nothing to give.
 ]]
 function ns.BuildAnnouncementMessage()
 	local parts = BuildAnnouncementParts()
 	if not parts then
 		return nil
 	end
-	return AnnouncementPrefix() .. JoinList(parts) .. L["ANNOUNCEMENTS_OUTRO"]
+	local head, tail = BodyTemplateParts()
+	return AnnouncementPrefix() .. head .. JoinList(parts) .. tail
 end
 
 --------------------------------------------------------------------------------
@@ -150,11 +165,12 @@ local TRUNCATION_SUFFIX = " ..."
 --[[
 	Full macro body: channel slash + announcement message. When the full message
 	fits the 255-byte SendChatMessage limit it is sent as-is; otherwise it is
-	rebuilt from the parts list -- prefix laid down once, whole item parts appended
+	rebuilt from the parts list -- lead laid down once, whole item parts appended
 	with ", " joiners while the running byte total stays within the limit minus the
-	" ..." reserve -- and closed with " ...". Truncation happens only at part
-	boundaries: never inside an item link (SendChatMessage rejects a broken link),
-	and never via a comma search, since item names can contain commas.
+	" ..." reserve -- and closed with " ...", dropping the template's trailing text.
+	Truncation happens only at part boundaries: never inside an item link
+	(SendChatMessage rejects a broken link), and never via a comma search, since
+	item names can contain commas.
 ]]
 local function BuildMacroBody()
 	local parts = BuildAnnouncementParts()
@@ -164,13 +180,15 @@ local function BuildMacroBody()
 	end
 
 	local channel = ChannelSlash()
-	local full = channel .. AnnouncementPrefix() .. JoinList(parts) .. L["ANNOUNCEMENTS_OUTRO"]
+	local head, tail = BodyTemplateParts()
+	local lead = channel .. AnnouncementPrefix() .. head
+	local full = lead .. JoinList(parts) .. tail
 	if #full <= MACRO_BODY_LIMIT then
 		return full
 	end
 
 	local budget = MACRO_BODY_LIMIT - #TRUNCATION_SUFFIX
-	local body = channel .. AnnouncementPrefix()
+	local body = lead
 	local appended = 0
 	for _, part in ipairs(parts) do
 		local piece = (appended == 0) and part or (", " .. part)

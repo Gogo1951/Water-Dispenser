@@ -385,10 +385,7 @@ local function ScheduleRestack()
 end
 
 -- A collection-spell conjure queues the restack-then-fill, gated to an active trade so bags are never reshuffled in normal play.
-local function OnSpellcastSucceeded(_, unit, _, spellId)
-	if unit ~= "player" then
-		return
-	end
+local function OnSpellcastSucceeded(_, _, _, spellId)
 	if not ns.SPELL_TO_COLLECTION[spellId] then
 		return
 	end
@@ -529,6 +526,6 @@ function ns.InitDispenser()
 		a companion -- it's redundant here and isn't a valid event on TBC (2.5.5).
 	]]
 	ns.RegisterEvent("SPELLS_CHANGED", OnSpellsChanged)
-	-- A conjure of water/food/healthstone triggers a restack (merge partials into full stacks) then a fill, so the trade gets full stacks.
-	ns.RegisterEvent("UNIT_SPELLCAST_SUCCEEDED", OnSpellcastSucceeded)
+	-- The player's own conjure of water/food/healthstone triggers a restack (merge partials into full stacks) then a fill; the "player" filter is what keeps every other unit's casts off the dispatcher.
+	ns.RegisterEvent("UNIT_SPELLCAST_SUCCEEDED", OnSpellcastSucceeded, "player")
 end

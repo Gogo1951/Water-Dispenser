@@ -17,9 +17,9 @@ L["ADDON_TITLE"] = "Water Dispenser"
 L["CHAT_LOADED"] =
 	"Version %s. Settings (including the option to disable this message) can be found under Options > AddOns > Water Dispenser. Enjoying the add-on? Tell a friend about it! (="
 L["CHAT_NO_TRADE"] = "No active trade window."
-L["CHAT_COMBAT_PAUSED"] = "Auto-fill paused while in combat."
-L["CHAT_COMBAT_RESUMED"] = "Combat ended. Resuming trade fill."
-L["CHAT_MISSING_STACK"] = "Missing stacks:"
+L["CHAT_COMBAT_PAUSED"] = "Dispensing paused while in combat."
+L["CHAT_COMBAT_RESUMED"] = "Combat ended. Resuming dispensing."
+L["CHAT_MISSING_STACK"] = "Missing:"
 L["CHAT_NONE_ACTIVE_FOR_CLASS"] =
 	"No items are set to dispense while you're playing a %s. Open Options > Distribution Rules to enable items for this class."
 L["CHAT_ITEM_SAVED"] = "Saved:"
@@ -68,7 +68,7 @@ L["OPTIONS_COMMANDS_WD"] = "Opens the Water Dispenser options panel."
 
 L["OPTIONS_DISPENSE_HEADER"] = "Dispense"
 L["OPTIONS_DISPENSE_DESC"] =
-	"Automatically fill the trade window when a trade opens. Each option below can be toggled independently."
+	"Automatically fill the trade window when a trade opens. Toggle each option below independently."
 L["OPTIONS_DISPENSE_MASTER"] = "Enable Dispense"
 L["OPTIONS_DISPENSE_MASTER_DESC"] = "Automatically fills the trade window based on your settings."
 L["OPTIONS_DISPENSE_SOLO"] = "Enable for Strangers"
@@ -81,7 +81,7 @@ L["OPTIONS_DISPENSE_RAID_DESC"] = "Fills the trade window automatically when tra
 
 L["OPTIONS_COMBAT_HEADER"] = "Combat"
 L["OPTIONS_COMBAT_DESC"] =
-	"Auto-fill is always paused while in combat to prevent interface errors. A reminder chat message is printed when this happens. Trades resume automatically once combat ends if the trade window is still open."
+	"Dispensing is always paused while in combat to prevent interface errors. A chat message reminds you when this happens. Trades resume automatically once combat ends if the trade window is still open."
 
 --------------------------------------------------------------------------------
 -- Options — Distribution Rules
@@ -100,7 +100,7 @@ L["OPTIONS_ITEM_FACTOR_LEVEL"] = "Factor in Usage Level Requirements"
 L["OPTIONS_ITEM_FACTOR_LEVEL_DESC"] = "Skip this item when the trade partner is below the item's required level."
 L["OPTIONS_ITEM_KEEP_AT_LEAST"] = "Keep at Least"
 L["OPTIONS_ITEM_KEEP_AT_LEAST_DESC"] =
-	"Always keep at least this many in your bags. The trade fill and the announcement macro will treat anything beyond this number as available to give away."
+	"Always keep at least this many in your bags. Dispensing and the announcement macro treat anything beyond this number as available to give away."
 L["OPTIONS_ITEM_INCLUDE_QUANTITY"] = "Include Quantity Remaining in Announcement Macro"
 L["OPTIONS_ITEM_INCLUDE_QUANTITY_DESC"] =
 	"When the announcement macro lists this item, include how many you have left. Turn off if you'd rather just say you have it without the count (typical for healthstones)."
@@ -116,7 +116,7 @@ L["OPTIONS_SCOPE_RAID"] = "Raid Members"
 
 L["OPTIONS_ADD_ITEM"] = "Add Item"
 L["OPTIONS_ADD_DESC"] =
-	"Select a tradable consumable from your bags to add to the trade configuration. Items already configured or that are soulbound will not appear."
+	"Select a tradable consumable from your bags to add to the trade configuration. Items that are already configured or soulbound will not appear."
 L["OPTIONS_ADD_SELECT"] = "Available Items"
 L["OPTIONS_ADD_BUTTON"] = "Add to Configuration"
 L["OPTIONS_ADD_EMPTY"] = "No eligible consumables found in your bags."
@@ -127,7 +127,7 @@ L["OPTIONS_ADD_EMPTY"] = "No eligible consumables found in your bags."
 
 L["OPTIONS_ANNOUNCEMENTS"] = "Announcements"
 L["OPTIONS_ANNOUNCEMENTS_DESC"] =
-	"Water Dispenser can build a macro that announces what you have left to give out. The macro picks the right channel automatically (/say when ungrouped, /party in a group, /raid in a raid) and uses the latest counts straight from your bags."
+	"Water Dispenser can build a macro that announces what you have left to give out. The macro picks the right channel automatically (Say when ungrouped, Party in a group, Raid in a raid) and uses the latest counts straight from your bags."
 L["OPTIONS_ANNOUNCEMENTS_ENABLE"] = "Enable Announcement Macro"
 L["OPTIONS_ANNOUNCEMENTS_ENABLE_DESC"] =
 	'Keeps a character-specific macro named "- Dispenser" up to date with your current giveaway list. Disabling deletes the macro.'
@@ -136,9 +136,8 @@ L["OPTIONS_ANNOUNCEMENTS_PREVIEW_DESC"] = "This is what the macro will say if yo
 L["OPTIONS_ANNOUNCEMENTS_PREVIEW_EMPTY"] =
 	'Nothing to announce. Configure items, restock your bags, or lower a "Keep at Least" value.'
 
--- Message-body fragments the macro stitches together.
-L["ANNOUNCEMENTS_INTRO"] = "I have"
-L["ANNOUNCEMENTS_OUTRO"] = ". Open trade!"
+-- Macro message template (%s is the item list) and the connector before the last list entry.
+L["ANNOUNCEMENTS_BODY"] = "I have %s. Open trade!"
 L["ANNOUNCEMENTS_AND"] = "and"
 
 --------------------------------------------------------------------------------

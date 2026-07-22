@@ -12,22 +12,29 @@ local REGISTRY = ns.OPTIONS_REGISTRY
 --------------------------------------------------------------------------------
 
 --[[
-	Opens the add-on's Blizzard options category. Modern clients need the resolved
-	category ID -- opening by display name silently no-ops -- so look the category
-	up first; older clients fall back to the twice-called legacy opener.
+	Opens the add-on's Blizzard options category from the handles captured at
+	registration. Never resolve by display name: AddToBlizOptions aliases
+	category.ID to the panel title only when C_SettingsUtil.OpenSettingsPanel is
+	absent, so a name lookup returns nil on every client that has that API.
 ]]
 function ns:OpenOptionsPanel()
-	if Settings and Settings.GetCategory then
-		local category = Settings.GetCategory(L["ADDON_TITLE"])
-		if category then
-			Settings.OpenToCategory(category.ID)
-			return
-		end
+	if not ns.optionsFrames then
+		return
 	end
+
+	if Settings and Settings.OpenToCategory and ns.optionsFrames.categoryID then
+		Settings.OpenToCategory(ns.optionsFrames.categoryID)
+		return
+	end
+
 	if InterfaceOptionsFrame_OpenToCategory then
-		InterfaceOptionsFrame_OpenToCategory(L["ADDON_TITLE"])
-		InterfaceOptionsFrame_OpenToCategory(L["ADDON_TITLE"])
+		InterfaceOptionsFrame_OpenToCategory(ns.optionsFrames.main)
+		-- Called twice for Classic compatibility
+		InterfaceOptionsFrame_OpenToCategory(ns.optionsFrames.main)
+		return
 	end
+
+	AceConfigDialog:Open(REGISTRY.General)
 end
 
 --------------------------------------------------------------------------------
@@ -58,7 +65,8 @@ function ns.RegisterOptionsPanels()
 	local parent = L["ADDON_TITLE"]
 
 	AceConfig:RegisterOptionsTable(REGISTRY.General, ns.BuildGeneralOptions())
-	AceConfigDialog:AddToBlizOptions(REGISTRY.General, parent)
+	local mainPanel, mainCategoryID = AceConfigDialog:AddToBlizOptions(REGISTRY.General, parent)
+	ns.optionsFrames = { main = mainPanel, categoryID = mainCategoryID }
 
 	AceConfig:RegisterOptionsTable(REGISTRY.DistributionRules, ns.BuildDistributionRulesOptions())
 	AceConfigDialog:AddToBlizOptions(REGISTRY.DistributionRules, L["OPTIONS_ITEMS"], parent)

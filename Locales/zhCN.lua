@@ -17,9 +17,9 @@ L["ADDON_TITLE"] = "Water Dispenser"
 L["CHAT_LOADED"] =
 	"版本 %s。设置（包含关闭此信息的选项）可以在 选项 > 插件 > Water Dispenser 中找到。喜欢 Water Dispenser 吗？分享给你的朋友吧！(="
 L["CHAT_NO_TRADE"] = "没有打开的交易窗口。"
-L["CHAT_COMBAT_PAUSED"] = "战斗中已暂停自动填充。"
-L["CHAT_COMBAT_RESUMED"] = "战斗结束。恢复交易填充。"
-L["CHAT_MISSING_STACK"] = "缺失的堆叠数："
+L["CHAT_COMBAT_PAUSED"] = "战斗中已暂停分发。"
+L["CHAT_COMBAT_RESUMED"] = "战斗结束。恢复分发。"
+L["CHAT_MISSING_STACK"] = "缺少："
 L["CHAT_NONE_ACTIVE_FOR_CLASS"] =
 	"当你使用 %s 游玩时，没有设置任何要分发的物品。请打开 选项 > 分发规则 启用适用于此职业的物品。"
 L["CHAT_ITEM_SAVED"] = "已保存："
@@ -67,7 +67,7 @@ L["OPTIONS_COMMANDS"] = "/命令行"
 L["OPTIONS_COMMANDS_WD"] = "打开 Water Dispenser 选项界面。"
 
 L["OPTIONS_DISPENSE_HEADER"] = "分发"
-L["OPTIONS_DISPENSE_DESC"] = "在交易窗口打开时自动填充。下方每个选项均可独立开关。"
+L["OPTIONS_DISPENSE_DESC"] = "交易打开时自动填充交易窗口。下方每个选项均可单独开关。"
 L["OPTIONS_DISPENSE_MASTER"] = "启用分发"
 L["OPTIONS_DISPENSE_MASTER_DESC"] = "根据你的设置自动填充交易窗口。"
 L["OPTIONS_DISPENSE_SOLO"] = "为陌生人填充"
@@ -79,7 +79,7 @@ L["OPTIONS_DISPENSE_RAID_DESC"] = "当与团队成员交易时，自动填充交
 
 L["OPTIONS_COMBAT_HEADER"] = "战斗"
 L["OPTIONS_COMBAT_DESC"] =
-	"为了防止出现界面错误，进入战斗时自动填充功能将始终暂停，并在聊天框发送提醒。脱离战斗后，如果交易窗口依然处于开启状态，交易将自动恢复。"
+	"为避免界面错误，战斗中始终暂停分发。发生时会有聊天消息提醒你。若交易窗口仍然打开，战斗结束后会自动恢复。"
 
 --------------------------------------------------------------------------------
 -- Options — Distribution Rules
@@ -98,7 +98,7 @@ L["OPTIONS_ITEM_FACTOR_LEVEL"] = "考虑使用等级要求"
 L["OPTIONS_ITEM_FACTOR_LEVEL_DESC"] = "当交易对象未达到该物品的使用等级时，跳过该物品。"
 L["OPTIONS_ITEM_KEEP_AT_LEAST"] = "最少保留数量"
 L["OPTIONS_ITEM_KEEP_AT_LEAST_DESC"] =
-	"包里始终至少保留这些数量。只有超过此数量的部分才会被视为可赠送的物品。"
+	"始终在背包中保留至少这么多。分发和通报宏会将超出该数量的部分视为可赠送。"
 L["OPTIONS_ITEM_INCLUDE_QUANTITY"] = "在喊话宏中包含剩余数量"
 L["OPTIONS_ITEM_INCLUDE_QUANTITY_DESC"] =
 	"当宏列出此物品时，包含你还剩下多少。如果你只想说你有该物品而不提数量（如治疗石），请关闭此选项。"
@@ -125,7 +125,7 @@ L["OPTIONS_ADD_EMPTY"] = "背包中未找到符合条件的消耗品。"
 
 L["OPTIONS_ANNOUNCEMENTS"] = "喊话"
 L["OPTIONS_ANNOUNCEMENTS_DESC"] =
-	"Water Dispenser 可以创建一个宏，喊出你可以提供的物品。宏会自动选择合适的频道（/说、/小队、/团队），并使用背包中的最新数量。"
+	"Water Dispenser 可以创建一个宏，通报你还有什么可以分发。该宏会自动选择频道（未组队时说话，队伍中为小队，团队中为团队），并使用背包中的最新数量。"
 L["OPTIONS_ANNOUNCEMENTS_ENABLE"] = "启用喊话宏"
 L["OPTIONS_ANNOUNCEMENTS_ENABLE_DESC"] =
 	"维护一个名为“- Dispenser”的角色专属宏，其中包含最新的分发列表。禁用此选项将删除该宏。"
@@ -134,9 +134,8 @@ L["OPTIONS_ANNOUNCEMENTS_PREVIEW_DESC"] = "如果你现在点击宏，它将发�
 L["OPTIONS_ANNOUNCEMENTS_PREVIEW_EMPTY"] =
 	"没有可喊话的内容。配置物品，补充背包，或降低“最少保留数量”的值。"
 
--- Message-body fragments the macro stitches together.
-L["ANNOUNCEMENTS_INTRO"] = "我有"
-L["ANNOUNCEMENTS_OUTRO"] = "。点我交易！"
+-- Macro message template (%s is the item list) and the connector before the last list entry.
+L["ANNOUNCEMENTS_BODY"] = "我有 %s。点我交易！"
 L["ANNOUNCEMENTS_AND"] = "和"
 
 --------------------------------------------------------------------------------

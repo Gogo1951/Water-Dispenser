@@ -17,9 +17,9 @@ L["ADDON_TITLE"] = "Water Dispenser"
 L["CHAT_LOADED"] =
 	"Version %s. Les paramètres (y compris l'option pour désactiver ce message) se trouvent dans Options > AddOns > Water Dispenser. Vous aimez Water Dispenser ? Parlez-en à vos amis ! (="
 L["CHAT_NO_TRADE"] = "Aucune fenêtre d'échange active."
-L["CHAT_COMBAT_PAUSED"] = "Remplissage automatique mis en pause pendant le combat."
-L["CHAT_COMBAT_RESUMED"] = "Combat terminé. Reprise de l'échange."
-L["CHAT_MISSING_STACK"] = "Piles manquantes :"
+L["CHAT_COMBAT_PAUSED"] = "Distribution mise en pause pendant le combat."
+L["CHAT_COMBAT_RESUMED"] = "Combat terminé. Reprise de la distribution."
+L["CHAT_MISSING_STACK"] = "Manquant :"
 L["CHAT_NONE_ACTIVE_FOR_CLASS"] =
 	"Aucun objet n'est configuré pour être distribué pendant que vous jouez un %s. Ouvrez Options > Règles de distribution pour activer des objets pour cette classe."
 L["CHAT_ITEM_SAVED"] = "Sauvegardé :"
@@ -69,7 +69,7 @@ L["OPTIONS_COMMANDS_WD"] = "Ouvre le panneau d'options de Water Dispenser."
 
 L["OPTIONS_DISPENSE_HEADER"] = "Distribuer"
 L["OPTIONS_DISPENSE_DESC"] =
-	"Remplit automatiquement la fenêtre d'échange dès son ouverture. Chaque option ci-dessous peut être activée séparément."
+	"Remplit automatiquement la fenêtre d'échange à son ouverture. Activez chaque option ci-dessous indépendamment."
 L["OPTIONS_DISPENSE_MASTER"] = "Activer la distribution"
 L["OPTIONS_DISPENSE_MASTER_DESC"] = "Remplit automatiquement la fenêtre d'échange selon vos paramètres."
 L["OPTIONS_DISPENSE_SOLO"] = "Activer pour les inconnus"
@@ -81,7 +81,7 @@ L["OPTIONS_DISPENSE_RAID_DESC"] = "Remplit automatiquement l'échange avec un me
 
 L["OPTIONS_COMBAT_HEADER"] = "Combat"
 L["OPTIONS_COMBAT_DESC"] =
-	"Le remplissage est toujours mis en pause en combat pour éviter les erreurs d'interface. Un rappel est affiché. L'échange reprend de lui-même à la fin du combat si la fenêtre est toujours ouverte."
+	"La distribution est toujours mise en pause pendant le combat afin d'éviter les erreurs d'interface. Un message dans le chat vous le rappelle. Les échanges reprennent automatiquement à la fin du combat si la fenêtre est encore ouverte."
 
 --------------------------------------------------------------------------------
 -- Options — Distribution Rules
@@ -102,7 +102,7 @@ L["OPTIONS_ITEM_FACTOR_LEVEL_DESC"] =
 	"Ignore cet objet quand le partenaire d'échange n'a pas le niveau requis pour l'utiliser."
 L["OPTIONS_ITEM_KEEP_AT_LEAST"] = "Garder au moins"
 L["OPTIONS_ITEM_KEEP_AT_LEAST_DESC"] =
-	"Conserve toujours au moins cette quantité dans vos sacs. Tout ce qui dépasse ce montant est considéré comme disponible à la distribution."
+	"Gardez toujours au moins cette quantité dans vos sacs. La distribution et la macro d'annonce considèrent tout ce qui dépasse ce nombre comme disponible à donner."
 L["OPTIONS_ITEM_INCLUDE_QUANTITY"] = "Inclure la quantité restante dans la macro"
 L["OPTIONS_ITEM_INCLUDE_QUANTITY_DESC"] =
 	"Quand la macro liste cet objet, précise la quantité qu'il vous reste. À désactiver si vous voulez juste annoncer l'objet (typique pour les pierres de soins)."
@@ -129,7 +129,7 @@ L["OPTIONS_ADD_EMPTY"] = "Aucun consommable éligible trouvé dans vos sacs."
 
 L["OPTIONS_ANNOUNCEMENTS"] = "Annonces"
 L["OPTIONS_ANNOUNCEMENTS_DESC"] =
-	"Water Dispenser peut créer une macro annonçant ce que vous avez à distribuer. La macro choisit le canal idéal (/dire, /groupe, /raid) et utilise les quantités réelles de vos sacs."
+	"Water Dispenser peut créer une macro qui annonce ce qu'il vous reste à distribuer. La macro choisit le bon canal automatiquement (Dire hors groupe, Groupe en groupe, Raid en raid) et utilise les quantités actuelles de vos sacs."
 L["OPTIONS_ANNOUNCEMENTS_ENABLE"] = "Activer la macro d'annonce"
 L["OPTIONS_ANNOUNCEMENTS_ENABLE_DESC"] =
 	'Maintient une macro nommée "- Dispenser" à jour avec votre liste de distribution. La désactiver supprime la macro.'
@@ -138,9 +138,8 @@ L["OPTIONS_ANNOUNCEMENTS_PREVIEW_DESC"] = "Voici ce que la macro dira si vous cl
 L["OPTIONS_ANNOUNCEMENTS_PREVIEW_EMPTY"] =
 	'Rien à annoncer. Configurez des objets, remplissez vos sacs ou abaissez la valeur de "Garder au moins".'
 
--- Message-body fragments the macro stitches together.
-L["ANNOUNCEMENTS_INTRO"] = "J'ai"
-L["ANNOUNCEMENTS_OUTRO"] = ". Lancez l'échange !"
+-- Macro message template (%s is the item list) and the connector before the last list entry.
+L["ANNOUNCEMENTS_BODY"] = "J'ai %s. Lancez l'échange !"
 L["ANNOUNCEMENTS_AND"] = "et"
 
 --------------------------------------------------------------------------------

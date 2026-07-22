@@ -17,9 +17,9 @@ L["ADDON_TITLE"] = "Water Dispenser"
 L["CHAT_LOADED"] =
 	"Version %s. Die Einstellungen (inklusive der Option, diese Nachricht zu deaktivieren) sind unter Optionen > AddOns > Water Dispenser zu finden. Gefällt dir Water Dispenser? Empfiehl es weiter! (="
 L["CHAT_NO_TRADE"] = "Kein aktives Handelsfenster."
-L["CHAT_COMBAT_PAUSED"] = "Automatisches Auffüllen im Kampf pausiert."
-L["CHAT_COMBAT_RESUMED"] = "Kampf beendet. Setze Handelsauffüllung fort."
-L["CHAT_MISSING_STACK"] = "Fehlende Stapel:"
+L["CHAT_COMBAT_PAUSED"] = "Ausgabe im Kampf pausiert."
+L["CHAT_COMBAT_RESUMED"] = "Kampf beendet. Setze Ausgabe fort."
+L["CHAT_MISSING_STACK"] = "Fehlt:"
 L["CHAT_NONE_ACTIVE_FOR_CLASS"] =
 	"Es sind keine Gegenstände zur Ausgabe eingestellt, während du einen %s spielst. Öffne Optionen > Verteilungsregeln, um Gegenstände für diese Klasse zu aktivieren."
 L["CHAT_ITEM_SAVED"] = "Gespeichert:"
@@ -68,7 +68,7 @@ L["OPTIONS_COMMANDS_WD"] = "Öffnet die Water Dispenser-Optionen."
 
 L["OPTIONS_DISPENSE_HEADER"] = "Ausgeben"
 L["OPTIONS_DISPENSE_DESC"] =
-	"Füllt das Handelsfenster automatisch, sobald ein Handel geöffnet wird. Jede Option unten kann einzeln umgeschaltet werden."
+	"Füllt das Handelsfenster automatisch, sobald ein Handel geöffnet wird. Schalte jede Option unten einzeln um."
 L["OPTIONS_DISPENSE_MASTER"] = "Ausgabe aktivieren"
 L["OPTIONS_DISPENSE_MASTER_DESC"] = "Füllt das Handelsfenster automatisch basierend auf deinen Einstellungen."
 L["OPTIONS_DISPENSE_SOLO"] = "Für Fremde auffüllen"
@@ -83,7 +83,7 @@ L["OPTIONS_DISPENSE_RAID_DESC"] =
 
 L["OPTIONS_COMBAT_HEADER"] = "Kampf"
 L["OPTIONS_COMBAT_DESC"] =
-	"Automatisches Auffüllen wird im Kampf immer pausiert, um Interface-Fehler zu vermeiden. Eine Chatnachricht erinnert daran. Der Handel wird nach dem Kampf automatisch fortgesetzt, sofern das Fenster noch offen ist."
+	"Die Ausgabe wird im Kampf immer pausiert, um Interface-Fehler zu vermeiden. Eine Chatnachricht erinnert dich daran. Der Handel wird nach dem Kampf automatisch fortgesetzt, sofern das Fenster noch offen ist."
 
 --------------------------------------------------------------------------------
 -- Options — Distribution Rules
@@ -104,11 +104,11 @@ L["OPTIONS_ITEM_FACTOR_LEVEL_DESC"] =
 	"Überspringe diesen Gegenstand, wenn der Handelspartner unter der benötigten Stufe ist."
 L["OPTIONS_ITEM_KEEP_AT_LEAST"] = "Mindestens behalten"
 L["OPTIONS_ITEM_KEEP_AT_LEAST_DESC"] =
-	"Behalte immer mindestens diese Menge in deinen Taschen. Alles darüber hinaus gilt als zum Verschenken verfügbar."
+	"Behalte immer mindestens diese Menge in deinen Taschen. Die Ausgabe und das Ankündigungs-Makro behandeln alles darüber hinaus als verschenkbar."
 L["OPTIONS_ITEM_INCLUDE_QUANTITY"] = "Verbleibende Menge im Makro anzeigen"
 L["OPTIONS_ITEM_INCLUDE_QUANTITY_DESC"] =
 	"Wenn das Ankündigungs-Makro diesen Gegenstand auflistet, zeige an, wie viele du noch hast. Deaktiviere dies, wenn du nur den Gegenstand nennen willst (typisch für Gesundheitssteine)."
-L["OPTIONS_ITEM_PLAYER_CLASSES"] = "Nur verteilen, wenn diese Klassen gespielt werden"
+L["OPTIONS_ITEM_PLAYER_CLASSES"] = "Nur ausgeben, wenn diese Klassen gespielt werden"
 L["OPTIONS_ITEM_PLAYER_CLASSES_DESC"] =
 	"Diesen Gegenstand nur auffüllen und ankündigen, wenn die Klasse deines Charakters unten ausgewählt ist."
 L["OPTIONS_ITEM_REMOVE"] = "Gegenstand entfernen"
@@ -131,7 +131,7 @@ L["OPTIONS_ADD_EMPTY"] = "Keine passenden Verbrauchsgegenstände in deinen Tasch
 
 L["OPTIONS_ANNOUNCEMENTS"] = "Ankündigungen"
 L["OPTIONS_ANNOUNCEMENTS_DESC"] =
-	"Water Dispenser kann ein Makro erstellen, das ansagt, was du noch übrig hast. Das Makro wählt automatisch den richtigen Kanal (/sagen, /gruppe, /schlachtzug) und nutzt aktuelle Zahlen aus deinen Taschen."
+	"Water Dispenser kann ein Makro erstellen, das ansagt, was du noch übrig hast. Das Makro wählt automatisch den richtigen Kanal (Sagen ohne Gruppe, Gruppe in einer Gruppe, Schlachtzug in einem Schlachtzug) und nutzt aktuelle Zahlen aus deinen Taschen."
 L["OPTIONS_ANNOUNCEMENTS_ENABLE"] = "Ankündigungs-Makro aktivieren"
 L["OPTIONS_ANNOUNCEMENTS_ENABLE_DESC"] =
 	'Hält ein charakterspezifisches Makro namens "- Dispenser" mit deiner Liste aktuell. Das Deaktivieren löscht das Makro.'
@@ -140,9 +140,8 @@ L["OPTIONS_ANNOUNCEMENTS_PREVIEW_DESC"] = "Das wird das Makro sagen, wenn du es 
 L["OPTIONS_ANNOUNCEMENTS_PREVIEW_EMPTY"] =
 	'Nichts anzukündigen. Konfiguriere Gegenstände, fülle deine Taschen auf oder senke den "Mindestens behalten" Wert.'
 
--- Message-body fragments the macro stitches together.
-L["ANNOUNCEMENTS_INTRO"] = "Ich habe"
-L["ANNOUNCEMENTS_OUTRO"] = ". Handel öffnen!"
+-- Macro message template (%s is the item list) and the connector before the last list entry.
+L["ANNOUNCEMENTS_BODY"] = "Ich habe %s. Handel öffnen!"
 L["ANNOUNCEMENTS_AND"] = "und"
 
 --------------------------------------------------------------------------------
