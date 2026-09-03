@@ -2,6 +2,8 @@ local ADDON_NAME, ns = ...
 
 local L = ns.L
 
+local AceConfigRegistry = LibStub("AceConfigRegistry-3.0")
+
 --------------------------------------------------------------------------------
 -- State
 --------------------------------------------------------------------------------
@@ -13,6 +15,8 @@ ns.State = {
 		Class = nil,
 		Level = nil,
 		Party = false,
+		-- Captured at TRADE_SHOW: UnitName("NPC") is gone by the time the trade closes.
+		Partner = nil,
 	},
 	MissingStack = false,
 }
@@ -22,8 +26,8 @@ ns.State = {
 --------------------------------------------------------------------------------
 
 local function GetVersion()
-	local getMeta = C_AddOns and C_AddOns.GetAddOnMetadata or GetAddOnMetadata
-	local version = getMeta and getMeta(ADDON_NAME, "Version")
+	-- No legacy fallback: GetAddOnMetadata is gone on both target clients.
+	local version = C_AddOns.GetAddOnMetadata(ADDON_NAME, "Version")
 	if not version or version:find("@") then
 		return "Dev"
 	end
@@ -83,65 +87,9 @@ end)
 -- Addon Lifecycle
 --------------------------------------------------------------------------------
 
---[[
-	Creates the AceDB database and seeds it on first login after the two-table
-	upgrade ("first login seeds Default"): this character's legacy settings fold
-	into the shared Default profile; later characters discard theirs and inherit it.
-]]
+-- Creates the AceDB database and wires the refresh that follows a profile switch.
 local function SetupDatabase()
-	-- Capture the pre-AceDB tables before AceDB adopts WaterDispenserDB.
-	local legacyAccount = WaterDispenserDB
-	local legacyChar = WaterDispenserCharDB
-	local hasLegacyChar = type(legacyChar) == "table" and next(legacyChar) ~= nil
-
-	-- MIGRATION (remove after 2026-10-12): read legacy root keys under the type guard so a fresh install leaves each nil.
-	local legacyWelcome, legacyMinimap
-	if type(legacyAccount) == "table" then
-		legacyWelcome = legacyAccount.WelcomeMessage
-		if type(legacyAccount.minimap) == "table" then
-			legacyMinimap = legacyAccount.minimap
-		end
-	end
-
 	ns.db = LibStub("AceDB-3.0"):New("WaterDispenserDB", ns.DATABASE_DEFAULTS, true)
-	local profile = ns.db.profile
-	local global = ns.db.global
-
-	-- MIGRATION (remove after 2026-10-12): fold the legacy minimap into global, then clear the stray root keys (idempotent).
-	if legacyMinimap then
-		for key, value in pairs(legacyMinimap) do
-			global.minimap[key] = value
-		end
-	end
-	WaterDispenserDB.minimap = nil
-	WaterDispenserDB.WelcomeMessage = nil
-
-	-- MIGRATION (remove after 2026-10-12): first login seeds Default from this character's legacy table; the account-wide flag makes it one-time.
-	if not global.legacySeedDone then
-		global.legacySeedDone = true
-		if legacyWelcome ~= nil then
-			profile.showWelcome = legacyWelcome
-		end
-		if hasLegacyChar then
-			ns.RunLegacyMigrations(legacyChar)
-			for _, key in ipairs({ "MissingStackWarnings", "Dispense", "DispenseSolo", "DispenseGroup", "DispenseRaid" }) do
-				if legacyChar[key] ~= nil then
-					profile[key] = legacyChar[key]
-				end
-			end
-			if type(legacyChar.Announcements) == "table" and legacyChar.Announcements.Enabled ~= nil then
-				profile.Announcements.Enabled = legacyChar.Announcements.Enabled
-			end
-			if type(legacyChar.Items) == "table" then
-				for key, value in pairs(legacyChar.Items) do
-					profile.Items[key] = ns.DeepCopy(value)
-				end
-			end
-		end
-	end
-
-	-- MIGRATION (remove after 2026-10-12): discard every character's legacy table; Default is the source of truth now.
-	WaterDispenserCharDB = nil
 
 	ns.RefreshCollectionMeta()
 
@@ -153,11 +101,23 @@ end
 
 function ns:OnProfileRefresh()
 	ns.RefreshCollectionMeta()
-	if ns.RebuildDistributionRulesOptions then
-		ns.RebuildDistributionRulesOptions()
+	if ns.RebuildDispensedItemsOptions then
+		ns.RebuildDispensedItemsOptions()
 	end
-	if ns.RefreshAnnouncementMacro then
-		ns.RefreshAnnouncementMacro()
+	ns.RefreshGiveaways()
+
+	-- Every panel reads the profile, so all of them repaint; an open one would otherwise show the old profile's values.
+	for _, registryName in pairs(ns.OPTIONS_REGISTRY) do
+		AceConfigRegistry:NotifyChange(registryName)
+	end
+
+	--[[
+		The button's table moved with the profile, so re-point LibDBIcon at the new
+		one; without this it keeps writing to the old profile's table until a reload.
+	]]
+	local LDBIcon = LibStub("LibDBIcon-1.0")
+	if LDBIcon:IsRegistered(ns.LOCALE_NAME) then
+		LDBIcon:Refresh(ns.LOCALE_NAME, ns.db.profile.minimap)
 	end
 end
 
@@ -173,8 +133,15 @@ ns.RegisterEvent("PLAYER_LOGIN", function()
 	if ns.InitAnnouncements then
 		ns.InitAnnouncements()
 	end
+	if ns.InitGroupSpares then
+		ns.InitGroupSpares()
+	end
 	if ns.InitMinimap then
 		ns.InitMinimap()
+	end
+	-- After InitDispenser: both claim TRADE_CLOSED, and the restacker's pass reads the Active flag the dispenser's handler clears.
+	if ns.InitRestacker then
+		ns.InitRestacker()
 	end
 	if ns.db.profile.showWelcome then
 		ns.PrintMessage(format(L["CHAT_LOADED"], ns.Version))

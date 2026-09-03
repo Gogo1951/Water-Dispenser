@@ -12,8 +12,10 @@ local AceConfigRegistry = LibStub("AceConfigRegistry-3.0")
 --------------------------------------------------------------------------------
 
 --[[
-	A runtime toggle gates the panel: when off, only the warning and enable
-	toggle show. Header/Spacer helpers lack `hidden`, so gated sections inline it.
+	A runtime toggle gates the panel: when off, only the warning and enable toggle
+	show. Every gated section hides on that one condition, so SectionHeader and
+	ReportOutput bake it in rather than repeating it per widget. ns.OptionsSpacer
+	takes no `hidden`, so a gated spacer is inlined as its own description widget.
 ]]
 
 local function DiagnosticsOn()
@@ -27,6 +29,9 @@ end
 local function Refresh()
 	AceConfigRegistry:NotifyChange(ns.OPTIONS_REGISTRY.Diagnostics)
 end
+
+-- Validate Data reports build across several ticks and repaint the panel as they go.
+ns.RefreshDiagnosticsPanel = Refresh
 
 local function SectionHeader(text, order)
 	return { type = "header", name = GetColor("TITLE") .. text .. "|r", order = order, hidden = Hidden }
@@ -48,7 +53,7 @@ local function ReportOutput(field, order)
 end
 
 function ns.BuildDiagnosticsOptions()
-	return {
+	local options = {
 		type = "group",
 		name = D.TAB,
 		args = {
@@ -255,4 +260,31 @@ function ns.BuildDiagnosticsOptions()
 			},
 		},
 	}
+
+	-- One Validate Data section per static data file, between Saved Variables and Library Versions.
+	local order = 45
+	for index, source in ipairs(ns.DIAGNOSTIC_DATA_SOURCES) do
+		options.args["headerValidate" .. index] = SectionHeader(string.format(D.VALIDATE_TITLE, source.Label), order)
+		options.args["buttonValidate" .. index] = {
+			type = "execute",
+			name = string.format(D.VALIDATE_BUTTON, source.Label),
+			order = order + 1,
+			hidden = Hidden,
+			func = function()
+				ns:RunValidateData(index)
+				Refresh()
+			end,
+		}
+		options.args["outputValidate" .. index] = ReportOutput("validateReport" .. index, order + 2)
+		options.args["descValidate" .. index] = {
+			type = "description",
+			name = GetColor("HELP") .. D.VALIDATE_HINT .. "|r",
+			fontSize = "medium",
+			order = order + 3,
+			hidden = Hidden,
+		}
+		order = order + 5
+	end
+
+	return options
 end

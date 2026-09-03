@@ -7,14 +7,44 @@ ns.L = LibStub("AceLocale-3.0"):GetLocale(ns.LOCALE_NAME)
 -- AceConfig Registry Names
 --------------------------------------------------------------------------------
 
--- Registry IDs derived from the addon name so they never drift.
+-- Registry IDs derived from the add-on name so they never drift.
 ns.OPTIONS_REGISTRY = {
 	General = ADDON_NAME,
-	DistributionRules = ADDON_NAME .. "_DistributionRules",
+	DispensedItems = ADDON_NAME .. "_DispensedItems",
 	Announcements = ADDON_NAME .. "_Announcements",
 	Profiles = ADDON_NAME .. "_Profiles",
 	Diagnostics = ADDON_NAME .. "_Diagnostics",
 }
+
+--------------------------------------------------------------------------------
+-- Options Layout Grid
+--------------------------------------------------------------------------------
+
+-- A label plus its control always total OPTIONS_ROW_WIDTH, so every row ends
+-- where every other row ends.
+ns.OPTIONS_ROW_WIDTH = 2.6
+ns.OPTIONS_LABEL_WIDTH = 1.3
+ns.OPTIONS_CONTROL_WIDTH = ns.OPTIONS_ROW_WIDTH - ns.OPTIONS_LABEL_WIDTH
+ns.OPTIONS_REMOVE_ICON_WIDTH = 0.25 -- the item lists' remove column, sized to its icon
+ns.OPTIONS_SUB_INDENT_WIDTH = 0.115 -- the blank cell a sub-option row leads with
+
+--------------------------------------------------------------------------------
+-- Distribution Gate
+--------------------------------------------------------------------------------
+
+--[[
+	When an item may be handed out at all, on top of the per-class amounts. Stored
+	verbatim in the profile, so these strings are part of the saved format; the
+	dropdown's labels are separate locale keys. Order is the order they list in.
+]]
+ns.DISTRIBUTE_MODES = { "Always", "Group", "Raid" }
+
+--------------------------------------------------------------------------------
+-- Message Length
+--------------------------------------------------------------------------------
+
+-- Bytes, not characters: the chat and macro-body ceilings both count bytes.
+ns.CHAT_MESSAGE_MAX_LENGTH = 255
 
 --------------------------------------------------------------------------------
 -- Target Marker
@@ -54,6 +84,22 @@ ns.CLASS_COLORS = {
 	SHAMAN = "0070DD",
 	WARLOCK = "8788EE",
 	WARRIOR = "C69B6D",
+}
+
+--------------------------------------------------------------------------------
+-- Item Quality Colors
+--------------------------------------------------------------------------------
+
+-- Indexed by the quality GetItemInfo returns. Poor through Heirloom.
+ns.ITEM_QUALITY_COLORS = {
+	[0] = "9D9D9D",
+	[1] = "FFFFFF",
+	[2] = "1EFF00",
+	[3] = "0070DD",
+	[4] = "A335EE",
+	[5] = "FF8000",
+	[6] = "E6CC80",
+	[7] = "00CCFF",
 }
 
 --------------------------------------------------------------------------------

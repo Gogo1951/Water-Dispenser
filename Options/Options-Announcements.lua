@@ -4,6 +4,8 @@ local L = ns.L
 local GetColor = ns.GetColor
 
 local Header, Desc, Spacer = ns.OptionsHeader, ns.OptionsDesc, ns.OptionsSpacer
+local SubRow, SubToggle = ns.OptionsSubRow, ns.OptionsSubToggle
+local GetDB, SetDB = ns.OptionsGetDB, ns.OptionsSetDB
 
 --------------------------------------------------------------------------------
 -- DB Accessors
@@ -14,7 +16,6 @@ local function GetAnnouncements()
 	if not ns.db then
 		return nil
 	end
-	ns.db.profile.Announcements = ns.db.profile.Announcements or {}
 	return ns.db.profile.Announcements
 end
 
@@ -30,9 +31,7 @@ local function SetEnabled(_, value)
 	end
 	a.Enabled = value and true or false
 	-- Macro is auto-managed: enabling creates it, disabling deletes it.
-	if ns.RefreshAnnouncementMacro then
-		ns.RefreshAnnouncementMacro()
-	end
+	ns.RefreshGiveaways()
 end
 
 --------------------------------------------------------------------------------
@@ -47,7 +46,16 @@ local function GetPreviewText()
 			return GetColor("TEXT") .. message .. "|r"
 		end
 	end
-	return GetColor("MUTED") .. (L["OPTIONS_ANNOUNCEMENTS_PREVIEW_EMPTY"] or "") .. "|r"
+	return GetColor("MUTED") .. L["OPTIONS_ANNOUNCEMENTS_PREVIEW_EMPTY"] .. "|r"
+end
+
+--------------------------------------------------------------------------------
+-- Tooltip Sharing
+--------------------------------------------------------------------------------
+
+-- Sharing is only a question once the tooltips themselves are switched on.
+local function TooltipsOff()
+	return not (ns.db and ns.db.profile.ShowInventoryTooltips)
 end
 
 --------------------------------------------------------------------------------
@@ -57,7 +65,7 @@ end
 function ns.BuildAnnouncementsOptions()
 	return {
 		type = "group",
-		name = L["ADDON_TITLE"] .. " > " .. L["OPTIONS_ANNOUNCEMENTS"],
+		name = L["TAB_ANNOUNCEMENTS"],
 		args = {
 			-- Intro
 			intro = Desc(L["OPTIONS_ANNOUNCEMENTS_DESC"], 1),
@@ -72,20 +80,41 @@ function ns.BuildAnnouncementsOptions()
 				get = GetEnabled,
 				set = SetEnabled,
 			},
-			-- Live Preview
+			-- The macro's current body, unlabeled: it is plainly the macro, and the
+			-- section text above already says what it is.
 			spacePreview0 = Spacer(20),
-			headerPreview = Header(L["OPTIONS_ANNOUNCEMENTS_PREVIEW_HEADER"], 21),
-			spacePreview1 = Spacer(22),
-			descPreview = Desc(L["OPTIONS_ANNOUNCEMENTS_PREVIEW_DESC"], 23),
-			spacePreview2 = Spacer(24),
 			previewBody = {
 				type = "description",
 				fontSize = "medium",
-				order = 25,
+				order = 21,
 				name = function()
 					return GetPreviewText()
 				end,
 			},
+			-- Inventory in Player Tooltips
+			spaceTooltips0 = Spacer(30),
+			headerTooltips = Header(L["OPTIONS_TOOLTIPS_HEADER"], 31),
+			spaceTooltips1 = Spacer(32),
+			descTooltips = Desc(L["OPTIONS_TOOLTIPS_DESC"], 33),
+			spaceTooltips2 = Spacer(34),
+			ShowInventoryTooltips = {
+				type = "toggle",
+				width = "full",
+				name = L["OPTIONS_SHOW_INVENTORY"],
+				desc = L["OPTIONS_SHOW_INVENTORY_DESC"],
+				order = 35,
+				get = GetDB,
+				set = function(info, value)
+					SetDB(info, value)
+					-- This gates sharing too, so the group needs telling either way.
+					ns.RefreshGiveaways()
+				end,
+			},
+			rowShareInventory = SubRow(36, TooltipsOff, {
+				SubToggle("ShareInventory", L["OPTIONS_SHARE_INVENTORY"], L["OPTIONS_SHARE_INVENTORY_DESC"], function()
+					ns.RefreshGiveaways()
+				end),
+			}),
 		},
 	}
 end
