@@ -2,19 +2,19 @@
 
 Effortless consumable distribution. Auto-fill the trade window with water, food, and healthstones. Add any item you want, like Hourglass Sand or Resistance Potions, to be given out to your raid.
 
-TL;DR: If you're the mage or the warlock, this is the add-on that stops people asking twice. Open a trade and the right amount is already sitting in the window.
+**TL;DR**: If you're the mage or warlock everyone comes to for supplies, stop counting stacks and digging through your bags. Open a trade and Water Dispenser puts the right items and amounts in the window for you.
 
 ## Features
 
-🎯 **Right Item, Right Amount** // Water and food step down to the best rank your partner can actually use, and every number is a count of individual items rather than stacks, so you can hand over exactly one Hourglass Sand, Resistance Potion, Flask, or Venom Sac out of a full stack.
+🎯 **Right Item, Right Amount** // Water and food automatically step down to the best rank your trade partner can use. Amounts are always individual items, not stacks, so you can hand over exactly one Hourglass Sand, Resistance Potion, Flask, or Venom Sac from a full stack.
 
-👀 **See Who's Carrying What** // Hover a party or raid member and their tooltip lists everything they have set up to give, warlock healthstone rank included. An optional one-click macro posts your own leftovers to party or raid chat, with shift-clickable item links.
+👀 **Player Tooltips & Announcement Macro** // Hover a party or raid member to see everything they've configured to give, including a warlock's Healthstone rank. An optional one-click macro announces your own leftovers to party or raid chat, with shift-clickable item links.
 
-⚙️ **Your Rules, Your Stash** // Set how many each class gets from you as a stranger, in a party, or in a raid. Reserves wall off your personal supply so only the surplus goes out, and Maximum per Session stops one person draining your expensive potions on their fifth trade.
+⚙️ **Your Rules, Your Stash** // Set how much each class gets from you as a stranger, party member, or raid member. Reserves protect your personal supply so only your surplus goes out, while Maximum per Session keeps one person from draining your expensive potions trade after trade.
 
-🧹 **Tidy Bags, Always Ready** // Conjured water and food land in a new bag slot every single cast, and the game never puts them back together. Water Dispenser merges the loose part-stacks between trades, so there's a whole stack waiting the moment someone asks.
+🧹 **Tidy Bags, Always Ready** // Conjured water and food land in a new bag slot after every cast, and the game never combines them again. Water Dispenser cleans up those loose partial stacks between trades, so a full stack is ready the moment someone asks.
 
-🦺 **Safety First** // Only ever moves the consumables you've set up, never anything else. Never trades in combat, and never shuffles your bags mid-fight, mid-trade, or while you're dragging something.
+🦺 **Safety First** // Only moves the consumables you've configured—never anything else. It won't trade in combat or shuffle your bags during a fight, an active trade, or while you're dragging an item.
 
 ## Setup
 
@@ -97,9 +97,9 @@ Please reach out if you would like to be involved!
 
 ## Related Add-ons
 
-🟢 Pairs With // Gogo1951's [Connoisseur](https://www.curseforge.com/wow/addons/consumable-connoisseur)
+🟢 Pairs With // Gogo1951's [Connoisseur & Restocker](https://www.curseforge.com/wow/addons/consumable-connoisseur)
 
-🟢 Pairs With // IzC's [IzC Auto Consumables](https://www.curseforge.com/wow/addons/izc-auto-consumables)
+🟢 Pairs With // Gogo1951's [Play It Forward](https://www.curseforge.com/wow/addons/play-it-forward)
 
 🟢 Pairs With // noobsgonewild's [Tank HealthStone Tracker](https://www.curseforge.com/wow/addons/tank-healthstone-tracker)
 
