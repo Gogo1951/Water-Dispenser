@@ -7,20 +7,29 @@ local URLS = ns.URLS
 local Header = ns.OptionsHeader
 local Desc = ns.OptionsDesc
 local Spacer = ns.OptionsSpacer
+local SubRow = ns.OptionsSubRow
+local SubToggle = ns.OptionsSubToggle
+local GetDB = ns.OptionsGetDB
+local SetDB = ns.OptionsSetDB
 
--- Leading pad that visually nests a toggle under the one above it (AceConfig has no indent property).
-local SUB_INDENT = "      "
+-- The Feedback & Support rows: a caption-sized label, so the URL box gets the rest
+-- of the row and a full address fits without being cut off.
+local LINK_LABEL_WIDTH = 0.6
+local LINK_URL_WIDTH = ns.OPTIONS_ROW_WIDTH - LINK_LABEL_WIDTH
 
 --------------------------------------------------------------------------------
--- Read-only URL Helper
+-- Read-only URL Row
 --------------------------------------------------------------------------------
 
-local function ReadOnlyURL(name, url, order)
-	return {
+-- One Feedback & Support row: a gold service name, then the address in a box the
+-- player can select and copy but not edit.
+local function AddLinkRow(args, key, name, url, order)
+	args[key .. "Label"] = ns.OptionsRowLabel(GetColor("TITLE") .. name .. "|r", order, LINK_LABEL_WIDTH)
+	args[key .. "URL"] = {
 		type = "input",
-		name = name,
-		width = "double",
-		order = order,
+		name = "",
+		order = order + 1,
+		width = LINK_URL_WIDTH,
 		get = function()
 			return url
 		end,
@@ -32,33 +41,25 @@ end
 -- General Settings Table
 --------------------------------------------------------------------------------
 
-local function GetDB(info)
-	return ns.db.profile[info[#info]]
-end
-
-local function SetDB(info, value)
-	ns.db.profile[info[#info]] = value
-end
-
--- The per-scope toggles only show while the master Dispense toggle is on.
-local function DispenseHidden()
+-- The per-scope rows only show while the master Dispense toggle is on.
+local function DispenseOff()
 	return not (ns.db and ns.db.profile.Dispense)
 end
 
 function ns.BuildGeneralOptions()
-	return {
+	local options = {
 		type = "group",
 		name = L["ADDON_TITLE"],
 		args = {
-			-- Intro description
-			intro = Desc(L["OPTIONS_DESC"], 1),
-			spaceGeneral0 = Spacer(2),
+			-- Brief Description
+			descIntro = Desc(L["OPTIONS_DESCRIPTION"], 1),
+			space0 = Spacer(2),
 			showWelcome = {
 				type = "toggle",
 				width = "full",
 				name = L["OPTIONS_WELCOME_MESSAGE"],
 				desc = L["OPTIONS_WELCOME_MESSAGE_DESC"],
-				order = 5,
+				order = 4,
 				get = GetDB,
 				set = SetDB,
 			},
@@ -67,98 +68,126 @@ function ns.BuildGeneralOptions()
 				width = "full",
 				name = L["OPTIONS_MINIMAP"],
 				desc = L["OPTIONS_MINIMAP_DESC"],
-				order = 5.25,
-				-- Reads/writes the LibDBIcon hide flag in ns.db.global.minimap (account-wide, profile-independent).
+				order = 5,
+				-- Reads/writes the LibDBIcon hide flag; the label reads "Enable", so the stored value is inverted.
 				get = function()
-					return not ns.db.global.minimap.hide
+					return not ns.db.profile.minimap.hide
 				end,
 				set = function(_, value)
 					ns.ToggleMinimapButton(value)
 				end,
 			},
 			-- /Commands
-			spaceCommands0 = Spacer(10),
-			headerCommands = Header(L["OPTIONS_COMMANDS"], 11),
-			spaceCommands1 = Spacer(12),
-			descCommands = Desc(GetColor("INFO") .. "/wd|r" .. "  " .. L["OPTIONS_COMMANDS_WD"], 13),
-			-- Automatic Fill
-			spaceAuto0 = Spacer(30),
-			headerAuto = Header(L["OPTIONS_DISPENSE_HEADER"], 31),
-			spaceAuto1 = Spacer(32),
-			descAuto = Desc(L["OPTIONS_DISPENSE_DESC"], 33),
-			spaceAuto2 = Spacer(34),
+			spaceCommands0 = Spacer(6),
+			headerCommands = Header(L["OPTIONS_COMMANDS_HEADER"], 7),
+			spaceCommands1 = Spacer(8),
+			descCommands = Desc(
+				GetColor("INFO") .. L["OPTIONS_COMMAND"] .. "|r" .. "  " .. L["OPTIONS_COMMAND_DESCRIPTION"],
+				9
+			),
+			-- Dispense
+			spaceDispense0 = Spacer(30),
+			headerDispense = Header(L["OPTIONS_DISPENSE_HEADER"], 31),
+			spaceDispense1 = Spacer(32),
+			descDispense = Desc(L["OPTIONS_DISPENSE_DESC"], 33),
+			spaceDispense2 = Spacer(34),
 			Dispense = {
 				type = "toggle",
 				width = "full",
 				name = L["OPTIONS_DISPENSE_MASTER"],
 				desc = L["OPTIONS_DISPENSE_MASTER_DESC"],
-				order = 34.5,
-				get = GetDB,
-				set = SetDB,
-			},
-			DispenseRaid = {
-				type = "toggle",
-				width = "full",
-				name = SUB_INDENT .. L["OPTIONS_DISPENSE_RAID"],
-				desc = L["OPTIONS_DISPENSE_RAID_DESC"],
 				order = 35,
-				hidden = DispenseHidden,
 				get = GetDB,
-				set = SetDB,
+				set = function(info, value)
+					SetDB(info, value)
+					-- Switching off means we are offering nothing; the group needs telling.
+					ns.RefreshGiveaways()
+					-- Restacking is a sub-option of this one, so switching back on resumes it.
+					if value then
+						ns.RestackBags()
+					end
+				end,
 			},
-			DispenseGroup = {
-				type = "toggle",
-				width = "full",
-				name = SUB_INDENT .. L["OPTIONS_DISPENSE_GROUP"],
-				desc = L["OPTIONS_DISPENSE_GROUP_DESC"],
-				order = 36,
-				hidden = DispenseHidden,
-				get = GetDB,
-				set = SetDB,
-			},
-			DispenseSolo = {
-				type = "toggle",
-				width = "full",
-				name = SUB_INDENT .. L["OPTIONS_DISPENSE_SOLO"],
-				desc = L["OPTIONS_DISPENSE_SOLO_DESC"],
-				order = 37,
-				hidden = DispenseHidden,
-				get = GetDB,
-				set = SetDB,
-			},
-			MissingStackWarnings = {
-				type = "toggle",
-				width = "full",
-				name = SUB_INDENT .. L["OPTIONS_MISSING_STACK_WARNINGS"],
-				desc = L["OPTIONS_MISSING_STACK_WARNINGS_DESC"],
-				order = 39,
-				hidden = DispenseHidden,
-				get = GetDB,
-				set = SetDB,
-			},
+			rowDispenseRaid = SubRow(36, DispenseOff, {
+				SubToggle("DispenseRaid", L["OPTIONS_DISPENSE_RAID"], L["OPTIONS_DISPENSE_RAID_DESC"]),
+			}),
+			rowDispenseGroup = SubRow(37, DispenseOff, {
+				SubToggle("DispenseGroup", L["OPTIONS_DISPENSE_GROUP"], L["OPTIONS_DISPENSE_GROUP_DESC"]),
+			}),
+			rowDispenseSolo = SubRow(38, DispenseOff, {
+				SubToggle("DispenseSolo", L["OPTIONS_DISPENSE_SOLO"], L["OPTIONS_DISPENSE_SOLO_DESC"]),
+			}),
+			--[[
+				The last two are sub-options of Dispense, like the three scopes above, so
+				they indent under it and hide with it.
+
+				Nothing may act from behind a hidden control, which is why Restack reads
+				the master toggle too: otherwise switching Dispense off would leave it
+				quietly reshuffling bags with no way to see or stop it. The short-warning
+				needs no such gate -- it only ever speaks in answer to a fill the player
+				asked for, and with Dispense off the side panel's button is the only fill
+				left.
+			]]
+			rowRestackBags = SubRow(39, DispenseOff, {
+				SubToggle("RestackBags", L["OPTIONS_RESTACK"], L["OPTIONS_RESTACK_DESC"], function()
+					-- Switching it on shouldn't wait for the next bag change to tidy what is already there.
+					if ns.db.profile.RestackBags then
+						ns.RestackBags()
+					end
+				end),
+			}),
+			-- Last of the sub-options: the others change what the add-on does, this one only changes what it says.
+			rowMissingStackWarnings = SubRow(40, DispenseOff, {
+				SubToggle(
+					"MissingStackWarnings",
+					L["OPTIONS_MISSING_STACK_WARNINGS"],
+					L["OPTIONS_MISSING_STACK_WARNINGS_DESC"]
+				),
+			}),
 			-- Combat
-			spaceCombat0 = Spacer(40),
-			headerCombat = Header(L["OPTIONS_COMBAT_HEADER"], 41),
-			spaceCombat1 = Spacer(42),
-			descCombat = Desc(L["OPTIONS_COMBAT_DESC"], 43),
+			spaceCombat0 = Spacer(50),
+			headerCombat = Header(L["OPTIONS_COMBAT_HEADER"], 51),
+			spaceCombat1 = Spacer(52),
+			descCombat = Desc(L["OPTIONS_COMBAT_DESC"], 53),
+			spaceCombat2 = Spacer(54),
+			CombatNotifications = {
+				type = "toggle",
+				width = "full",
+				name = L["OPTIONS_COMBAT_NOTIFY"],
+				desc = L["OPTIONS_COMBAT_NOTIFY_DESC"],
+				order = 55,
+				get = GetDB,
+				set = SetDB,
+			},
 			-- Feedback & Support
-			spaceSupport0 = Spacer(80),
-			headerSupport = Header(L["OPTIONS_SUPPORT"], 81),
-			spaceSupport1 = Spacer(82),
-			descSupport = Desc(L["SUPPORT_DESC"], 83),
-			spaceSupport2 = Spacer(84),
-			supportDiscord = ReadOnlyURL(L["SUPPORT_DISCORD"], URLS.DISCORD, 85),
-			supportGithub = ReadOnlyURL(L["SUPPORT_GITHUB"], URLS.GITHUB, 86),
-			supportCurse = ReadOnlyURL(L["SUPPORT_CURSEFORGE"], URLS.CURSEFORGE, 87),
-			supportWago = ReadOnlyURL(L["SUPPORT_WAGO"], URLS.WAGO, 88),
-			-- Version footer
-			spaceVersion = Spacer(99),
-			version = {
+			spaceLinks0 = Spacer(69),
+			headerLinks = Header(L["OPTIONS_SUPPORT"], 70),
+			spaceLinks1 = Spacer(71),
+			spaceLinks2 = Spacer(74),
+			spaceLinks3 = Spacer(77),
+			spaceLinks4 = Spacer(80),
+			-- Version
+			spaceVersion0 = {
+				type = "description",
+				name = " ",
+				width = "full",
+				order = 998,
+			},
+			versionLine = {
 				type = "description",
 				name = GetColor("MUTED") .. "Version " .. ns.Version .. "|r",
 				fontSize = "medium",
-				order = 100,
+				order = 999,
 			},
 		},
 	}
+
+	-- House order: Discord, GitHub, CurseForge, Wago. Each pair slots between the
+	-- spacers reserved for it above.
+	AddLinkRow(options.args, "discord", L["SUPPORT_DISCORD"], URLS.DISCORD, 72)
+	AddLinkRow(options.args, "github", L["SUPPORT_GITHUB"], URLS.GITHUB, 75)
+	AddLinkRow(options.args, "curseforge", L["SUPPORT_CURSEFORGE"], URLS.CURSEFORGE, 78)
+	AddLinkRow(options.args, "wago", L["SUPPORT_WAGO"], URLS.WAGO, 81)
+
+	return options
 end

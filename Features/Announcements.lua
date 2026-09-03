@@ -4,27 +4,35 @@ local L = ns.L
 local GetColor = ns.GetColor
 
 --[[
-	Intentional deviation: Water Dispenser never calls SendChatMessage. Instead of
-	the Style Guide's ns:Announce / ns:BuildAnnounceMessage / ns:GetGroupChatChannel
-	send path, it keeps a player-clicked "- Dispenser" macro up to date; the add-on
-	initiates no chat by design, so those send helpers are intentionally absent.
-	ns.PrintMessage stays here -- player-only prints are this file's job.
+	Water Dispenser never calls SendChatMessage: the player fires the "- Dispenser"
+	macro, so this file has no send path, only ns.PrintMessage.
 ]]
 
 --------------------------------------------------------------------------------
 -- Chat Output
 --------------------------------------------------------------------------------
 
--- Prints a branded line to the player's chat: title // message [detail].
-function ns.PrintMessage(msg, detail)
-	local line = GetColor("INFO")
+--[[
+	The add-on's one branded line: |cff[INFO]Add-on Name|r |cff[SEPARATOR]//|r
+	|cff[TEXT]Message|r. Features/Group-Spares.lua heads its tooltip block with the
+	same line, so the two can never brand the add-on differently, and a locale body
+	stays the body alone.
+]]
+function ns.BuildBrandedLine(message)
+	return GetColor("INFO")
 		.. L["ADDON_TITLE"]
 		.. "|r "
 		.. GetColor("SEPARATOR")
-		.. "//|r "
+		.. "//"
+		.. "|r "
 		.. GetColor("TEXT")
-		.. tostring(msg)
+		.. tostring(message)
 		.. "|r"
+end
+
+-- Prints a branded line to the player's chat frame: title // message [detail].
+function ns.PrintMessage(message, detail)
+	local line = ns.BuildBrandedLine(message)
 	if detail then
 		line = line .. " " .. GetColor("MUTED") .. tostring(detail) .. "|r"
 	end
@@ -38,11 +46,11 @@ end
 -- Leading "- " sorts it to the top of the macro list; under 16 chars because WoW truncates longer names.
 local MACRO_NAME = "- Dispenser"
 
--- Drink icon, matching the addon branding.
+-- Drink icon, matching the add-on branding.
 local MACRO_ICON = "INV_Drink_18"
 
 -- Blizzard's macro body limit; we truncate before it so updates never fail.
-local MACRO_BODY_LIMIT = 255
+local MACRO_BODY_LIMIT = ns.CHAT_MESSAGE_MAX_LENGTH
 
 -- Debounce window: coalesces bursts of BAG_UPDATE_DELAYED into one update.
 local UPDATE_DEBOUNCE = 0.25
@@ -60,19 +68,42 @@ local updateTimer
 -- Latches the "macro slots full" warning to once until a slot frees up.
 local macroFullWarned = false
 
+-- Body last written to the macro. Bags settle far more often than the giveaway
+-- list actually changes, so an unchanged body skips the write entirely.
+local lastMacroBody = nil
+
 --------------------------------------------------------------------------------
 -- Channel Resolution
 --------------------------------------------------------------------------------
 
--- Channel slash for the macro body: /raid in a raid, /p in a party, /s solo.
-local function ChannelSlash()
+--[[
+	The add-on's one group-channel resolver, shared with Features/Group-Spares.lua so
+	a chat body and an addon message can never disagree about where the player is.
+	Instance chat comes first: a battleground raid is an instance group, and RAID
+	there routes to a home raid the player is not in.
+]]
+function ns.GetGroupChatChannel()
+	if IsInGroup(LE_PARTY_CATEGORY_INSTANCE) then
+		return "INSTANCE_CHAT"
+	end
 	if IsInRaid() then
-		return "/raid "
+		return "RAID"
 	end
 	if IsInGroup() then
-		return "/p "
+		return "PARTY"
 	end
-	return "/s "
+	return nil
+end
+
+-- The macro body's leading channel slash; ungrouped falls through to /s.
+local CHANNEL_SLASH = {
+	INSTANCE_CHAT = "/i ",
+	RAID = "/raid ",
+	PARTY = "/p ",
+}
+
+local function ChannelSlash()
+	return CHANNEL_SLASH[ns.GetGroupChatChannel()] or "/s "
 end
 
 --------------------------------------------------------------------------------
@@ -88,7 +119,7 @@ local function JoinList(parts)
 	if n == 1 then
 		return parts[1]
 	end
-	local andWord = L["ANNOUNCEMENTS_AND"] or "and"
+	local andWord = L["ANNOUNCEMENTS_AND"]
 	if n == 2 then
 		return parts[1] .. " " .. andWord .. " " .. parts[2]
 	end
@@ -206,19 +237,19 @@ end
 --------------------------------------------------------------------------------
 
 -- Returns the macro slot index (1-based) or 0 if the macro doesn't exist.
-function ns.GetAnnouncementMacroIndex()
+local function GetAnnouncementMacroIndex()
 	return GetMacroIndexByName(MACRO_NAME) or 0
 end
 
 -- True if the per-character "- Dispenser" macro currently exists.
-function ns.HasAnnouncementMacro()
-	return ns.GetAnnouncementMacroIndex() ~= 0
+local function HasAnnouncementMacro()
+	return GetAnnouncementMacroIndex() ~= 0
 end
 
 --[[
 	Reconciles the per-character macro to ns.db.profile.Announcements.Enabled:
 	create on first enable, edit on bag changes, delete when disabled. Chat output
-	only on create / delete / slots-full; routine refreshes stay silent.
+	only on delete and slots-full; creation and routine refreshes stay silent.
 ]]
 local function SyncMacroState()
 	if not ns.db or not ns.db.profile.Announcements then
@@ -226,30 +257,33 @@ local function SyncMacroState()
 	end
 
 	local enabled = ns.db.profile.Announcements.Enabled
-	local exists = ns.HasAnnouncementMacro()
+	local exists = HasAnnouncementMacro()
 
 	if enabled then
 		local body = BuildMacroBody()
 		if exists then
-			local index = ns.GetAnnouncementMacroIndex()
-			EditMacro(index, MACRO_NAME, MACRO_ICON, body)
+			if body ~= lastMacroBody then
+				EditMacro(GetAnnouncementMacroIndex(), MACRO_NAME, MACRO_ICON, body)
+				lastMacroBody = body
+			end
 			macroFullWarned = false
 		else
 			-- 1 = per-character macro slot, so each alt gets its own body.
 			local newIndex = CreateMacro(MACRO_NAME, MACRO_ICON, body, 1)
 			if not newIndex or newIndex == 0 then
+				lastMacroBody = nil
 				if not macroFullWarned then
 					macroFullWarned = true
 					ns.PrintMessage(L["CHAT_MACRO_FULL"])
 				end
 				return
 			end
+			lastMacroBody = body
 			macroFullWarned = false
-			ns.PrintMessage(L["CHAT_MACRO_CREATED"])
 		end
 	elseif exists then
-		local index = ns.GetAnnouncementMacroIndex()
-		DeleteMacro(index)
+		DeleteMacro(GetAnnouncementMacroIndex())
+		lastMacroBody = nil
 		ns.PrintMessage(L["CHAT_MACRO_DELETED"])
 	end
 end
@@ -263,16 +297,6 @@ local function ScheduleUpdate()
 	if updateTimer then
 		return
 	end
-	if not C_Timer or not C_Timer.NewTimer then
-		-- Fallback for ancient clients: sync immediately.
-		if ns.IsInCombat() then
-			pendingCombatUpdate = true
-		else
-			SyncMacroState()
-		end
-		return
-	end
-
 	updateTimer = C_Timer.NewTimer(UPDATE_DEBOUNCE, function()
 		updateTimer = nil
 		if ns.IsInCombat() then

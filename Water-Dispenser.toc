@@ -1,5 +1,5 @@
 ## Title: Water Dispenser
-## Notes: Auto-fill the trade window with the best water, food, and healthstones for whoever you're trading, chosen by their class and level.
+## Notes: Effortless consumable distribution. Auto-fill the trade window with water, food, and healthstones. Add any item you want, like Hourglass Sand or Resistance Potions, to be given out to your raid.
 ## Author: Gogo1951
 
 ## Category-enUS: Other
@@ -23,8 +23,6 @@
 ## X-Wago-ID: vNAgAgKo
 
 ## SavedVariables: WaterDispenserDB
-# MIGRATION (remove after 2026-10-12): keep WaterDispenserCharDB listed so the client loads the legacy per-character table for the first-login AceDB seed.
-## SavedVariablesPerCharacter: WaterDispenserCharDB
 
 # Includes
 Includes/Libraries/LibStub/LibStub.lua
@@ -63,15 +61,15 @@ Features/Core.lua
 Features/Utilities.lua
 Features/Announcements.lua
 Features/Inventory-Scanner.lua
+Features/Bag-Moves.lua
 Features/Dispenser.lua
 Features/Trade-UI.lua
+Features/Group-Spares.lua
 Features/Diagnostics.lua
 Features/Minimap-Button.lua
-
-# Options
 Options/Options-Utilities.lua
 Options/Options-General.lua
-Options/Options-Distribution-Rules.lua
+Options/Options-Dispensed-Items.lua
 Options/Options-Announcements.lua
 Options/Options-Profiles.lua
 Options/Options-Diagnostics.lua

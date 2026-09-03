@@ -55,8 +55,6 @@ ns.COLLECTIONS = {
 			[10140] = 7, -- Conjure Water (Rank 7)
 			[37420] = 8, -- Conjure Water (Rank 8)
 			[27090] = 9, -- Conjure Water (Rank 9)
-			-- [42955] = 1, -- Conjure Refreshment (Rank 1)
-			-- [42956] = 2 -- Conjure Refreshment (Rank 2)
 		},
 	},
 	MageFood = {
@@ -173,6 +171,22 @@ ns.COLLECTIONS = {
 		},
 	},
 }
+
+--------------------------------------------------------------------------------
+-- Improved Healthstone
+--------------------------------------------------------------------------------
+
+--[[
+	The talent's two ranks, as the passive spells they grant, ascending. The highest
+	one the warlock knows is their rank.
+
+	Before Wrath, a stone made at 0, 1 and 2 points was three different unique items,
+	so a raid could carry one of each at once. Which rank a warlock took is therefore
+	something the raid coordinates around, which is why the tooltip states it even
+	when they are carrying nothing. It is also why each rank in ns.COLLECTIONS has
+	three entries with the same rank and level but 10%% apart on heal.
+]]
+ns.HEALTHSTONE_TALENT_SPELLS = { 18692, 18693 }
 
 --------------------------------------------------------------------------------
 -- Built-in Collection Metadata

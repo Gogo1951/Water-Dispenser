@@ -6,20 +6,6 @@ local L = ns.L
 -- API Compatibility
 --------------------------------------------------------------------------------
 
--- Consumable item class, resolved once. LE_ITEM_CLASS_CONSUMABLE is nil on Era 1.15.8 / TBC 2.5.5, so Enum.ItemClass is primary.
-ns.CONSUMABLE_ITEM_CLASS = (Enum and Enum.ItemClass and Enum.ItemClass.Consumable) or LE_ITEM_CLASS_CONSUMABLE or 0
-
--- IsSpellKnown misses some trained ranks on Classic Era; IsPlayerSpell is the fallback, either true counts as known.
-function ns.IsSpellLearned(spellId)
-	if IsSpellKnown and IsSpellKnown(spellId) then
-		return true
-	end
-	if IsPlayerSpell and IsPlayerSpell(spellId) then
-		return true
-	end
-	return false
-end
-
 -- Resolved once. GetItemInfo keeps its legacy global fallback, which still works on both Era and TBC.
 ns.GetItemInfo = (C_Item and C_Item.GetItemInfo) or GetItemInfo
 
@@ -27,6 +13,21 @@ ns.GetItemInfo = (C_Item and C_Item.GetItemInfo) or GetItemInfo
 ns.GetContainerNumSlots = C_Container and C_Container.GetContainerNumSlots
 ns.PickupContainerItem = C_Container and C_Container.PickupContainerItem
 ns.GetContainerItemInfo = C_Container and C_Container.GetContainerItemInfo
+--[[
+	Two ways to ask for a split, because on Classic Era 1.15.9 the C_Container one
+	has been seen handing back the whole stack instead of the count it was given.
+	Some legacy container globals do survive on that client -- the diagnostics probe
+	reports which -- so the older entry point is kept as a second attempt.
+
+	Nothing verifies that either call honored the count, because nothing can. Trying
+	both is safe for a different reason: the legacy call is made only when the first
+	attempt left the cursor empty, so the two can never both land, and the portion
+	goes into a bag rather than a trade slot -- a client that hands back the whole
+	stack has only moved a stack between bag slots, and FillTrade's whole-slot rule
+	places nothing larger than what is still owed.
+]]
+ns.SplitContainerItem = C_Container and C_Container.SplitContainerItem
+ns.SplitContainerItemLegacy = type(SplitContainerItem) == "function" and SplitContainerItem or nil
 
 --------------------------------------------------------------------------------
 -- Combat Guard
@@ -58,20 +59,78 @@ end
 --[[
 	Reverse-lookups from ns.COLLECTIONS (loaded first). ITEM_TO_COLLECTION tags a
 	bag item to its collection even without the conjure spell; ITEM_RANK and
-	ITEM_LEVEL drive best-tier selection and partner-level filtering.
+	ITEM_LEVEL drive best-tier selection and partner-level filtering;
+	SPELL_TO_ITEMS names the items one conjure spell can produce (its rank's
+	horizontal variants included), so a cast knows which bag slots to watch.
 ]]
 ns.ITEM_TO_COLLECTION = {}
 ns.SPELL_TO_COLLECTION = {}
+ns.SPELL_TO_ITEMS = {}
 ns.ITEM_RANK = {}
 ns.ITEM_LEVEL = {}
-for key, c in pairs(ns.COLLECTIONS) do
-	for itemId, meta in pairs(c.Items) do
+for key, collection in pairs(ns.COLLECTIONS) do
+	for itemId, meta in pairs(collection.Items) do
 		ns.ITEM_TO_COLLECTION[itemId] = key
 		ns.ITEM_RANK[itemId] = meta[1]
 		ns.ITEM_LEVEL[itemId] = meta[2]
 	end
-	for spellId in pairs(c.Spells) do
+	for spellId, rank in pairs(collection.Spells) do
 		ns.SPELL_TO_COLLECTION[spellId] = key
+		local items = {}
+		for itemId, meta in pairs(collection.Items) do
+			if meta[1] == rank then
+				items[#items + 1] = itemId
+			end
+		end
+		ns.SPELL_TO_ITEMS[spellId] = items
+	end
+end
+
+--------------------------------------------------------------------------------
+-- Item Amounts
+--------------------------------------------------------------------------------
+
+--[[
+	Both amounts are stored next to the toggle that arms them, so the stored number
+	survives being switched off and comes back as the player left it. Read them only
+	through ns.GetItemReserve and ns.GetItemSessionCap, or a disabled reserve starts
+	guarding the bag again.
+]]
+function ns.GetItemReserve(itemConfig)
+	if not (itemConfig and itemConfig.KeepAtLeastEnabled) then
+		return 0
+	end
+	return tonumber(itemConfig.KeepAtLeast) or 0
+end
+
+-- The per-person session limit in force, or nil when the item has none.
+function ns.GetItemSessionCap(itemConfig)
+	if not (itemConfig and itemConfig.SessionCapEnabled) then
+		return nil
+	end
+	local cap = tonumber(itemConfig.SessionCap)
+	if not cap or cap < 1 then
+		return nil
+	end
+	return cap
+end
+
+--------------------------------------------------------------------------------
+-- Giveaway Refresh
+--------------------------------------------------------------------------------
+
+--[[
+	Anything that changes what the player has to give away invalidates two things at
+	once: the announcement macro's body, and what the group has been told for their
+	tooltips. They refresh together through here so a new call site cannot remember
+	one and forget the other.
+]]
+function ns.RefreshGiveaways()
+	if ns.RefreshAnnouncementMacro then
+		ns.RefreshAnnouncementMacro()
+	end
+	if ns.RefreshGroupSpares then
+		ns.RefreshGroupSpares()
 	end
 end
 
@@ -84,13 +143,29 @@ function ns.GetClassName(class)
 	return (names and names[class]) or class
 end
 
--- Fresh table with every class token set to true (the default for new items).
-function ns.AllClassesEnabled()
-	local t = {}
-	for _, class in ipairs(ns.CLASSES) do
-		t[class] = true
+--[[
+	Whether an item may go out at all right now, judged on the group the *player* is
+	in rather than on the trade partner.
+
+	  Always  never gates, and is what an item with no value stored falls back to.
+	  Group   any group, party or raid -- grouped at all.
+	  Raid    a raid and nothing else, for things only worth handing out there.
+
+	Group deliberately includes raids: a raid is a group, and an item worth sharing
+	with a party is worth sharing with twenty people. Raid is the narrow one.
+
+	The same answer gates the fill, the player tooltip and the announcement macro,
+	so an item that cannot be given right now is never advertised either.
+]]
+function ns.IsItemDistributableNow(itemConfig)
+	local mode = itemConfig and itemConfig.Distribute
+	if mode == "Raid" then
+		return IsInRaid() and true or false
 	end
-	return t
+	if mode == "Group" then
+		return IsInGroup() and true or false
+	end
+	return true
 end
 
 -- True if the item's PlayerClasses includes the player's class; missing PlayerClasses counts as all classes.
@@ -103,182 +178,30 @@ function ns.IsItemActiveForPlayer(itemConfig)
 end
 
 --------------------------------------------------------------------------------
--- Table Utilities
---------------------------------------------------------------------------------
-
-local function DeepCopy(value)
-	if type(value) ~= "table" then
-		return value
-	end
-	local out = {}
-	for k, v in pairs(value) do
-		out[k] = DeepCopy(v)
-	end
-	return out
-end
-ns.DeepCopy = DeepCopy
-
---------------------------------------------------------------------------------
--- Legacy Saved-Variable Migrations
+-- Item Presentation
 --------------------------------------------------------------------------------
 
 --[[
-	MIGRATION (remove after 2026-10-12): legacy two-scope -> AceDB seed. These
-	steps upgrade a pre-AceDB WaterDispenserCharDB to the current schema so its
-	values fold into the AceDB profile on first login. This block, plus
-	ns.RunLegacyMigrations and its caller in Core.lua, is deleted when the window
-	closes.
+	A built-in collection's name and icon come from code every time they are read,
+	never from the saved config: the player's file has no business carrying a
+	translated string, and a renamed or re-iconed collection has to follow the
+	add-on rather than whatever was stamped in at some past login. User-added items
+	have no code entry, so theirs are the stored ones.
 ]]
-
---[[
-	v4 (item counts) -> v5 (stack counts): divide each class count by the item's
-	max stack size (item counts can't work -- Classic Era's SplitContainerItem
-	won't pick up partial stacks from an addon). Stack size falls back to 20 when
-	the cache is cold.
-]]
-local function MigrateToStacks(db)
-	if (db.Version or 0) >= 5 then
-		return
+function ns.GetItemConfigName(key, itemConfig)
+	local meta = ns.COLLECTION_META[key]
+	if meta then
+		return L[meta.NameKey]
 	end
-	if (db.Version or 0) < 4 then
-		-- v3 configs already stored stack counts; just bump the version.
-		db.Version = 5
-		return
-	end
-
-	local function StackSizeFor(dbKey)
-		if dbKey == "WarlockHealthstone" then
-			return 1
-		end
-		if dbKey == "MageWater" or dbKey == "MageFood" then
-			return 20
-		end
-		if type(dbKey) == "number" then
-			local _, _, _, _, _, _, _, maxStack = ns.GetItemInfo(dbKey)
-			return maxStack or 20
-		end
-		return 20
-	end
-
-	for dbKey, itemConfig in pairs(db.Items or {}) do
-		local stackSize = StackSizeFor(dbKey)
-		if stackSize > 1 then
-			for _, scope in ipairs({ "Solo", "Group", "Raid" }) do
-				local scopeTable = itemConfig[scope]
-				if type(scopeTable) == "table" then
-					for class, count in pairs(scopeTable) do
-						if type(count) == "number" and count > 0 then
-							scopeTable[class] = math.floor(count / stackSize + 0.5)
-						end
-					end
-				end
-			end
-		end
-		itemConfig.UseNotFullStack = itemConfig.UseNotFullStack or false
-	end
-
-	db.Version = 5
+	return itemConfig and itemConfig.Name
 end
 
--- v5 -> v6: add per-item FactorLevel (off) and KeepAtLeast (0) to existing items.
-local function MigrateAddPerItemRules(db)
-	if (db.Version or 0) >= 6 then
-		return
+function ns.GetItemConfigIcon(key, itemConfig)
+	local meta = ns.COLLECTION_META[key]
+	if meta then
+		return meta.Icon
 	end
-	for _, itemConfig in pairs(db.Items or {}) do
-		if itemConfig.FactorLevel == nil then
-			itemConfig.FactorLevel = false
-		end
-		if itemConfig.KeepAtLeast == nil then
-			itemConfig.KeepAtLeast = 0
-		end
-	end
-	db.Version = 6
-end
-
--- v6 -> v7: add per-item IncludeQuantity, true for all but healthstones (which read better without a count).
-local function MigrateAddIncludeQuantity(db)
-	if (db.Version or 0) >= 7 then
-		return
-	end
-	for key, itemConfig in pairs(db.Items or {}) do
-		if itemConfig.IncludeQuantity == nil then
-			itemConfig.IncludeQuantity = (key ~= "WarlockHealthstone")
-		end
-	end
-	db.Version = 7
-end
-
--- v7 -> v8: add PlayerClasses (all classes) to user-added items; built-ins get theirs from ns.DATABASE_DEFAULTS.
-local function MigrateAddPlayerClasses(db)
-	if (db.Version or 0) >= 8 then
-		return
-	end
-	for key, itemConfig in pairs(db.Items or {}) do
-		if itemConfig.PlayerClasses == nil and not ns.COLLECTION_META[key] then
-			itemConfig.PlayerClasses = ns.AllClassesEnabled()
-		end
-	end
-	db.Version = 8
-end
-
--- v8 -> v9: enable UseNotFullStack for MageWater and MageFood (small stacks at low rank).
-local function MigrateConjuredPartialStacks(db)
-	if (db.Version or 0) >= 9 then
-		return
-	end
-	for _, key in ipairs({ "MageWater", "MageFood" }) do
-		local itemConfig = db.Items and db.Items[key]
-		if itemConfig then
-			itemConfig.UseNotFullStack = true
-		end
-	end
-	db.Version = 9
-end
-
--- v9 -> v10: rename the AutoFill* toggles to Dispense*, carrying each character's choice across.
-local function MigrateRenameDispenseFields(db)
-	if (db.Version or 0) >= 10 then
-		return
-	end
-	local renames = {
-		AutoFill = "Dispense",
-		AutoFillSolo = "DispenseSolo",
-		AutoFillGroup = "DispenseGroup",
-		AutoFillRaid = "DispenseRaid",
-	}
-	for oldKey, newKey in pairs(renames) do
-		if db[newKey] == nil and db[oldKey] ~= nil then
-			db[newKey] = db[oldKey]
-		end
-		db[oldKey] = nil
-	end
-	db.Version = 10
-end
-
--- v10 -> v11: conjured water/food dispense as full stacks only now (the restack merges partials), so clear the v9 partial-stack flag.
-local function MigrateConjuredFullStacksOnly(db)
-	if (db.Version or 0) >= 11 then
-		return
-	end
-	for _, key in ipairs({ "MageWater", "MageFood" }) do
-		local itemConfig = db.Items and db.Items[key]
-		if itemConfig then
-			itemConfig.UseNotFullStack = false
-		end
-	end
-	db.Version = 11
-end
-
--- MIGRATION (remove after 2026-10-12): runs the v4 -> v11 chain on a legacy WaterDispenserCharDB so Core can fold the result into the profile.
-function ns.RunLegacyMigrations(db)
-	MigrateToStacks(db)
-	MigrateAddPerItemRules(db)
-	MigrateAddIncludeQuantity(db)
-	MigrateAddPlayerClasses(db)
-	MigrateConjuredPartialStacks(db)
-	MigrateRenameDispenseFields(db)
-	MigrateConjuredFullStacksOnly(db)
+	return itemConfig and itemConfig.Icon
 end
 
 --------------------------------------------------------------------------------
@@ -286,21 +209,19 @@ end
 --------------------------------------------------------------------------------
 
 --[[
-	Point each built-in collection's Name/Icon/NoRemove at code, not stored data,
-	so a renamed or re-iconed collection follows the add-on. Run after the database
-	exists and on every profile switch. Reading ns.db.profile.Items[key]
-	materializes the built-in default when a profile doesn't yet carry it.
+	Built-in collections can never be removed, so the flag is re-stamped after the
+	database exists and on every profile switch. Reading ns.db.profile.Items[key]
+	materializes the built-in default when a profile doesn't yet carry it, which is
+	what puts the three collections in front of FillTrade's pairs() walk.
 ]]
 function ns.RefreshCollectionMeta()
 	if not ns.db then
 		return
 	end
 	local items = ns.db.profile.Items
-	for key, meta in pairs(ns.COLLECTION_META) do
+	for key in pairs(ns.COLLECTION_META) do
 		local item = items[key]
 		if item then
-			item.Name = L[meta.NameKey]
-			item.Icon = meta.Icon
 			item.NoRemove = true
 		end
 	end

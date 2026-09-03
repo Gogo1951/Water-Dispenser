@@ -20,7 +20,8 @@ local function ShowTooltip(anchor)
 
 	local on = ns.db and ns.db.profile.Dispense
 	local state = on and (GetColor("ON") .. L["UI_ENABLED"] .. "|r") or (GetColor("OFF") .. L["UI_DISABLED"] .. "|r")
-	GameTooltip:AddDoubleLine(GetColor("TITLE") .. L["MINIMAP_DISPENSE"] .. "|r", state)
+	-- The feature row names the feature with the same string its options section header uses.
+	GameTooltip:AddDoubleLine(GetColor("TITLE") .. L["OPTIONS_DISPENSE_HEADER"] .. "|r", state)
 	GameTooltip:AddLine(GetColor("BODY") .. L["OPTIONS_DISPENSE_MASTER_DESC"] .. "|r", 1, 1, 1, true)
 	GameTooltip:AddDoubleLine(
 		GetColor("INFO") .. L["UI_LEFT_CLICK"] .. "|r",
@@ -39,11 +40,11 @@ end
 --------------------------------------------------------------------------------
 
 --[[
-	Show or hide the minimap button. No argument flips; a boolean sets directly.
-	State persists in ns.db.global.minimap.hide, the field LibDBIcon reads.
+	Show or hide the mini-map button. No argument flips; a boolean sets directly.
+	State persists in ns.db.profile.minimap.hide, the field LibDBIcon reads.
 ]]
 function ns.ToggleMinimapButton(value)
-	local minimap = ns.db.global.minimap
+	local minimap = ns.db.profile.minimap
 	local show
 	if value == nil then
 		show = minimap.hide
@@ -80,6 +81,8 @@ if LDB then
 			end
 			if button == "LeftButton" and ns.db then
 				ns.db.profile.Dispense = not ns.db.profile.Dispense
+				-- Same as the options toggle: what we are offering the group just changed.
+				ns.RefreshGiveaways()
 				-- Re-render in place so the Enabled/Disabled line updates live, but only while this button still owns the tooltip.
 				if GameTooltip:GetOwner() == self then
 					ShowTooltip(self)
@@ -103,5 +106,5 @@ function ns.InitMinimap()
 	if not (LDB and LDBIcon and ldbObject) then
 		return
 	end
-	LDBIcon:Register(ns.LOCALE_NAME, ldbObject, ns.db.global.minimap)
+	LDBIcon:Register(ns.LOCALE_NAME, ldbObject, ns.db.profile.minimap)
 end
