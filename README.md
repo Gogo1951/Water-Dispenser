@@ -49,6 +49,12 @@ Conjure while a trade is open and the water, food, or healthstone you just made 
 
 Hover a party or raid member and Water Dispenser adds a short block to the bottom of their tooltip: every item they have set up to give out, and how many they are carrying. Warlocks always show a `Healthstone (Rank N/2)` line stating their Improved Healthstone rank, carrying one or not, since that is what a raid coordinates around. Your own inventory always shows on your own tooltip, grouped or not.
 
+<img width="300" src="https://github.com/user-attachments/assets/6771d79f-8415-4fff-8731-06f095c2bbee" />
+
+<img width="300" src="https://github.com/user-attachments/assets/07ddf682-4e0b-4044-950e-80c34d219126" />
+
+<img width="300" src="https://github.com/user-attachments/assets/959c50d3-cec9-415f-a5b7-3cbefdfd4717" />
+
 To tell people out loud instead, turn on the macro under the Announcements tab and a `- Dispenser` macro appears on your character. Click it to post your leftover giveaways to the channel that matches your group: Say when you're on your own, Party in a group, Raid in a raid. Item names are real hyperlinks, so people can shift-click them for the tooltip.
 
 ### Mini-Map Button
@@ -61,13 +67,13 @@ To tell people out loud instead, turn on the macro under the Announcements tab a
 
 ### Options
 
-<img width="800" src="https://github.com/user-attachments/assets/78e15b06-f153-4e95-81e4-f47410eefdd0" />
-
 - **Water Dispenser** // The welcome message, the mini-map button, and the master **Enable Dispense** switch with its per-scope toggles for raid members, party members, and strangers. The warning when you run short and the automatic combining of partial stacks live here too.
 - **Dispensed Items** // Your list of consumables and the per-class amount grid. Every item also carries **Distribute** (Always, In Group for a party or raid, or In Raid only), so raid consumables stay quiet in a five-man instead of tempting someone to ask. Below that sit the partner-level check, **Enable Reserves**, **Maximum per Session**, and which of your own classes the item applies to.
 - **Announcements** // The `- Dispenser` macro toggle with a live preview of what it will say, plus **Inventory in Player Tooltips** and, beneath it, **Share My Inventory** if you would rather read other people's without sending your own.
 - **Profiles** // Share one set of rules across every character, or give a character its own.
 - **Diagnostic Tools** // Read-only probes to paste into a bug report.
+
+<img width="800" src="https://github.com/user-attachments/assets/b978dc1f-6bd7-48b0-a147-c3c9475b8bb1" />
 
 ## Testing & Localization Status
 
