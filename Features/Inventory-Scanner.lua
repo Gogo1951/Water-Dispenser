@@ -26,8 +26,14 @@ ns.ClearInventory = ClearInventory
 
 --[[
     Builds the inventory table from bag contents. Each entry has a Bags list of
-    {Bag, Slot, Count, Full, Bound} per occupied slot. Returns true if anything
-    changed in a way that may affect a fill.
+    {Bag, Slot, Count, Full, Bound, Locked} per occupied slot. Returns true if
+    anything changed in a way that may affect a fill.
+
+    Locked is recorded because, with a trade open, a locked slot is one already
+    sitting in the trade window (or still mid-move from a split). The fill has to
+    leave those alone: lifting a locked slot is a silent no-op, and counting one
+    as available is how a stack the partner was already being offered got
+    "placed" a second time on paper and never in the window.
 
     Bag items are tagged to their collection (via ns.ITEM_TO_COLLECTION) even
     when the player doesn't know the conjure spell, so a non-mage holding
@@ -73,6 +79,8 @@ local function ScanInventory()
 						Level = effectiveLevel,
 						Collection = collectionKey,
 						Rank = rank,
+						-- Max stack from the item cache; nil while cold. The fill caps the stack it shapes at this.
+						StackSize = itemStackCount,
 						-- True once any tradable (unbound) slot is seen. Drives the Add Item picker.
 						HasUnbound = false,
 						Bags = {},
@@ -90,6 +98,7 @@ local function ScanInventory()
 					existing.Link = existing.Link or info.hyperlink
 					existing.Name = existing.Name or itemName
 					existing.Icon = existing.Icon or itemIcon
+					existing.StackSize = existing.StackSize or itemStackCount
 					if (not existing.Level or existing.Level == 0) and effectiveLevel > 0 then
 						existing.Level = effectiveLevel
 					end
@@ -116,6 +125,7 @@ local function ScanInventory()
 					Count = slotCount,
 					Full = isFull,
 					Bound = bound,
+					Locked = info.isLocked and true or false,
 				})
 				if not bound then
 					inventory[itemId].HasUnbound = true
@@ -132,9 +142,19 @@ local function ScanInventory()
 		if not previousItem or #item.Bags ~= #previousItem.Bags then
 			return true
 		end
+		--[[
+			A lock change with no count change is still a change the fill cares about:
+			a freshly split slot can report locked on the first bag update and settle
+			on the next, and that second update has to re-enter the fill or the
+			portion sits in the bag unoffered.
+		]]
 		for i, bagEntry in ipairs(item.Bags) do
 			local previousEntry = previousItem.Bags[i]
-			if not previousEntry or bagEntry.Count ~= previousEntry.Count then
+			if
+				not previousEntry
+				or bagEntry.Count ~= previousEntry.Count
+				or bagEntry.Locked ~= previousEntry.Locked
+			then
 				return true
 			end
 		end
@@ -322,16 +342,11 @@ function ns.BuildAnnouncementSnapshot()
 				local keep = ns.GetItemReserve(itemConfig)
 				local count = math.max(0, total - keep)
 				if count > 0 then
-					-- Default true when missing (old saved data).
-					local includeQuantity = itemConfig.IncludeQuantity
-					if includeQuantity == nil then
-						includeQuantity = true
-					end
 					table.insert(entries, {
 						Link = inventoryItem.Link or ("[" .. (inventoryItem.Name or "?") .. "]"),
 						Name = inventoryItem.Name,
 						Count = count,
-						IncludeQuantity = includeQuantity,
+						IncludeQuantity = ns.GetItemIncludeQuantity(itemConfig),
 						Collection = key,
 					})
 				end
@@ -354,15 +369,11 @@ function ns.BuildAnnouncementSnapshot()
 				local keep = ns.GetItemReserve(itemConfig)
 				local count = math.max(0, total - keep)
 				if count > 0 then
-					local includeQuantity = itemConfig.IncludeQuantity
-					if includeQuantity == nil then
-						includeQuantity = true
-					end
 					table.insert(custom, {
 						Link = inventoryItem.Link or ("[" .. (inventoryItem.Name or "?") .. "]"),
 						Name = inventoryItem.Name or tostring(id),
 						Count = count,
-						IncludeQuantity = includeQuantity,
+						IncludeQuantity = ns.GetItemIncludeQuantity(itemConfig),
 						Collection = nil,
 					})
 				end
@@ -405,29 +416,33 @@ function ns.BuildTooltipSnapshot()
 		return entries
 	end
 
-	for key in pairs(ns.db.profile.Items) do
+	for key, itemConfig in pairs(ns.db.profile.Items) do
 		local isCollection = ns.COLLECTION_META[key] ~= nil
 		--[[
-			The one rule this snapshot does apply. Everything else here is deliberately
-			unfiltered -- configuring an item is the statement that it is up for grabs --
-			but Distribute is not a rule about who deserves it, it is a statement that the
-			item is not on offer at all right now. Advertising a raid consumable in a
-			five-man invites a whisper the add-on would then refuse.
+			The two rules this snapshot applies, both for one reason: never advertise
+			what the fill would refuse. Distribute is not a rule about who deserves the
+			item, it is a statement that the item is not on offer at all right now, and
+			the player-class filter says this character never hands it over. A raid
+			consumable listed in a five-man, or mage water listed on a warlock, invites
+			a whisper the add-on would then turn down.
+
+			Everything else stays unfiltered on purpose: no per-class counts and no
+			reserve, because configuring an item is the statement that it is up for
+			grabs, leaving only the question of how many are being carried.
 		]]
-		local gated = not ns.IsItemDistributableNow(ns.db.profile.Items[key])
+		local gated = not (ns.IsItemDistributableNow(itemConfig) and ns.IsItemActiveForPlayer(itemConfig))
 		-- A collection is reported as the best rank on hand, the same item the fill would reach for.
 		local id = (not gated) and (isCollection and BestRankItemId(key) or key) or nil
 		local inventoryItem = id and inventory[id] or nil
 		if inventoryItem and #inventoryItem.Bags > 0 then
 			local count = isCollection and TotalItemCount(inventoryItem) or UnboundItemCount(inventoryItem)
 			if count > 0 then
-				-- Default true when missing (old saved data), matching the macro.
-				local includeQuantity = ns.db.profile.Items[key].IncludeQuantity
-				if includeQuantity == nil then
-					includeQuantity = true
-				end
-				entries[#entries + 1] =
-					{ Id = id, Name = inventoryItem.Name, Count = count, IncludeQuantity = includeQuantity }
+				entries[#entries + 1] = {
+					Id = id,
+					Name = inventoryItem.Name,
+					Count = count,
+					IncludeQuantity = ns.GetItemIncludeQuantity(itemConfig),
+				}
 			end
 		end
 	end

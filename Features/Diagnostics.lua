@@ -66,8 +66,21 @@ ns.DiagnosticsStrings = {
 
 function ns:SetDiagnosticsEnabled(value)
 	ns.diagnostics.enabled = value and true or false
-	if not ns.diagnostics.enabled then
-		ns:StopEventLog()
+	if ns.diagnostics.enabled then
+		return
+	end
+
+	ns:StopEventLog()
+	--[[
+		Off means off: switching the panel off releases the event buffer and every
+		report built while it was on, so nothing the tools allocated outlives them.
+		Everything except the two state flags is a capture or a report, so clearing
+		by exception cannot miss a field a new section adds.
+	]]
+	for key in pairs(ns.diagnostics) do
+		if key ~= "enabled" and key ~= "logging" then
+			ns.diagnostics[key] = nil
+		end
 	end
 end
 
@@ -99,8 +112,11 @@ local EVENT_LOG_MAX_ARGS = 8
 -- Per-argument byte cap. 255 holds a full item link while still bounding a runaway argument.
 local EVENT_LOG_MAX_ARG_LENGTH = 255
 
--- Noisy events the logger skips. BAG_UPDATE fires per slot change; BAG_UPDATE_DELAYED (once per settle) is kept.
--- An excluded event's signal firings are written back through ns:LogEventNow by the handler that acts on them.
+--[[
+	Noisy events the logger skips. BAG_UPDATE fires per slot change;
+	BAG_UPDATE_DELAYED (once per settle) is kept. An excluded event's signal
+	firings are written back through ns:LogEventNow by the handler that acts on them.
+]]
 ns.DIAGNOSTIC_EVENT_EXCLUDE = {
 	BAG_UPDATE = true,
 }
@@ -111,11 +127,10 @@ function ns:StartEventLog()
 end
 
 --[[
-	Stopping keeps what was captured. Discarding it here made the obvious sequence
-	-- start, do the thing, stop, read it -- always report "no events captured",
-	which reads as the logger being broken rather than emptied. Only starting a new
-	capture clears the old one, and StopEventLog is called whenever Diagnostic Tools
-	is switched off, which would otherwise throw away a log mid-investigation.
+	Stopping keeps what was captured, so start, reproduce, stop, show returns a real
+	report rather than an empty one. Only two things clear it: starting a new
+	capture, and switching Diagnostic Tools off, which releases the buffer along
+	with every built report.
 ]]
 function ns:StopEventLog()
 	ns.diagnostics.logging = false
@@ -1012,9 +1027,11 @@ function ns:RunValidateData(sourceIndex)
 			end
 		end
 
-		-- Requeued for the NEXT tick, never re-polled inside this one: the cache
-		-- cannot answer differently in the same frame, so an in-batch retry would
-		-- burn the whole allowance without giving the client a chance to load.
+		--[[
+			Requeued for the NEXT tick, never re-polled inside this one: the cache cannot
+			answer differently in the same frame, so an in-batch retry would burn the whole
+			allowance without giving the client a chance to load.
+		]]
 		for _, entry in ipairs(deferred) do
 			queue[#queue + 1] = entry
 		end

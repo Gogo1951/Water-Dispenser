@@ -184,7 +184,7 @@ ns.COLLECTIONS = {
 	so a raid could carry one of each at once. Which rank a warlock took is therefore
 	something the raid coordinates around, which is why the tooltip states it even
 	when they are carrying nothing. It is also why each rank in ns.COLLECTIONS has
-	three entries with the same rank and level but 10%% apart on heal.
+	three entries with the same rank and level but 10% apart on heal.
 ]]
 ns.HEALTHSTONE_TALENT_SPELLS = { 18692, 18693 }
 

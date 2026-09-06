@@ -6,7 +6,6 @@ local CLASS_COLORS = ns.CLASS_COLORS
 
 local AceConfig = LibStub("AceConfig-3.0")
 local AceConfigRegistry = LibStub("AceConfigRegistry-3.0")
-local AceGUI = LibStub("AceGUI-3.0")
 
 local Header = ns.OptionsHeader
 local Desc = ns.OptionsDesc
@@ -17,85 +16,6 @@ local Spacer = ns.OptionsSpacer
 --------------------------------------------------------------------------------
 
 local selectedItemToAdd
-
---------------------------------------------------------------------------------
--- Number Entry
---------------------------------------------------------------------------------
-
---[[
-	AceGUI's EditBox grows a small accept button once you start typing, labelled
-	with Blizzard's OKAY. "Okay" says nothing about what it will do; every box in
-	this panel writes a whole column or a whole row, so the button says Apply.
-
-	Registered as our own widget type rather than patched into the library: AceGUI
-	is an external, re-fetched at package time, so an edit there would not survive
-	a build -- and the label is Blizzard's global string, which is not ours to
-	change for every other add-on in the client.
-
-	Building on AceGUI.WidgetRegistry's EditBox constructor rather than
-	AceGUI:Create("EditBox") keeps the widget out of the EditBox pool: it is created
-	fresh, and only ever recycled under this type. Guarded throughout, so a future
-	AceGUI that renames its internals costs the label and nothing else.
-]]
-local NUMBER_BOX = "WaterDispenserNumberBox"
-if AceGUI and AceGUI.WidgetRegistry and AceGUI.WidgetRegistry.EditBox then
-	AceGUI:RegisterWidgetType(NUMBER_BOX, function()
-		local widget = AceGUI.WidgetRegistry.EditBox()
-		widget.type = NUMBER_BOX
-		if widget.button then
-			widget.button:SetText(L["OPTIONS_ITEM_APPLY"])
-			-- "Apply" is wider than "Okay"; the stock 40 clips it.
-			widget.button:SetWidth(52)
-		end
-		return widget
-	end, 1)
-end
-
---[[
-	Every amount in this panel is a free-typed count of individual items. Dropdowns
-	were fine while a number meant a stack and six was a lot; counting items pushes
-	the useful range past a hundred, and no ladder short enough to pick from covers
-	both "1 potion" and "120 water" without leaving out whatever the player actually
-	wanted.
-
-	Blank reads as zero so clearing a field is a way to say "never", and anything
-	that is not a number at all is rejected by Validate rather than silently
-	becoming one.
-]]
-local NUMBER_MAX = 1000
-
-local function ParseCount(value, maxCount)
-	local number = tonumber(value)
-	if not number then
-		return nil
-	end
-	number = math.floor(number + 0.5)
-	if number < 0 then
-		number = 0
-	end
-	local ceiling = maxCount or NUMBER_MAX
-	if number > ceiling then
-		number = ceiling
-	end
-	return number
-end
-
---[[
-	AceConfig shows the returned string and refuses the edit, leaving the old value
-	in place. maxCount is the per-item cap: 1 for unique items, nothing otherwise.
-]]
-local function ValidateCount(value, maxCount)
-	if value == nil or value == "" then
-		return true
-	end
-	if not tonumber(value) then
-		return L["OPTIONS_ITEM_COUNT_INVALID"]
-	end
-	if maxCount and (tonumber(value) or 0) > maxCount then
-		return format(L["OPTIONS_ITEM_COUNT_TOO_HIGH"], maxCount)
-	end
-	return true
-end
 
 --------------------------------------------------------------------------------
 -- Class Ordering (alphabetical by localized name)
@@ -216,7 +136,7 @@ end
 
 local function GetDistribute(info)
 	local config = GetItemConfig(info)
-	-- Profiles written before this setting existed carry no value and stay ungated.
+	-- No stored value is no gate: the item is handed out whenever anything else allows it.
 	return (config and config.Distribute) or "Always"
 end
 
@@ -242,15 +162,7 @@ local function SetFactorLevel(info, value)
 end
 
 local function GetIncludeQuantity(info)
-	local config = GetItemConfig(info)
-	if not config then
-		return true
-	end
-	-- Default true when missing (old saved data).
-	if config.IncludeQuantity == nil then
-		return true
-	end
-	return config.IncludeQuantity and true or false
+	return ns.GetItemIncludeQuantity(GetItemConfig(info))
 end
 
 local function SetIncludeQuantity(info, value)
@@ -302,15 +214,6 @@ end
 local TABLE_CLASS_WIDTH = 0.75
 local TABLE_SCOPE_WIDTH = 0.55
 
---[[
-	Distribute is a caption beside a dropdown on one line, the shape Magic-Eraser
-	uses for every setting of this kind. The pair spends the same widths it does, so
-	a dropdown here lines up with a dropdown there, and the two together stay under
-	ns.OPTIONS_ROW_WIDTH with room to spare.
-]]
-local DISTRIBUTE_LABEL_WIDTH = 1.3
-local DISTRIBUTE_SELECT_WIDTH = 1.0
-
 -- Column order, left to right. Key is the scope's saved-variable field.
 local SCOPE_COLUMNS = {
 	{ Key = "Solo", LabelKey = "OPTIONS_SCOPE_SOLO" },
@@ -343,10 +246,10 @@ local function CountCell(itemKey, scopeKey, class, maxCount)
 	return {
 		type = "input",
 		name = "",
-		dialogControl = NUMBER_BOX,
+		dialogControl = ns.NUMBER_BOX_WIDGET_TYPE,
 		width = TABLE_SCOPE_WIDTH,
 		validate = function(_, value)
-			return ValidateCount(value, maxCount)
+			return ns.OptionsValidateCount(value, maxCount)
 		end,
 		get = function()
 			local config = ns.db.profile.Items[itemKey]
@@ -358,7 +261,7 @@ local function CountCell(itemKey, scopeKey, class, maxCount)
 				return
 			end
 			config[scopeKey] = config[scopeKey] or {}
-			config[scopeKey][class] = ParseCount(value, maxCount) or 0
+			config[scopeKey][class] = ns.OptionsParseCount(value, maxCount) or 0
 			AmountChanged(itemKey)
 		end,
 	}
@@ -383,8 +286,10 @@ local function AmountRow(order, enabledField, amountField, nameKey, descKey)
 	end
 
 	local function Refresh(info)
-		-- Live-update the announcement macro so the change shows without a bag event,
-		-- and forget credited giving when the limit it is measured against moves.
+		--[[
+			Live-update the announcement macro so the change shows without a bag event,
+			and forget credited giving when the limit it is measured against moves.
+		]]
 		if amountField == "SessionCap" then
 			AmountChanged(DecodeItemKey(info[1]))
 		else
@@ -405,7 +310,7 @@ local function AmountRow(order, enabledField, amountField, nameKey, descKey)
 					config[enabledField] = value and true or false
 					if value then
 						-- Arming a reset profile would otherwise show a 0 it never saved.
-						config[amountField] = ParseCount(config[amountField]) or 1
+						config[amountField] = ns.OptionsParseCount(config[amountField]) or 1
 					end
 				end
 				Refresh(info)
@@ -415,22 +320,22 @@ local function AmountRow(order, enabledField, amountField, nameKey, descKey)
 			type = "input",
 			name = "",
 			desc = L[descKey],
-			dialogControl = NUMBER_BOX,
+			dialogControl = ns.NUMBER_BOX_WIDGET_TYPE,
 			width = AMOUNT_VALUE_WIDTH,
 			disabled = function(info)
 				return not IsArmed(info)
 			end,
 			validate = function(_, value)
-				return ValidateCount(value)
+				return ns.OptionsValidateCount(value)
 			end,
 			get = function(info)
 				local config = GetItemConfig(info)
-				return tostring(ParseCount(config and config[amountField]) or 0)
+				return tostring(ns.OptionsParseCount(config and config[amountField]) or 0)
 			end,
 			set = function(info, value)
 				local config = GetItemConfig(info)
 				if config then
-					config[amountField] = ParseCount(value) or 0
+					config[amountField] = ns.OptionsParseCount(value) or 0
 				end
 				Refresh(info)
 			end,
@@ -501,17 +406,17 @@ local function EveryoneCell(itemKey, scopeKey, maxCount)
 		type = "input",
 		name = "",
 		desc = L["OPTIONS_ITEM_EVERYONE_DESC"],
-		dialogControl = NUMBER_BOX,
+		dialogControl = ns.NUMBER_BOX_WIDGET_TYPE,
 		width = TABLE_SCOPE_WIDTH,
 		validate = function(_, value)
-			return ValidateCount(value, maxCount)
+			return ns.OptionsValidateCount(value, maxCount)
 		end,
 		get = function()
 			local shared = CommonScopeValue(ns.db.profile.Items[itemKey], scopeKey)
 			return shared and tostring(shared) or ""
 		end,
 		set = function(_, value)
-			if ApplyToEveryClass(itemKey, scopeKey, ParseCount(value, maxCount)) then
+			if ApplyToEveryClass(itemKey, scopeKey, ns.OptionsParseCount(value, maxCount)) then
 				RefreshItemPanel()
 			end
 		end,
@@ -585,8 +490,10 @@ end
 	arg key, so the shared GetItemConfig accessors are unaffected by the move.
 ]]
 local function AddItemSettings(args, itemKey, itemConfig)
-	-- Built-in collections always dispense the best rank the partner can use, so the
-	-- level toggle only applies to single-rank user-added items.
+	--[[
+		Built-in collections always dispense the best rank the partner can use, so the
+		level toggle only applies to single-rank user-added items.
+	]]
 	local isBuiltIn = ns.COLLECTION_META[itemKey] ~= nil
 
 	args.spaceSettings0 = Spacer(30)
@@ -599,13 +506,19 @@ local function AddItemSettings(args, itemKey, itemConfig)
 		its per-class amounts say.
 	]]
 	local distributeChoices, distributeOrder = DistributeChoices()
+	--[[
+		A caption beside a dropdown on one line, spending the shared grid's own two
+		widths rather than a pair of its own, so this dropdown starts in the same
+		column as every other dropdown in the add-on and the row ends where every
+		other row ends.
+	]]
 	args.rowDistribute = TableRow(33, {
-		ns.OptionsRowLabel(GetColor("TITLE") .. L["OPTIONS_ITEM_DISTRIBUTE"] .. "|r", nil, DISTRIBUTE_LABEL_WIDTH),
+		ns.OptionsRowLabel(GetColor("TITLE") .. L["OPTIONS_ITEM_DISTRIBUTE"] .. "|r", nil, ns.OPTIONS_LABEL_WIDTH),
 		{
 			type = "select",
 			name = "",
 			desc = L["OPTIONS_ITEM_DISTRIBUTE_DESC"],
-			width = DISTRIBUTE_SELECT_WIDTH,
+			width = ns.OPTIONS_CONTROL_WIDTH,
 			values = distributeChoices,
 			sorting = distributeOrder,
 			get = GetDistribute,
@@ -713,13 +626,27 @@ end
 --------------------------------------------------------------------------------
 
 local function BuildAddableValues()
-	local available = ns.GetAvailableItemsToAdd()
 	local values = {}
-	for _, entry in ipairs(available) do
+	for _, entry in ipairs(ns.GetAvailableItemsToAdd()) do
 		local icon = entry.Icon and ("|T" .. entry.Icon .. ":16|t ") or ""
 		values[tostring(entry.Id)] = icon .. entry.Name
 	end
 	return values
+end
+
+--[[
+	The order the picker lists in. A select carrying no `sorting` reaches AceGUI
+	unordered, and AceGUI orders the keys itself, reading a numeric-looking key as
+	a number -- so item-ID keys list the dropdown by item ID, which is no order at
+	all to someone hunting for a name. ns.GetAvailableItemsToAdd already sorts by
+	name, so listing its walk order is the alphabetical order.
+]]
+local function BuildAddableSorting()
+	local sorting = {}
+	for _, entry in ipairs(ns.GetAvailableItemsToAdd()) do
+		sorting[#sorting + 1] = tostring(entry.Id)
+	end
+	return sorting
 end
 
 local function HasAddableItems()
@@ -747,6 +674,7 @@ local function BuildAddItemPanel(order)
 				width = ns.OPTIONS_CONTROL_WIDTH,
 				order = 4,
 				values = BuildAddableValues,
+				sorting = BuildAddableSorting,
 				hidden = NoAddableItems,
 				get = function()
 					return selectedItemToAdd
@@ -786,7 +714,7 @@ local function BuildAddItemPanel(order)
 						Group = ZeroCounts(),
 						Raid = ZeroCounts(),
 					}
-					ns.PrintMessage(L["CHAT_ITEM_SAVED"], itemName or tostring(id))
+					-- No print: the item appearing in the sidebar is the confirmation, as with remove.
 					selectedItemToAdd = nil
 					ns.RebuildDispensedItemsOptions()
 					ns.RefreshGiveaways()

@@ -103,6 +103,15 @@ function ns.GetItemReserve(itemConfig)
 	return tonumber(itemConfig.KeepAtLeast) or 0
 end
 
+--[[
+	Whether an item's count rides along with its name on the tooltip and in the
+	macro. Only an explicit false switches it off: an item configured before the
+	setting existed carries no value, and a missing value reads as on.
+]]
+function ns.GetItemIncludeQuantity(itemConfig)
+	return not itemConfig or itemConfig.IncludeQuantity ~= false
+end
+
 -- The per-person session limit in force, or nil when the item has none.
 function ns.GetItemSessionCap(itemConfig)
 	if not (itemConfig and itemConfig.SessionCapEnabled) then

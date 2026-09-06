@@ -69,8 +69,10 @@ Features/Diagnostics.lua
 Features/Minimap-Button.lua
 Options/Options-Utilities.lua
 Options/Options-General.lua
+Options/Options-Dispenser.lua
 Options/Options-Dispensed-Items.lua
 Options/Options-Announcements.lua
+Options/Options-Group-Spares.lua
 Options/Options-Profiles.lua
 Options/Options-Diagnostics.lua
 Options/Options.lua

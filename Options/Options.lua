@@ -60,10 +60,10 @@ SlashCmdList["WATERDISPENSER"] = SlashHandler
 --[[
 	Registration only; panel content lives in each panel file's builder. Called
 	from Features/Core.lua once ns.db exists (the Profiles builder needs the
-	database). Child order is fixed: General (root) -> Dispensed Items ->
-	Announcements -> Profiles (second-to-last) -> Diagnostic Tools (last). Every
-	child's third AddToBlizOptions argument is the parent's display name so they
-	all nest under Water Dispenser.
+	database). Child order is fixed: General (root) -> Dispense -> Dispensed Items
+	-> Announcements -> Inventory Tooltips -> Profiles (second-to-last) -> Diagnostic
+	Tools (last). Every child's third AddToBlizOptions argument is the parent's
+	display name so they all nest under Water Dispenser.
 ]]
 function ns.RegisterOptionsPanels()
 	local parent = L["ADDON_TITLE"]
@@ -72,11 +72,17 @@ function ns.RegisterOptionsPanels()
 	local mainPanel, mainCategoryID = AceConfigDialog:AddToBlizOptions(REGISTRY.General, parent)
 	ns.optionsFrames = { main = mainPanel, categoryID = mainCategoryID }
 
+	AceConfig:RegisterOptionsTable(REGISTRY.Dispenser, ns.BuildDispenserOptions())
+	AceConfigDialog:AddToBlizOptions(REGISTRY.Dispenser, L["TAB_DISPENSE"], parent)
+
 	AceConfig:RegisterOptionsTable(REGISTRY.DispensedItems, ns.BuildDispensedItemsOptions())
 	AceConfigDialog:AddToBlizOptions(REGISTRY.DispensedItems, L["TAB_DISPENSED_ITEMS"], parent)
 
 	AceConfig:RegisterOptionsTable(REGISTRY.Announcements, ns.BuildAnnouncementsOptions())
 	AceConfigDialog:AddToBlizOptions(REGISTRY.Announcements, L["TAB_ANNOUNCEMENTS"], parent)
+
+	AceConfig:RegisterOptionsTable(REGISTRY.GroupSpares, ns.BuildGroupSparesOptions())
+	AceConfigDialog:AddToBlizOptions(REGISTRY.GroupSpares, L["TAB_INVENTORY_TOOLTIPS"], parent)
 
 	local profilesOptions = ns.BuildProfilesOptions()
 	AceConfig:RegisterOptionsTable(REGISTRY.Profiles, profilesOptions)

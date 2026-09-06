@@ -13,8 +13,10 @@ L["ADDON_TITLE"] = "Water Dispenser"
 -- Chat Messages
 --------------------------------------------------------------------------------
 
--- All player-facing chat prints live here, regardless of which feature emits them.
--- %s is the add-on version; the menu path is the game client's own labels.
+--[[
+	All player-facing chat prints live here, regardless of which feature emits them.
+	%s is the add-on version; the menu path is the game client's own labels.
+]]
 L["CHAT_LOADED"] =
 	"Versione %s. Le impostazioni (inclusa l'opzione per disattivare questo messaggio) si trovano in Opzioni > AddOns > Water Dispenser. Ti piace questo add-on? Dillo a un amico! (="
 L["CHAT_NO_TRADE"] = "Nessuna finestra di scambio attiva."
@@ -23,8 +25,10 @@ L["CHAT_OPTIONS_IN_COMBAT"] =
 	"Per precauzione, l'interfaccia delle opzioni non può essere aperta durante il combattimento."
 -- The item and its count are appended after the colon by the code.
 L["CHAT_MISSING_STACK"] = "Mancante:"
--- %s is the item's name, %d the Maximum per Session it has hit.
--- "Maximum per Session" must match OPTIONS_ITEM_SESSION_CAP.
+--[[
+	%s is the item's name, %d the Maximum per Session it has hit.
+	"Maximum per Session" must match OPTIONS_ITEM_SESSION_CAP.
+]]
 L["CHAT_SESSION_CAP_REACHED"] =
 	"%s non aggiunto: ha già ricevuto i suoi %d in questa sessione. Cambia Massimo per Sessione, o ricarica per azzerare."
 -- %s is the item's name, %d the amount that could not be split off.
@@ -33,8 +37,6 @@ L["CHAT_SPLIT_REFUSED"] =
 -- %s is the player's class name. "Dispensed Items" must match TAB_DISPENSED_ITEMS.
 L["CHAT_NONE_ACTIVE_FOR_CLASS"] =
 	"Nessun oggetto è impostato per essere distribuito mentre giochi come %s. Apri Opzioni > Oggetti Distribuiti per abilitare gli oggetti per questa classe."
--- The item's name is appended after the colon by the code.
-L["CHAT_ITEM_SAVED"] = "Salvato:"
 -- "- Dispenser" is the macro's literal name and is never translated.
 L["CHAT_MACRO_DELETED"] = 'Macro di annuncio "- Dispenser" eliminata.'
 L["CHAT_MACRO_FULL"] = "Impossibile creare la macro: tutti gli slot macro del personaggio sono in uso."
@@ -58,7 +60,7 @@ L["BUTTON_FILL"] = "Riempi finestra di scambio"
 -- Minimap Button
 --------------------------------------------------------------------------------
 
--- The tooltip's feature row reuses OPTIONS_DISPENSE_HEADER for its name; these are its state and click words.
+-- The tooltip's feature row reuses TAB_DISPENSE for its name; these are its state and click words.
 L["UI_ENABLED"] = "Abilitato"
 L["UI_DISABLED"] = "Disabilitato"
 L["UI_LEFT_CLICK"] = "Tasto sinistro"
@@ -71,7 +73,7 @@ L["MINIMAP_OPTIONS_KEYBIND"] = "Maiusc + Clic centrale"
 --------------------------------------------------------------------------------
 
 L["OPTIONS_DESCRIPTION"] =
-	"Riempie automaticamente la finestra di scambio con acqua, cibo, pietre della salute o qualsiasi consumabile tu configuri, nella quantità scelta per classe, livello e appartenenza al gruppo del compagno di scambio."
+	"Distribuzione di consumabili senza fatica. Riempie automaticamente la finestra di scambio con acqua, cibo e pietre della salute. Aggiungi qualsiasi oggetto tu voglia, come Sabbia di clessidra o pozioni di resistenza, da distribuire alla tua incursione."
 
 L["OPTIONS_WELCOME_MESSAGE"] = "Abilita Messaggio di Benvenuto"
 L["OPTIONS_WELCOME_MESSAGE_DESC"] =
@@ -90,9 +92,9 @@ L["OPTIONS_COMMANDS_HEADER"] = "/Comandi"
 L["OPTIONS_COMMAND"] = "/wd"
 L["OPTIONS_COMMAND_DESCRIPTION"] = "Apre l'interfaccia delle opzioni di questo add-on."
 
-L["OPTIONS_DISPENSE_HEADER"] = "Distribuisci"
-L["OPTIONS_DISPENSE_DESC"] =
-	"Riempie automaticamente la finestra di scambio quando si apre uno scambio. Attiva ogni opzione qui sotto in modo indipendente."
+-- Names the panel, its section header, and the mini-map tooltip's feature row.
+L["TAB_DISPENSE"] = "Distribuisci"
+L["OPTIONS_DISPENSE_DESC"] = "Riempie automaticamente la finestra di scambio quando si apre uno scambio."
 L["OPTIONS_DISPENSE_MASTER"] = "Abilita Distribuzione"
 L["OPTIONS_DISPENSE_MASTER_DESC"] = "Riempie automaticamente la finestra di scambio in base alle tue impostazioni."
 L["OPTIONS_DISPENSE_SOLO"] = "Abilita per gli Sconosciuti"
@@ -105,21 +107,21 @@ L["OPTIONS_DISPENSE_RAID"] = "Abilita per l'Incursione"
 L["OPTIONS_DISPENSE_RAID_DESC"] =
 	"Riempie automaticamente la finestra di scambio quando scambi con un membro dell'incursione."
 
-L["OPTIONS_TOOLTIPS_HEADER"] = "Inventario nei Suggerimenti Giocatore"
+L["TAB_INVENTORY_TOOLTIPS"] = "Suggerimenti Inventario"
 L["OPTIONS_TOOLTIPS_DESC"] =
-	"Mostra l'inventario da distribuire nei suggerimenti dei membri del gruppo che usano Water Dispenser."
+	"Mostra l'inventario da distribuire nei suggerimenti giocatore dei membri del gruppo che usano Water Dispenser."
 L["OPTIONS_SHOW_INVENTORY"] = "Mostra Inventario nei Suggerimenti Giocatore"
 L["OPTIONS_SHOW_INVENTORY_DESC"] =
 	"Aggiunge un blocco Water Dispenser ai suggerimenti dei giocatori elencando ciò che hanno impostato per la distribuzione e quanti ne portano, mentre il tuo viene sempre mostrato, in gruppo o meno."
 L["OPTIONS_SHARE_INVENTORY"] = "Condividi il Mio Inventario"
 L["OPTIONS_SHARE_INVENTORY_DESC"] =
-	"Comunica al tuo gruppo e alla tua incursione cosa stai portando, così il tuo inventario appare quando ti passano sopra, senza pubblicare nulla in chat né informare nessuno fuori dal tuo gruppo, e disattivandola puoi comunque leggere quello degli altri."
+	"Comunica al tuo gruppo e alla tua incursione cosa stai portando, così il tuo inventario appare quando ti passano sopra con il mouse, senza pubblicare nulla in chat né informare nessuno fuori dal tuo gruppo, e disattivandola puoi comunque leggere quello degli altri."
 
 L["OPTIONS_COMBAT_HEADER"] = "Combattimento"
 L["OPTIONS_COMBAT_DESC"] = "WoW impedisce agli add-on di spostare oggetti in uno scambio durante il combattimento."
 L["OPTIONS_COMBAT_NOTIFY"] = "Abilita Notifiche Quando la Distribuzione è Bloccata"
 L["OPTIONS_COMBAT_NOTIFY_DESC"] =
-	"Mostra una nota nella tua finestra di chat quando il combattimento impedisce il riempimento di uno scambio, e disattivata Water Dispenser resta in silenzio, senza nulla che spieghi perché lo scambio è rimasto vuoto."
+	"Mostra una nota nella tua finestra di chat quando il combattimento impedisce il riempimento di uno scambio, e con questa disattivata Water Dispenser tace sul perché lo scambio è rimasto vuoto."
 
 --------------------------------------------------------------------------------
 -- Options — Dispensed Items
@@ -167,7 +169,7 @@ L["OPTIONS_ITEM_INCLUDE_QUANTITY_DESC"] =
 	"Disattivata nomina l'oggetto senza numero accanto, cosa che si legge meglio per qualcosa di cui porti sempre un solo esemplare, come una pietra della salute."
 L["OPTIONS_ITEM_PLAYER_CLASSES"] = "Distribuisci Solo Giocando Queste Classi"
 L["OPTIONS_ITEM_PLAYER_CLASSES_DESC"] =
-	"Riempie gli scambi e include questo oggetto nell'annuncio solo se la classe del tuo personaggio è selezionata qui sotto."
+	"Riempie gli scambi, inserisce questo oggetto nella macro di annuncio e lo mostra nel tuo suggerimento giocatore solo se la classe del tuo personaggio è selezionata qui sotto."
 L["OPTIONS_ITEM_REMOVE"] = "Rimuovi Oggetto"
 L["OPTIONS_ITEM_REMOVE_CONFIRM"] = "Rimuovere questo oggetto dalla configurazione di scambio?"
 
@@ -178,8 +180,8 @@ L["OPTIONS_SCOPE_RAID"] = "Incursione"
 L["OPTIONS_ADD_ITEM"] = "Aggiungi Oggetto"
 L["OPTIONS_ADD_DESC"] =
 	"Seleziona un qualsiasi oggetto scambiabile dalle tue borse per aggiungerlo alla configurazione di scambio. Gli oggetti già configurati o vincolati non appariranno."
-L["OPTIONS_ADD_SELECT"] = "Oggetti disponibili"
-L["OPTIONS_ADD_BUTTON"] = "Aggiungi alla configurazione"
+L["OPTIONS_ADD_SELECT"] = "Oggetti Disponibili"
+L["OPTIONS_ADD_BUTTON"] = "Aggiungi alla Configurazione"
 L["OPTIONS_ADD_EMPTY"] = "Nessun oggetto scambiabile trovato nelle tue borse."
 
 --------------------------------------------------------------------------------
@@ -206,6 +208,8 @@ L["ANNOUNCEMENTS_AND"] = "e"
 --------------------------------------------------------------------------------
 
 L["OPTIONS_SUPPORT"] = "Feedback e Supporto"
+-- Precedes the version number on the General panel's last line.
+L["VERSION"] = "Versione"
 L["SUPPORT_CURSEFORGE"] = "CurseForge"
 L["SUPPORT_GITHUB"] = "GitHub"
 L["SUPPORT_DISCORD"] = "Discord"
@@ -217,4 +221,4 @@ L["SUPPORT_WAGO"] = "Wago"
 
 L["ITEM_MAGE_WATER"] = "Acqua evocata"
 L["ITEM_MAGE_FOOD"] = "Cibo evocato"
-L["ITEM_WARLOCK_HEALTHSTONE"] = "Pietre della salute"
+L["ITEM_WARLOCK_HEALTHSTONE"] = "Pietra della salute"

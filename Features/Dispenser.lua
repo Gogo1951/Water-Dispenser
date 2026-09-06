@@ -2,6 +2,8 @@ local _, ns = ...
 
 local L = ns.L
 
+local AceConfigRegistry = LibStub("AceConfigRegistry-3.0")
+
 --------------------------------------------------------------------------------
 -- Constants
 --------------------------------------------------------------------------------
@@ -34,25 +36,51 @@ local acceptedOffer = nil
 local conjureWatch = {}
 
 --[[
-	Splits issued during this trade, and the ceiling on them.
+	Bag moves issued during this trade, and the ceilings on them.
 
-	A portion is driven by the bag update it causes: split, re-fill, place. That is
-	self-limiting while the server cooperates, but a split the server accepts and
-	then bounces back is *also* a bag change, so a bouncing item would re-enter the
-	fill forever, shuffling the bags on every pass. The counter is what stops that.
+	A move -- a split, or a merge -- is driven by the bag update it causes: move,
+	re-fill, place. That is self-limiting while the server cooperates, but a move
+	the server accepts and then bounces back is *also* a bag change, so a bouncing
+	item would re-enter the fill forever, shuffling the bags on every pass. The
+	counters are what stop that; ShapeStack is where they are spent.
 
-	Twelve is deliberately generous -- six trade slots' worth across a couple of
-	items, so a legitimate fill can never reach it -- and resets on TRADE_SHOW,
-	because the ceiling is meant to catch one wedged trade, not to ration the day.
+	Per item, eight covers a bag the restack has been keeping tidy (one merge and
+	one split at most) with room for a handful of loose scraps. Per trade,
+	twenty-four is deliberately generous, so a legitimate fill can never reach it.
+	Both reset on TRADE_SHOW, because the ceilings are meant to catch one wedged
+	trade, not to ration the day.
 ]]
-local MAX_PORTIONS_PER_TRADE = 12
-local portionsThisTrade = 0
+local MAX_MOVES_PER_TRADE = 24
+local MAX_MOVES_PER_ITEM = 8
+local movesThisTrade = 0
+local movesPerItem = {}
+
+--[[
+	The loose slot counts of each item as they stood when its last move was issued,
+	as a sorted string. A move that lands always changes them -- a split adds a
+	slot, a merge removes one -- so finding them unchanged on the next pass means the
+	move bounced: on Classic Era the split call has been seen moving the whole
+	stack to a fresh slot instead, which leaves the same counts in different
+	places. One bounce ends shaping for that item this trade, where the ceilings
+	alone would let it reshuffle the bags several more times first.
+]]
+local lastShape = {}
+
+--[[
+	Bag slots this trade's fill has put in the window, as
+	placedThisTrade[itemId][bag:slot] = count.
+
+	The trade API is the record of what is offered, but it lags: ClickTradeButton is
+	a server round trip, and the lock it puts on the bag slot fires a bag update
+	before the acknowledgement lands. A pass running in that gap would read the
+	target as unmet and hand over a second stack. This record closes the gap. A
+	recorded slot that is no longer locked has left the window -- the server
+	refused it, or the player took it back out -- and is forgotten on the next read.
+]]
+local placedThisTrade = {}
 
 -- Items whose session cap has already been reported this trade, so the notice is said once and not once per bag update.
 local capNoticed = {}
-
--- Items a portion has already been attempted for this trade, so one bad split cannot loop.
-local portionTried = {}
 
 --------------------------------------------------------------------------------
 -- Combat Notices
@@ -118,6 +146,31 @@ local function CreditSession(configKey, partnerKey, count)
 end
 
 --------------------------------------------------------------------------------
+-- Dispense Toggle
+--------------------------------------------------------------------------------
+
+--[[
+	The only place the master Dispense switch is written. The options toggle and
+	the mini-map button both route through here, so neither can pick up a step the
+	other forgets: telling the group what is on offer, resuming the restack that
+	hangs off this switch, and repainting an options panel that is already open on
+	the toggle the mini-map button just flipped.
+]]
+function ns.SetDispense(value)
+	if not ns.db then
+		return
+	end
+	value = value and true or false
+	ns.db.profile.Dispense = value
+	ns.RefreshGiveaways()
+	-- Restacking is a sub-option of this one, so switching back on resumes it.
+	if value then
+		ns.RestackBags()
+	end
+	AceConfigRegistry:NotifyChange(ns.OPTIONS_REGISTRY.Dispenser)
+end
+
+--------------------------------------------------------------------------------
 -- Trade Filling
 --------------------------------------------------------------------------------
 
@@ -136,6 +189,12 @@ function ns.ClearTrade()
 		ClickTradeButton(i)
 	end
 	ClearCursor()
+	--[[
+		The cleared slots stay locked until the server acknowledges, and a locked
+		slot the fill did not place reads as still moving, so the pass after this one
+		waits for that unlock rather than filling around it.
+	]]
+	wipe(placedThisTrade)
 end
 
 local function CountForScope(itemConfig, scope, class)
@@ -150,21 +209,33 @@ local function PickScope()
 	return "Solo"
 end
 
+-- Config key for an item ID: collection key for built-ins, the ID itself for user items, nil if not configured.
+local function ConfigKeyFor(itemId)
+	local key = ns.ITEM_TO_COLLECTION[itemId]
+	if not key and ns.db.profile.Items[itemId] ~= nil then
+		key = itemId
+	end
+	return key
+end
+
 --[[
 	How many individual items the player's own trade slots hold, grouped by config
-	key (collection key for built-ins, item-ID key for user items).
+	key (collection key for built-ins, item-ID key for user items), and how many
+	trade slots each item ID occupies.
 
-	A non-forced refill subtracts these from the target so a mid-trade restock tops
-	up instead of over-filling; the same counts are what the session budget is
-	measured in, and are the snapshot credited when a trade goes through.
+	A non-forced refill subtracts the counts from the target so a mid-trade restock
+	tops up instead of over-filling; the same counts are what the session budget is
+	measured in, and are the snapshot credited when a trade goes through. The slot
+	tally is what lets the fill tell a locked bag slot that is in the window from
+	one that is still mid-move.
 ]]
 local function CountOffered()
-	local items = {}
+	local items, slotsByItem = {}, {}
 	if not (GetTradePlayerItemLink and GetTradePlayerItemInfo) then
-		return items
+		return items, slotsByItem
 	end
 	if not (ns.db and ns.db.profile.Items) then
-		return items
+		return items, slotsByItem
 	end
 	for slot = 1, MAX_TRADABLE_ITEMS do
 		local link = GetTradePlayerItemLink(slot)
@@ -172,17 +243,52 @@ local function CountOffered()
 		if link and slotCount and slotCount > 0 then
 			local itemId = tonumber(link:match("item:(%d+)"))
 			if itemId then
-				local key = ns.ITEM_TO_COLLECTION[itemId]
-				if not key and ns.db.profile.Items[itemId] ~= nil then
-					key = itemId
-				end
+				slotsByItem[itemId] = (slotsByItem[itemId] or 0) + 1
+				local key = ConfigKeyFor(itemId)
 				if key ~= nil then
 					items[key] = (items[key] or 0) + slotCount
 				end
 			end
 		end
 	end
-	return items
+	return items, slotsByItem
+end
+
+--[[
+	What this trade's own placements still hold in the window, in the same two
+	shapes as CountOffered, read from placedThisTrade with stale entries pruned: a
+	recorded slot that is unlocked, empty, or holding something else has left the
+	window.
+
+	The two views are reconciled by taking the larger per key. The trade API
+	misses a placement until the server acknowledges it; this record misses a stack
+	the player dragged in by hand. Each is a lower bound on the truth, so the larger
+	is the closer one, and both err toward giving less.
+]]
+local function PendingOffer()
+	local items, slotsByItem = {}, {}
+	if not ns.GetContainerItemInfo then
+		return items, slotsByItem
+	end
+	for itemId, slots in pairs(placedThisTrade) do
+		for key, count in pairs(slots) do
+			local bag, slot = key:match("^(%-?%d+):(%d+)$")
+			local info = bag and ns.GetContainerItemInfo(tonumber(bag), tonumber(slot))
+			if info and info.isLocked and info.itemID == itemId then
+				slotsByItem[itemId] = (slotsByItem[itemId] or 0) + 1
+				local configKey = ConfigKeyFor(itemId)
+				if configKey ~= nil then
+					items[configKey] = (items[configKey] or 0) + count
+				end
+			else
+				slots[key] = nil
+			end
+		end
+		if next(slots) == nil then
+			placedThisTrade[itemId] = nil
+		end
+	end
+	return items, slotsByItem
 end
 
 --[[
@@ -196,18 +302,67 @@ local function PickupWhole(bag, slot)
 	end
 end
 
--- Places (bag, slot)'s whole contents into the next open trade slot; false if none was open.
-local function PlaceStack(bag, slot)
-	ClearCursor()
-	PickupWhole(bag, slot)
+--[[
+	Places (bag, slot)'s whole contents into the next open trade slot.
+
+	Returns placed, full. `placed` means the slot was lifted and dropped into the
+	window. `full` means no trade slot was open, which ends the pass: nothing else
+	will fit either. Both false means this one slot could not be used and the
+	caller moves on to the next.
+
+	Everything is checked *before* the slot is disturbed, because there is no
+	verify-after-placing (README-Technical, Pitfalls). A locked slot is already in
+	the window or still mid-move, and lifting one is a silent no-op -- which used
+	to count as a placement, so the fill believed the partner had been handed a
+	stack that never left the bag and stopped one short. A count that no longer
+	matches the scan means the bag changed under the pass; the update that changed
+	it re-enters the fill with a fresh scan, so the slot is left to that pass. The
+	cursor is the last word: pickup is the only thing that puts an item on it, so
+	an empty cursor after pickup is proof nothing was lifted.
+]]
+local function PlaceStack(bag, slot, expectedCount)
+	local info = ns.GetContainerItemInfo and ns.GetContainerItemInfo(bag, slot)
+	local reason
+	if not info then
+		reason = "empty"
+	elseif info.isLocked then
+		reason = "locked"
+	elseif expectedCount and (info.stackCount or 0) ~= expectedCount then
+		reason = "count=" .. tostring(info.stackCount or 0) .. "/" .. expectedCount
+	end
+
+	if not reason then
+		ClearCursor()
+		PickupWhole(bag, slot)
+		if not CursorHasItem() then
+			reason = "cursor"
+		end
+	end
+
+	if reason then
+		if ns.diagnostics and ns.diagnostics.logging then
+			ns:LogEventNow("PLACE", bag, slot, "skip=" .. reason)
+		end
+		return false, false
+	end
 
 	local tradePos = TradeFrame_GetAvailableSlot()
 	if not tradePos then
 		ClearCursor()
-		return false
+		if ns.diagnostics and ns.diagnostics.logging then
+			ns:LogEventNow("PLACE", bag, slot, "skip=full")
+		end
+		return false, true
 	end
 	ClickTradeButton(tradePos)
-	return true
+
+	local placed = placedThisTrade[info.itemID]
+	if not placed then
+		placed = {}
+		placedThisTrade[info.itemID] = placed
+	end
+	placed[bag .. ":" .. slot] = info.stackCount or 0
+	return true, false
 end
 
 --[[
@@ -228,6 +383,119 @@ local function PortionIntoBag(source, portion)
 	-- Never leaves the cursor holding anything, whatever the client did with the split.
 	ns.StowCursorItem()
 	return true
+end
+
+--[[
+	Shapes one bag slot holding exactly `want` of an item out of `loose`: the slots
+	of that item the fill has not used this pass, sorted biggest first. The partner
+	then receives one stack, where handing the loose slots over as they are gave
+	them a trade slot per scrap -- two Runecloth as two slots of one.
+
+	Returns moved, waiting. `moved` means a bag move was issued and the bag update it
+	causes re-enters the fill, where the shaped slot is an exact match for the
+	whole-slot rule. `waiting` means nothing was issued but nothing should be placed
+	either: the player is holding something on the cursor, and their next drop is a
+	bag update of its own. Both false means the bags cannot be shaped and the caller
+	hands the loose slots over as they are.
+
+	Cheapest move first, since every one is a server round trip:
+
+	  1. Two loose slots that add up to exactly `want` merge into one. One move, and
+	     it leaves no scrap behind.
+	  2. A slot larger than `want` has `want` split off it into an empty bag slot --
+	     the smallest such slot, so breaking a 7 to find 5 leaves a full 20 intact.
+	     One move; the scrap it leaves is the restack's to tidy after the trade.
+	  3. Otherwise every loose slot is smaller than `want`, so they merge pairwise,
+	     smallest onto largest, and the pass after finds one big enough for step 2
+	     or an exact match. Bags the restack keeps tidy rarely get here: they hold
+	     one partial per item, so it is step 1 or 2 or nothing.
+
+	Every move is retried implicitly by the bag update it causes, so each is charged
+	against the per-item and per-trade ceilings declared at the top. A refused split
+	-- nothing reached the cursor, the one unambiguous signal that this client will
+	not split -- spends the item's whole budget at once, so it is said once and not
+	retried on every bag update.
+]]
+local function ShapeStack(configId, itemConfig, loose, want)
+	if #loose == 0 then
+		return false, false
+	end
+	if (movesPerItem[configId] or 0) >= MAX_MOVES_PER_ITEM or movesThisTrade >= MAX_MOVES_PER_TRADE then
+		return false, false
+	end
+	-- Something already held is the player's; a merge or split would drop it.
+	if GetCursorInfo() then
+		return false, true
+	end
+
+	local counts = {}
+	for index, bagEntry in ipairs(loose) do
+		counts[index] = bagEntry.Count
+	end
+	local shape = table.concat(counts, ",")
+	local logging = ns.diagnostics and ns.diagnostics.logging
+	if shape == lastShape[configId] then
+		movesPerItem[configId] = MAX_MOVES_PER_ITEM
+		if logging then
+			ns:LogEventNow("SHAPE", configId, "want=" .. want, "loose=" .. shape, "bounced")
+		end
+		return false, false
+	end
+
+	local function Spend(moves, how)
+		movesPerItem[configId] = (movesPerItem[configId] or 0) + moves
+		movesThisTrade = movesThisTrade + moves
+		lastShape[configId] = shape
+		if logging then
+			ns:LogEventNow("SHAPE", configId, "want=" .. want, "loose=" .. shape, how)
+		end
+	end
+
+	-- 1. An exact pair. Sorted biggest first, so the later slot is the smaller and moves onto the earlier.
+	for i = 1, #loose - 1 do
+		for j = i + 1, #loose do
+			if loose[i].Count + loose[j].Count == want then
+				Spend(1, "pair")
+				ns.MergeSlots(loose[j], loose[i])
+				return true, false
+			end
+		end
+	end
+
+	-- 2. The smallest slot larger than `want`.
+	local source
+	for index = #loose, 1, -1 do
+		if loose[index].Count > want then
+			source = loose[index]
+			break
+		end
+	end
+	if source then
+		Spend(1, "split")
+		if PortionIntoBag(source, want) then
+			return true, false
+		end
+		movesPerItem[configId] = MAX_MOVES_PER_ITEM
+		--[[
+			Opt-in, since by then the player has usually seen the trade work. Never
+			inferred from a fill that is still short on a later pass: a pass running
+			before the move settles is also still short, so a good split would report
+			itself refused a fraction of a second before handing the items over.
+		]]
+		if ns.db.profile.MissingStackWarnings then
+			local name = ns.GetItemConfigName(configId, itemConfig) or "?"
+			ns.PrintMessage(format(L["CHAT_SPLIT_REFUSED"], name, want))
+		end
+		return false, false
+	end
+
+	-- 3. Everything is smaller than `want`: combine, and let the next pass look again.
+	local merges = ns.MergePartials(loose)
+	if merges > 0 then
+		Spend(merges, "combine")
+		return true, false
+	end
+	return false, false
 end
 
 local function ReportMissing(configId, itemConfig, inventoryItem, count)
@@ -261,10 +529,23 @@ function ns.FillTrade(forced)
 
 	local scope = PickScope()
 
-	-- A forced fill clears the window first, so nothing is already offered against it.
-	local offeredItems = {}
+	--[[
+		What is already in the window, from the trade API and from this trade's own
+		placements, the larger per key (see PendingOffer). A forced fill has just
+		cleared the window and forgotten its placements, so nothing counts against
+		it; the cleared slots stay locked until the server says so, and read as
+		mid-move below until then.
+	]]
+	local offeredItems, offeredSlots, pendingSlots = {}, {}, {}
 	if not forced then
-		offeredItems = CountOffered()
+		local pendingItems
+		offeredItems, offeredSlots = CountOffered()
+		pendingItems, pendingSlots = PendingOffer()
+		for key, count in pairs(pendingItems) do
+			if count > (offeredItems[key] or 0) then
+				offeredItems[key] = count
+			end
+		end
 	end
 
 	-- Count of items enabled for the player's class, so a forced fill can report when none is.
@@ -361,27 +642,59 @@ function ns.FillTrade(forced)
 
 			--[[
 				Fill from the resolved entries, best rank first. A trade slot takes a whole
-				bag slot, so the job is to cover `needed` items out of the slots on hand:
-				whole slots that fit inside the remainder go first, biggest first, because
-				there are only six trade slots and the biggest cover the most ground. The
-				reserve counts individual items and guards only the best-overall rank;
+				bag slot, so the job is to cover `needed` items out of the slots on hand in
+				as few trade slots as it takes -- ideally one. Whole slots go in only when
+				they do not fragment the offer: a full stack, or the exact remainder.
+				Anything else is shaped in the bags first (ShapeStack) and handed over on
+				the pass after it lands, so a partner owed two never sees two slots of one.
+				The reserve counts individual items and guards only the best-overall rank;
 				lower-rank leftovers are pure giveaway.
 			]]
-			local aborted, portioned = false, false
+			local aborted, inFlight = false, false
 			for _, entry in ipairs(entries) do
 				if needed <= 0 or aborted then
 					break
 				end
 				local keep = (entry.Id == bestOverallId) and ns.GetItemReserve(itemConfig) or 0
-				-- What this rank may part with at all, once the reserve has taken its share.
-				local giveable = ns.TotalItemCount(entry) - keep
 
+				--[[
+					A locked slot is off the table: with a trade open it is either already
+					sitting in the window or still settling from a move, and either way it is
+					not something this pass can hand over. The offered ones were subtracted
+					from `needed` above; listing them here as well would count the same items
+					twice, once as given and once as still available.
+
+					Locked slots beyond the ones the window accounts for are moves still in
+					flight -- a split landing, a merge settling, a cleared window unlocking.
+					Their bag update is on its way and re-enters the fill with a fresh scan, so
+					this rank waits for it rather than filling around what is about to land.
+				]]
 				local slots = {}
+				local onHand, available, locked = 0, 0, 0
 				for _, bagEntry in ipairs(entry.Bags) do
-					if (bagEntry.Count or 0) > 0 and not (skipBound and bagEntry.Bound) then
-						slots[#slots + 1] = bagEntry
+					if bagEntry.Locked then
+						locked = locked + 1
+					elseif (bagEntry.Count or 0) > 0 then
+						onHand = onHand + bagEntry.Count
+						if not (skipBound and bagEntry.Bound) then
+							slots[#slots + 1] = bagEntry
+							available = available + bagEntry.Count
+						end
 					end
 				end
+				local inWindow = math.max(offeredSlots[entry.Id] or 0, pendingSlots[entry.Id] or 0)
+				if locked > inWindow then
+					inFlight = true
+					break
+				end
+
+				--[[
+					What this rank may part with at all: the reserve takes its share of what is
+					in hand, and no more can go than the tradable slots hold. A bound copy of a
+					user item counts toward the reserve it is staying home for, but never toward
+					the offer.
+				]]
+				local giveable = math.min(onHand - keep, available)
 				-- Bag and slot break the tie, so the comparator is a strict ordering table.sort can't fault on.
 				table.sort(slots, function(a, b)
 					if a.Count ~= b.Count then
@@ -393,86 +706,85 @@ function ns.FillTrade(forced)
 					return a.Slot < b.Slot
 				end)
 
-				local placed = {}
+				--[[
+					Whole slots first, biggest first, but only ones that do not fragment the
+					offer: a full stack, or a slot holding exactly what is still owed. A loose
+					1 that fit inside a target of 2 used to go straight in, and the pass after
+					split another 1 to sit beside it. Now the 1 waits and the shaping below
+					builds the 2.
+
+					`Full` is true while the stack size is uncached, so a cold cache degrades to
+					the old whole-slot rule rather than refusing to place anything.
+				]]
+				local spent = {}
 				for index, bagEntry in ipairs(slots) do
-					if needed <= 0 then
+					local want = math.min(needed, giveable)
+					if want <= 0 then
 						break
 					end
 					local count = bagEntry.Count
-					if count <= needed and count <= giveable then
-						if not PlaceStack(bagEntry.Bag, bagEntry.Slot) then
+					if count <= want and (count == want or bagEntry.Full) then
+						local placed, full = PlaceStack(bagEntry.Bag, bagEntry.Slot, count)
+						if full then
 							aborted = true
 							break
 						end
-						placed[index] = true
-						needed = needed - count
-						giveable = giveable - count
+						spent[index] = true
+						if placed then
+							needed = needed - count
+							giveable = giveable - count
+						end
 					end
 				end
 
 				--[[
-					Still short, and every slot left over holds more than the remainder. Split
-					the remainder off into an empty bag slot so the next pass can hand it over
-					whole -- this is what lets one potion out of a stack of five go.
+					Still short: shape one stack of exactly what is owed, capped at a full
+					stack, out of the slots not used this pass. The bag update the move causes
+					re-enters the fill, where the shaped slot is an exact match above.
 
-					Capped by what the reserve still allows, so a target the bags can't legally
-					cover hands over everything it may rather than stopping at the last whole
-					slot that happened to fit. Short is then still short, and flagged below.
-
-					The smallest oversized slot is the source: breaking a 7 to find 5 leaves a
-					full stack of 20 intact where breaking the 20 would not.
-
-					Not while a conjure is waiting to be placed. The split makes a bag slot
-					appear, and PlaceConjured offers any slot that appeared since its snapshot,
-					so it would hand the portion over as though the player had just cast it.
-					The conjure lands first and the bag update after it comes back here.
+					Not while a conjure is waiting to be placed. A split or merge makes a slot
+					appear or grow, and PlaceConjured offers any slot that did since its
+					snapshot, so it would hand the result over as though the player had just
+					cast it. The conjure lands first and the bag update after it comes back here.
 				]]
-				local portion = needed < giveable and needed or giveable
-				if
-					portion > 0
-					and not aborted
-					and next(conjureWatch) == nil
-					and portionsThisTrade < MAX_PORTIONS_PER_TRADE
-				then
-					local source
-					for index = #slots, 1, -1 do
-						local bagEntry = slots[index]
-						if not placed[index] and bagEntry.Count > portion then
-							source = bagEntry
-							break
+				local want = math.min(needed, giveable)
+				if entry.StackSize and entry.StackSize > 0 and want > entry.StackSize then
+					want = entry.StackSize
+				end
+				if want > 0 and not aborted and next(conjureWatch) == nil then
+					local loose = {}
+					for index, bagEntry in ipairs(slots) do
+						if not spent[index] then
+							loose[#loose + 1] = bagEntry
 						end
 					end
-					--[[
-						One attempt per item per trade. A split lands in a bag, so the next pass
-						sees it and places it whole -- and if the client handed over the whole
-						stack instead, that pass finds the bags rearranged but still short and
-						would otherwise ask for another split, and another, shuffling stacks for
-						as long as the window stayed open.
-					]]
-					if source and not portionTried[configId] then
-						portionTried[configId] = true
-						portionsThisTrade = portionsThisTrade + 1
-						if PortionIntoBag(source, portion) then
-							--[[
-								Waiting on the server now. Leaving `needed` unmet sets MissingStack
-								below, and the bag update the move causes re-enters the fill, where
-								a slot of the right size is just another whole-slot candidate.
-							]]
-							portioned = true
-							break
-						end
+					local moved, waiting = ShapeStack(configId, itemConfig, loose, want)
+					if moved or waiting then
+						inFlight = true
+					else
 						--[[
-							Nothing reached the cursor at all, which is the only unambiguous signal
-							that this client will not split, and it is available immediately. Never
-							infer a refusal from a fill that is still short on a later pass: a pass
-							running before the move settles is also still short, so a good split
-							would report itself refused a fraction of a second before handing the
-							items over. Opt-in, since by then the player has usually seen the trade
-							work.
+							The bags cannot be shaped: the move budget is spent, the client will not
+							split, or one loose slot is all there is. Hand over what fits as it is,
+							so the partner still gets what the bags can give -- several slots is
+							worse than one, but better than none.
 						]]
-						if ns.db.profile.MissingStackWarnings then
-							local name = ns.GetItemConfigName(configId, itemConfig) or "?"
-							ns.PrintMessage(format(L["CHAT_SPLIT_REFUSED"], name, portion))
+						for _, bagEntry in ipairs(loose) do
+							local room = math.min(needed, giveable)
+							if room <= 0 then
+								break
+							end
+							local count = bagEntry.Count
+							if count <= room then
+								local placed, full = PlaceStack(bagEntry.Bag, bagEntry.Slot, count)
+								if full then
+									aborted = true
+									break
+								end
+								if placed then
+									needed = needed - count
+									giveable = giveable - count
+								end
+							end
 						end
 					end
 				end
@@ -482,11 +794,11 @@ function ns.FillTrade(forced)
 				-- Always flag so OnBagUpdate retries after a restock, or after a portion settles.
 				ns.State.MissingStack = true
 				--[[
-					A portion in flight is not a shortfall -- the items exist and are on their
-					way into a slot of the right size -- so it must not print a warning the next
-					pass will contradict. A refused split has already said its own piece.
+					A move in flight is not a shortfall -- the items exist and a slot of the
+					right size is on its way -- so it must not print a warning the next pass
+					will contradict. A refused split has already said its own piece.
 				]]
-				if ns.db.profile.MissingStackWarnings and not portioned then
+				if ns.db.profile.MissingStackWarnings and not inFlight then
 					ReportMissing(configId, itemConfig, reportInv, needed)
 				end
 			end
@@ -558,7 +870,8 @@ local function PlaceConjured()
 			if watched and not info.isLocked then
 				local before = watched[bag .. ":" .. slot]
 				if not before or (info.stackCount or 0) > before then
-					if not PlaceStack(bag, slot) then
+					local _, full = PlaceStack(bag, slot)
+					if full then
 						-- Trade window full: nothing more will fit this pass.
 						wipe(conjureWatch)
 						return
@@ -598,9 +911,11 @@ local function OnTradeShow()
 	end
 	trade.Party = UnitInParty("NPC") or UnitInRaid("NPC")
 	trade.Partner = TradePartnerKey()
-	portionsThisTrade = 0
+	movesThisTrade = 0
+	wipe(movesPerItem)
+	wipe(lastShape)
+	wipe(placedThisTrade)
 	wipe(capNoticed)
-	wipe(portionTried)
 	--[[
 		Scoped to one trade. OnBagUpdate re-fills on this flag, so a shortfall left
 		behind by the last trade would fill this one on the next bag update, past a

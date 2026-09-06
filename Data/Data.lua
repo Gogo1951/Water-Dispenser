@@ -10,8 +10,10 @@ ns.L = LibStub("AceLocale-3.0"):GetLocale(ns.LOCALE_NAME)
 -- Registry IDs derived from the add-on name so they never drift.
 ns.OPTIONS_REGISTRY = {
 	General = ADDON_NAME,
+	Dispenser = ADDON_NAME .. "_Dispenser",
 	DispensedItems = ADDON_NAME .. "_DispensedItems",
 	Announcements = ADDON_NAME .. "_Announcements",
+	GroupSpares = ADDON_NAME .. "_GroupSpares",
 	Profiles = ADDON_NAME .. "_Profiles",
 	Diagnostics = ADDON_NAME .. "_Diagnostics",
 }
@@ -20,10 +22,19 @@ ns.OPTIONS_REGISTRY = {
 -- Options Layout Grid
 --------------------------------------------------------------------------------
 
--- A label plus its control always total OPTIONS_ROW_WIDTH, so every row ends
--- where every other row ends.
-ns.OPTIONS_ROW_WIDTH = 2.6
-ns.OPTIONS_LABEL_WIDTH = 1.3
+--[[
+	A label plus its control always total OPTIONS_ROW_WIDTH, so every row ends
+	where every other row ends, and that total has to stay inside the panel: a pair
+	that overflows does not clip, it wraps the control onto its own line and
+	strands the label above it.
+
+	3.4 is the shared grid across the add-ons. At the old 2.6 the Feedback &
+	Support rows could not show a full address, the CurseForge link truncating
+	mid-slug, because the URL box only ever gets the row less the short service
+	label beside it.
+]]
+ns.OPTIONS_ROW_WIDTH = 3.4
+ns.OPTIONS_LABEL_WIDTH = 2.1
 ns.OPTIONS_CONTROL_WIDTH = ns.OPTIONS_ROW_WIDTH - ns.OPTIONS_LABEL_WIDTH
 ns.OPTIONS_REMOVE_ICON_WIDTH = 0.25 -- the item lists' remove column, sized to its icon
 ns.OPTIONS_SUB_INDENT_WIDTH = 0.115 -- the blank cell a sub-option row leads with

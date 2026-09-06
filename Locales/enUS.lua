@@ -13,8 +13,10 @@ L["ADDON_TITLE"] = "Water Dispenser"
 -- Chat Messages
 --------------------------------------------------------------------------------
 
--- All player-facing chat prints live here, regardless of which feature emits them.
--- %s is the add-on version; the menu path is the game client's own labels.
+--[[
+	All player-facing chat prints live here, regardless of which feature emits them.
+	%s is the add-on version; the menu path is the game client's own labels.
+]]
 L["CHAT_LOADED"] =
 	"Version %s. Settings (including the option to disable this message) can be found under Options > AddOns > Water Dispenser. Enjoying the add-on? Tell a friend about it! (="
 L["CHAT_NO_TRADE"] = "No active trade window."
@@ -22,8 +24,10 @@ L["CHAT_COMBAT_BLOCKED"] = "WoW blocks automated trades during combat."
 L["CHAT_OPTIONS_IN_COMBAT"] = "As a safety precaution, the Options Interface cannot be opened during combat."
 -- The item and its count are appended after the colon by the code.
 L["CHAT_MISSING_STACK"] = "Missing:"
--- %s is the item's name, %d the Maximum per Session it has hit.
--- "Maximum per Session" must match OPTIONS_ITEM_SESSION_CAP.
+--[[
+	%s is the item's name, %d the Maximum per Session it has hit.
+	"Maximum per Session" must match OPTIONS_ITEM_SESSION_CAP.
+]]
 L["CHAT_SESSION_CAP_REACHED"] =
 	"%s not added: they've had their %d this session. Change Maximum per Session, or reload to reset."
 -- %s is the item's name, %d the amount that could not be split off.
@@ -32,8 +36,6 @@ L["CHAT_SPLIT_REFUSED"] =
 -- %s is the player's class name. "Dispensed Items" must match TAB_DISPENSED_ITEMS.
 L["CHAT_NONE_ACTIVE_FOR_CLASS"] =
 	"No items are set to dispense while you're playing a %s. Open Options > Dispensed Items to enable items for this class."
--- The item's name is appended after the colon by the code.
-L["CHAT_ITEM_SAVED"] = "Saved:"
 -- "- Dispenser" is the macro's literal name and is never translated.
 L["CHAT_MACRO_DELETED"] = 'Announcement macro "- Dispenser" deleted.'
 L["CHAT_MACRO_FULL"] = "Could not create the macro: all character macro slots are in use."
@@ -57,7 +59,7 @@ L["BUTTON_FILL"] = "Fill Trade Window"
 -- Minimap Button
 --------------------------------------------------------------------------------
 
--- The tooltip's feature row reuses OPTIONS_DISPENSE_HEADER for its name; these are its state and click words.
+-- The tooltip's feature row reuses TAB_DISPENSE for its name; these are its state and click words.
 L["UI_ENABLED"] = "Enabled"
 L["UI_DISABLED"] = "Disabled"
 L["UI_LEFT_CLICK"] = "Left-Click"
@@ -88,9 +90,9 @@ L["OPTIONS_COMMANDS_HEADER"] = "/Commands"
 L["OPTIONS_COMMAND"] = "/wd"
 L["OPTIONS_COMMAND_DESCRIPTION"] = "Opens the Options Interface for this add-on."
 
-L["OPTIONS_DISPENSE_HEADER"] = "Dispense"
-L["OPTIONS_DISPENSE_DESC"] =
-	"Automatically fill the trade window when a trade opens. Toggle each option below independently."
+-- Names the panel, its section header, and the mini-map tooltip's feature row.
+L["TAB_DISPENSE"] = "Dispense"
+L["OPTIONS_DISPENSE_DESC"] = "Automatically fill the trade window when a trade opens."
 L["OPTIONS_DISPENSE_MASTER"] = "Enable Dispense"
 L["OPTIONS_DISPENSE_MASTER_DESC"] = "Automatically fills the trade window based on your settings."
 L["OPTIONS_DISPENSE_SOLO"] = "Enable for Strangers"
@@ -101,8 +103,8 @@ L["OPTIONS_DISPENSE_GROUP_DESC"] = "Fills the trade window automatically when tr
 L["OPTIONS_DISPENSE_RAID"] = "Enable for Raid"
 L["OPTIONS_DISPENSE_RAID_DESC"] = "Fills the trade window automatically when trading with a raid member."
 
-L["OPTIONS_TOOLTIPS_HEADER"] = "Inventory in Player Tooltips"
-L["OPTIONS_TOOLTIPS_DESC"] = "Shows giveaway inventory on character tooltips for group members running Water Dispenser."
+L["TAB_INVENTORY_TOOLTIPS"] = "Inventory Tooltips"
+L["OPTIONS_TOOLTIPS_DESC"] = "Shows giveaway inventory on player tooltips for group members running Water Dispenser."
 L["OPTIONS_SHOW_INVENTORY"] = "Show Inventory in Player Tooltips"
 L["OPTIONS_SHOW_INVENTORY_DESC"] =
 	"Adds a Water Dispenser block to player tooltips listing what they have set up to give out and how many they are carrying, with your own always showing whether you are grouped or not."
@@ -114,7 +116,7 @@ L["OPTIONS_COMBAT_HEADER"] = "Combat"
 L["OPTIONS_COMBAT_DESC"] = "WoW blocks add-ons from moving items into a trade during combat."
 L["OPTIONS_COMBAT_NOTIFY"] = "Enable Notifications When Dispensing Is Blocked"
 L["OPTIONS_COMBAT_NOTIFY_DESC"] =
-	"Prints a note in your chat frame when combat stops a trade from filling, and off Water Dispenser stays quiet with nothing to explain why the trade stayed empty."
+	"Prints a note in your chat frame when combat stops a trade from filling, and with it off Water Dispenser stays quiet about why the trade stayed empty."
 
 --------------------------------------------------------------------------------
 -- Options — Dispensed Items
@@ -160,7 +162,7 @@ L["OPTIONS_ITEM_INCLUDE_QUANTITY_DESC"] =
 	"Off names the item with no number beside it, which reads better for something you only ever carry one of, like a healthstone."
 L["OPTIONS_ITEM_PLAYER_CLASSES"] = "Only Dispense When Playing These Classes"
 L["OPTIONS_ITEM_PLAYER_CLASSES_DESC"] =
-	"Only fill trades and include this item in the announcement when your character's class is selected below."
+	"Fills trades, lists this item in the announcement macro, and shows it on your player tooltip only when your character's class is selected below."
 L["OPTIONS_ITEM_REMOVE"] = "Remove Item"
 L["OPTIONS_ITEM_REMOVE_CONFIRM"] = "Remove this item from the trade configuration?"
 
@@ -199,6 +201,8 @@ L["ANNOUNCEMENTS_AND"] = "and"
 --------------------------------------------------------------------------------
 
 L["OPTIONS_SUPPORT"] = "Feedback & Support"
+-- Precedes the version number on the General panel's last line.
+L["VERSION"] = "Version"
 L["SUPPORT_CURSEFORGE"] = "CurseForge"
 L["SUPPORT_GITHUB"] = "GitHub"
 L["SUPPORT_DISCORD"] = "Discord"
@@ -210,4 +214,4 @@ L["SUPPORT_WAGO"] = "Wago"
 
 L["ITEM_MAGE_WATER"] = "Conjured Water"
 L["ITEM_MAGE_FOOD"] = "Conjured Food"
-L["ITEM_WARLOCK_HEALTHSTONE"] = "Healthstones"
+L["ITEM_WARLOCK_HEALTHSTONE"] = "Healthstone"
