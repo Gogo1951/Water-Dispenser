@@ -3,9 +3,7 @@ local _, ns = ...
 local L = ns.L
 local GetColor = ns.GetColor
 
-local Header, Desc, Spacer = ns.OptionsHeader, ns.OptionsDesc, ns.OptionsSpacer
-local SubRow, SubToggle = ns.OptionsSubRow, ns.OptionsSubToggle
-local GetDB, SetDB = ns.OptionsGetDB, ns.OptionsSetDB
+local Desc, Spacer = ns.OptionsDesc, ns.OptionsSpacer
 
 --------------------------------------------------------------------------------
 -- DB Accessors
@@ -50,15 +48,6 @@ local function GetPreviewText()
 end
 
 --------------------------------------------------------------------------------
--- Tooltip Sharing
---------------------------------------------------------------------------------
-
--- Sharing is only a question once the tooltips themselves are switched on.
-local function TooltipsOff()
-	return not (ns.db and ns.db.profile.ShowInventoryTooltips)
-end
-
---------------------------------------------------------------------------------
 -- Options Table
 --------------------------------------------------------------------------------
 
@@ -80,8 +69,10 @@ function ns.BuildAnnouncementsOptions()
 				get = GetEnabled,
 				set = SetEnabled,
 			},
-			-- The macro's current body, unlabeled: it is plainly the macro, and the
-			-- section text above already says what it is.
+			--[[
+				The macro's current body, unlabeled: it is plainly the macro, and the
+				section text above already says what it is.
+			]]
 			spacePreview0 = Spacer(20),
 			previewBody = {
 				type = "description",
@@ -91,30 +82,6 @@ function ns.BuildAnnouncementsOptions()
 					return GetPreviewText()
 				end,
 			},
-			-- Inventory in Player Tooltips
-			spaceTooltips0 = Spacer(30),
-			headerTooltips = Header(L["OPTIONS_TOOLTIPS_HEADER"], 31),
-			spaceTooltips1 = Spacer(32),
-			descTooltips = Desc(L["OPTIONS_TOOLTIPS_DESC"], 33),
-			spaceTooltips2 = Spacer(34),
-			ShowInventoryTooltips = {
-				type = "toggle",
-				width = "full",
-				name = L["OPTIONS_SHOW_INVENTORY"],
-				desc = L["OPTIONS_SHOW_INVENTORY_DESC"],
-				order = 35,
-				get = GetDB,
-				set = function(info, value)
-					SetDB(info, value)
-					-- This gates sharing too, so the group needs telling either way.
-					ns.RefreshGiveaways()
-				end,
-			},
-			rowShareInventory = SubRow(36, TooltipsOff, {
-				SubToggle("ShareInventory", L["OPTIONS_SHARE_INVENTORY"], L["OPTIONS_SHARE_INVENTORY_DESC"], function()
-					ns.RefreshGiveaways()
-				end),
-			}),
 		},
 	}
 end

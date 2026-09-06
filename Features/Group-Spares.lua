@@ -43,8 +43,12 @@ local incoming = {}
 
 local broadcastTimer
 
--- True once the group has been told we have nothing, so it is said only once.
-local sentEmpty = false
+--[[
+	The last payload actually sent and the channel it went to. Bags settle far more
+	often than the giveaway list changes, so an unchanged list is not repeated;
+	anything that needs the group told again regardless clears these first.
+]]
+local lastBroadcast, lastChannel
 
 --------------------------------------------------------------------------------
 -- Player Keys
@@ -120,12 +124,7 @@ local function BuildOffer()
 	]]
 	offer.Talent = HealthstoneTalentRank()
 	if offer.Talent then
-		local config = ns.db.profile.Items.WarlockHealthstone
-		local show = config and config.IncludeQuantity
-		if show == nil then
-			show = true
-		end
-		offer.TalentShowQuantity = show
+		offer.TalentShowQuantity = ns.GetItemIncludeQuantity(ns.db.profile.Items.WarlockHealthstone)
 	end
 
 	return offer
@@ -192,8 +191,9 @@ end
 
 --[[
 	Sends the current offer to the group. Silent when ungrouped (there is nobody to
-	tell), when sharing is switched off, or in combat, where the client can drop
-	addon traffic and nobody is reading tooltips anyway.
+	tell), in combat, where the client can drop addon traffic and nobody is reading
+	tooltips anyway, and whenever the payload would repeat what the group already
+	has.
 ]]
 local function Broadcast()
 	broadcastTimer = nil
@@ -210,27 +210,32 @@ local function Broadcast()
 	end
 
 	--[[
-		An empty offer is still worth sending once: it clears us from everyone's
-		tooltip when Dispense goes off or the last item leaves the bags. Repeating it
-		afterwards would be pure noise, so the empty state is announced exactly once.
-	]]
-	--[[
 		Sharing off is broadcast as an empty offer rather than silence, so the group
 		stops showing a list we are no longer standing behind. Reading tooltips is the
 		master switch, so it gates this as well as the block itself.
 	]]
 	local sharing = ns.db and ns.db.profile.ShowInventoryTooltips and ns.db.profile.ShareInventory
 	local offer = sharing and BuildOffer() or { Items = {} }
-	local isEmpty = next(offer.Items) == nil and offer.Talent == nil
-	if isEmpty and sentEmpty then
+	local messages = EncodeOffer(offer)
+
+	--[[
+		A payload identical to the last one tells the group nothing it does not
+		already have, and the client throttles addon traffic, so a party of dispensers
+		repeating an unchanged list through a dungeon's worth of bag settles delays
+		each other's real updates. The empty offer is covered by the same rule: it
+		clears everyone's tooltip once and is then just as unchanged as any other.
+		The channel is part of the comparison because the same list sent to a party
+		and to a raid are two different broadcasts.
+	]]
+	local payload = table.concat(messages, "\n")
+	if payload == lastBroadcast and channel == lastChannel then
 		return
 	end
-	sentEmpty = isEmpty
+	lastBroadcast, lastChannel = payload, channel
 
-	local messages = EncodeOffer(offer)
 	local total = #messages
-	for index, payload in ipairs(messages) do
-		C_ChatInfo.SendAddonMessage(ADDON_PREFIX, index .. "/" .. total .. "|" .. payload, channel)
+	for index, chunk in ipairs(messages) do
+		C_ChatInfo.SendAddonMessage(ADDON_PREFIX, index .. "/" .. total .. "|" .. chunk, channel)
 	end
 end
 
@@ -295,8 +300,10 @@ local function QualityColor(quality)
 	return ns.ITEM_QUALITY_COLORS[quality or 1] or ns.ITEM_QUALITY_COLORS[1]
 end
 
--- The rows for one player, sorted by name. Nil when there is nothing to show, so
--- the caller adds no heading to an empty block.
+--[[
+	The rows for one player, sorted by name. Nil when there is nothing to show, so
+	the caller adds no heading to an empty block.
+]]
 local function BuildRows(offer, isWarlock)
 	local rows = {}
 	local healthstones = 0
@@ -413,7 +420,8 @@ function ns.InitGroupSpares()
 	ns.RegisterEvent("BAG_UPDATE_DELAYED", ScheduleBroadcast)
 	ns.RegisterEvent("GROUP_ROSTER_UPDATE", function()
 		PruneToGroup()
-		-- Someone who just joined has heard nothing from us yet.
+		-- Someone who just joined has heard nothing from us yet, unchanged list or not.
+		lastBroadcast = nil
 		ScheduleBroadcast()
 	end)
 	ns.RegisterEvent("PLAYER_ENTERING_WORLD", ScheduleBroadcast)
@@ -421,5 +429,11 @@ function ns.InitGroupSpares()
 	ns.RegisterEvent("SPELLS_CHANGED", ScheduleBroadcast)
 end
 
--- The options panel rebroadcasts through this after a rule changes.
-ns.RefreshGroupSpares = ScheduleBroadcast
+--[[
+	The options panel rebroadcasts through this after a rule changes. A rule can
+	change what the list means without changing the list, so the skip is cleared.
+]]
+function ns.RefreshGroupSpares()
+	lastBroadcast = nil
+	ScheduleBroadcast()
+end

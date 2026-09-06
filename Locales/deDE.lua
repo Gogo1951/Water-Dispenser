@@ -13,8 +13,10 @@ L["ADDON_TITLE"] = "Water Dispenser"
 -- Chat Messages
 --------------------------------------------------------------------------------
 
--- All player-facing chat prints live here, regardless of which feature emits them.
--- %s is the add-on version; the menu path is the game client's own labels.
+--[[
+	All player-facing chat prints live here, regardless of which feature emits them.
+	%s is the add-on version; the menu path is the game client's own labels.
+]]
 L["CHAT_LOADED"] =
 	"Version %s. Die Einstellungen (inklusive der Option, diese Nachricht zu deaktivieren) sind unter Optionen > AddOns > Water Dispenser zu finden. Gefällt dir das Add-on? Empfiehl es weiter! (="
 L["CHAT_NO_TRADE"] = "Kein aktives Handelsfenster."
@@ -23,18 +25,18 @@ L["CHAT_OPTIONS_IN_COMBAT"] =
 	"Aus Sicherheitsgründen kann das Optionsfenster während des Kampfes nicht geöffnet werden."
 -- The item and its count are appended after the colon by the code.
 L["CHAT_MISSING_STACK"] = "Fehlt:"
--- %s is the item's name, %d the Maximum per Session it has hit.
--- "Maximum per Session" must match OPTIONS_ITEM_SESSION_CAP.
+--[[
+	%s is the item's name, %d the Maximum per Session it has hit.
+	"Maximum per Session" must match OPTIONS_ITEM_SESSION_CAP.
+]]
 L["CHAT_SESSION_CAP_REACHED"] =
-	"%s nicht hinzugefügt: Sie haben ihre %d in dieser Sitzung bereits erhalten. Ändere Maximum pro Sitzung oder lade neu, um zurückzusetzen."
+	"%s nicht hinzugefügt: Diese Person hat ihre %d in dieser Sitzung bereits bekommen. Ändere Maximum pro Sitzung oder lade neu, um zurückzusetzen."
 -- %s is the item's name, %d the amount that could not be split off.
 L["CHAT_SPLIT_REFUSED"] =
 	"%s nicht hinzugefügt: Dieser Client wollte %d nicht von einem Stapel abteilen, und stattdessen einen ganzen Stapel zu übergeben würde weit mehr verschenken, als du wolltest. Setze die Menge dieses Gegenstands auf einen ganzen Stapel, um ihn zu handeln."
 -- %s is the player's class name. "Dispensed Items" must match TAB_DISPENSED_ITEMS.
 L["CHAT_NONE_ACTIVE_FOR_CLASS"] =
 	"Es sind keine Gegenstände zur Ausgabe eingestellt, während du einen %s spielst. Öffne Optionen > Ausgegebene Gegenstände, um Gegenstände für diese Klasse zu aktivieren."
--- The item's name is appended after the colon by the code.
-L["CHAT_ITEM_SAVED"] = "Gespeichert:"
 -- "- Dispenser" is the macro's literal name and is never translated.
 L["CHAT_MACRO_DELETED"] = 'Ankündigungs-Makro "- Dispenser" gelöscht.'
 L["CHAT_MACRO_FULL"] = "Makro konnte nicht erstellt werden: Alle Charakter-Makroplätze sind belegt."
@@ -58,7 +60,7 @@ L["BUTTON_FILL"] = "Handelsfenster füllen"
 -- Minimap Button
 --------------------------------------------------------------------------------
 
--- The tooltip's feature row reuses OPTIONS_DISPENSE_HEADER for its name; these are its state and click words.
+-- The tooltip's feature row reuses TAB_DISPENSE for its name; these are its state and click words.
 L["UI_ENABLED"] = "Aktiviert"
 L["UI_DISABLED"] = "Deaktiviert"
 L["UI_LEFT_CLICK"] = "Linksklick"
@@ -71,7 +73,7 @@ L["MINIMAP_OPTIONS_KEYBIND"] = "Umschalt + Mittelklick"
 --------------------------------------------------------------------------------
 
 L["OPTIONS_DESCRIPTION"] =
-	"Füllt das Handelsfenster automatisch mit Wasser, Essen, Gesundheitssteinen oder jedem Verbrauchsgegenstand, den du einrichtest, in der Menge, die du für Klasse, Stufe und Gruppenzugehörigkeit des Handelspartners festgelegt hast."
+	"Mühelos Verbrauchsgegenstände verteilen. Füllt das Handelsfenster automatisch mit Wasser, Essen und Gesundheitssteinen. Füge jeden beliebigen Gegenstand hinzu, etwa Sanduhrsand oder Widerstandstränke, um ihn an deinen Schlachtzug auszugeben."
 
 L["OPTIONS_WELCOME_MESSAGE"] = "Willkommensnachricht aktivieren"
 L["OPTIONS_WELCOME_MESSAGE_DESC"] =
@@ -90,9 +92,9 @@ L["OPTIONS_COMMANDS_HEADER"] = "/Befehle"
 L["OPTIONS_COMMAND"] = "/wd"
 L["OPTIONS_COMMAND_DESCRIPTION"] = "Öffnet das Optionsfenster dieses Add-ons."
 
-L["OPTIONS_DISPENSE_HEADER"] = "Ausgeben"
-L["OPTIONS_DISPENSE_DESC"] =
-	"Füllt das Handelsfenster automatisch, sobald ein Handel geöffnet wird. Schalte jede Option unten einzeln um."
+-- Names the panel, its section header, and the mini-map tooltip's feature row.
+L["TAB_DISPENSE"] = "Ausgabe"
+L["OPTIONS_DISPENSE_DESC"] = "Füllt das Handelsfenster automatisch, sobald ein Handel geöffnet wird."
 L["OPTIONS_DISPENSE_MASTER"] = "Ausgabe aktivieren"
 L["OPTIONS_DISPENSE_MASTER_DESC"] = "Füllt das Handelsfenster automatisch basierend auf deinen Einstellungen."
 L["OPTIONS_DISPENSE_SOLO"] = "Für Fremde aktivieren"
@@ -104,21 +106,21 @@ L["OPTIONS_DISPENSE_RAID"] = "Für Schlachtzug aktivieren"
 L["OPTIONS_DISPENSE_RAID_DESC"] =
 	"Füllt das Handelsfenster automatisch, wenn du mit einem Schlachtzugsmitglied handelst."
 
-L["OPTIONS_TOOLTIPS_HEADER"] = "Inventar in Spieler-Tooltips"
+L["TAB_INVENTORY_TOOLTIPS"] = "Inventar-Tooltips"
 L["OPTIONS_TOOLTIPS_DESC"] =
-	"Zeigt das Verschenk-Inventar in den Tooltips von Gruppenmitgliedern, die Water Dispenser verwenden."
+	"Zeigt das Verschenk-Inventar in den Spieler-Tooltips von Gruppenmitgliedern, die Water Dispenser verwenden."
 L["OPTIONS_SHOW_INVENTORY"] = "Inventar in Spieler-Tooltips anzeigen"
 L["OPTIONS_SHOW_INVENTORY_DESC"] =
 	"Fügt Spieler-Tooltips einen Water Dispenser-Block hinzu, der auflistet, was sie zum Verschenken eingerichtet haben und wie viele sie davon tragen, wobei dein eigener immer angezeigt wird, ob in einer Gruppe oder nicht."
 L["OPTIONS_SHARE_INVENTORY"] = "Mein Inventar teilen"
 L["OPTIONS_SHARE_INVENTORY_DESC"] =
-	"Teilt deiner Gruppe und deinem Schlachtzug mit, was du bei dir trägst, sodass dein Inventar erscheint, wenn sie dich anvisieren, schreibt dabei nichts in den Chat und informiert niemanden außerhalb deiner Gruppe, und deaktiviert kannst du die Inventare anderer weiterhin lesen."
+	"Teilt deiner Gruppe und deinem Schlachtzug mit, was du bei dir trägst, sodass dein Inventar erscheint, wenn sie mit der Maus über dich fahren, schreibt dabei nichts in den Chat und informiert niemanden außerhalb deiner Gruppe, und deaktiviert kannst du die Inventare anderer weiterhin lesen."
 
 L["OPTIONS_COMBAT_HEADER"] = "Kampf"
 L["OPTIONS_COMBAT_DESC"] = "WoW hindert Add-ons daran, im Kampf Gegenstände in einen Handel zu legen."
 L["OPTIONS_COMBAT_NOTIFY"] = "Benachrichtigungen aktivieren, wenn die Ausgabe blockiert ist"
 L["OPTIONS_COMBAT_NOTIFY_DESC"] =
-	"Gibt einen Hinweis in deinem Chatfenster aus, wenn der Kampf das Füllen eines Handels verhindert, und deaktiviert bleibt Water Dispenser still, ohne zu erklären, warum der Handel leer geblieben ist."
+	"Gibt einen Hinweis in deinem Chatfenster aus, wenn der Kampf das Füllen eines Handels verhindert, und deaktiviert schweigt Water Dispenser dazu, warum der Handel leer geblieben ist."
 
 --------------------------------------------------------------------------------
 -- Options — Dispensed Items
@@ -166,7 +168,7 @@ L["OPTIONS_ITEM_INCLUDE_QUANTITY_DESC"] =
 	"Aus benennt den Gegenstand ohne Zahl daneben, was sich bei etwas besser liest, von dem du immer nur eines trägst, wie einem Gesundheitsstein."
 L["OPTIONS_ITEM_PLAYER_CLASSES"] = "Nur ausgeben, wenn diese Klassen gespielt werden"
 L["OPTIONS_ITEM_PLAYER_CLASSES_DESC"] =
-	"Füllt Handel nur dann und nimmt diesen Gegenstand nur dann in die Ankündigung auf, wenn die Klasse deines Charakters unten ausgewählt ist."
+	"Füllt Handel, nimmt diesen Gegenstand in das Ankündigungs-Makro auf und zeigt ihn in deinem Spieler-Tooltip nur dann, wenn die Klasse deines Charakters unten ausgewählt ist."
 L["OPTIONS_ITEM_REMOVE"] = "Gegenstand entfernen"
 L["OPTIONS_ITEM_REMOVE_CONFIRM"] = "Diesen Gegenstand aus der Handelskonfiguration entfernen?"
 
@@ -205,6 +207,8 @@ L["ANNOUNCEMENTS_AND"] = "und"
 --------------------------------------------------------------------------------
 
 L["OPTIONS_SUPPORT"] = "Feedback & Unterstützung"
+-- Precedes the version number on the General panel's last line.
+L["VERSION"] = "Version"
 L["SUPPORT_CURSEFORGE"] = "CurseForge"
 L["SUPPORT_GITHUB"] = "GitHub"
 L["SUPPORT_DISCORD"] = "Discord"
@@ -216,4 +220,4 @@ L["SUPPORT_WAGO"] = "Wago"
 
 L["ITEM_MAGE_WATER"] = "Herbeigezaubertes Wasser"
 L["ITEM_MAGE_FOOD"] = "Herbeigezaubertes Essen"
-L["ITEM_WARLOCK_HEALTHSTONE"] = "Gesundheitssteine"
+L["ITEM_WARLOCK_HEALTHSTONE"] = "Gesundheitsstein"

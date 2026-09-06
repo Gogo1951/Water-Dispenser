@@ -21,7 +21,7 @@ local function ShowTooltip(anchor)
 	local on = ns.db and ns.db.profile.Dispense
 	local state = on and (GetColor("ON") .. L["UI_ENABLED"] .. "|r") or (GetColor("OFF") .. L["UI_DISABLED"] .. "|r")
 	-- The feature row names the feature with the same string its options section header uses.
-	GameTooltip:AddDoubleLine(GetColor("TITLE") .. L["OPTIONS_DISPENSE_HEADER"] .. "|r", state)
+	GameTooltip:AddDoubleLine(GetColor("TITLE") .. L["TAB_DISPENSE"] .. "|r", state)
 	GameTooltip:AddLine(GetColor("BODY") .. L["OPTIONS_DISPENSE_MASTER_DESC"] .. "|r", 1, 1, 1, true)
 	GameTooltip:AddDoubleLine(
 		GetColor("INFO") .. L["UI_LEFT_CLICK"] .. "|r",
@@ -80,9 +80,7 @@ if LDB then
 				return
 			end
 			if button == "LeftButton" and ns.db then
-				ns.db.profile.Dispense = not ns.db.profile.Dispense
-				-- Same as the options toggle: what we are offering the group just changed.
-				ns.RefreshGiveaways()
+				ns.SetDispense(not ns.db.profile.Dispense)
 				-- Re-render in place so the Enabled/Disabled line updates live, but only while this button still owns the tooltip.
 				if GameTooltip:GetOwner() == self then
 					ShowTooltip(self)

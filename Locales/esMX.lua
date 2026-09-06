@@ -13,8 +13,10 @@ L["ADDON_TITLE"] = "Water Dispenser"
 -- Chat Messages
 --------------------------------------------------------------------------------
 
--- All player-facing chat prints live here, regardless of which feature emits them.
--- %s is the add-on version; the menu path is the game client's own labels.
+--[[
+	All player-facing chat prints live here, regardless of which feature emits them.
+	%s is the add-on version; the menu path is the game client's own labels.
+]]
 L["CHAT_LOADED"] =
 	"Versión %s. Los ajustes (incluyendo la opción de desactivar este mensaje) se encuentran en Opciones > Accesorios > Water Dispenser. ¿Te gusta el accesorio? ¡Cuéntaselo a un amigo! (="
 L["CHAT_NO_TRADE"] = "No hay ninguna ventana de comercio activa."
@@ -22,8 +24,10 @@ L["CHAT_COMBAT_BLOCKED"] = "WoW bloquea los intercambios automatizados durante e
 L["CHAT_OPTIONS_IN_COMBAT"] = "Como medida de seguridad, la interfaz de opciones no puede abrirse durante el combate."
 -- The item and its count are appended after the colon by the code.
 L["CHAT_MISSING_STACK"] = "Falta:"
--- %s is the item's name, %d the Maximum per Session it has hit.
--- "Maximum per Session" must match OPTIONS_ITEM_SESSION_CAP.
+--[[
+	%s is the item's name, %d the Maximum per Session it has hit.
+	"Maximum per Session" must match OPTIONS_ITEM_SESSION_CAP.
+]]
 L["CHAT_SESSION_CAP_REACHED"] =
 	"%s no añadido: ya ha recibido sus %d en esta sesión. Cambia Máximo por sesión, o recarga para reiniciar."
 -- %s is the item's name, %d the amount that could not be split off.
@@ -32,8 +36,6 @@ L["CHAT_SPLIT_REFUSED"] =
 -- %s is the player's class name. "Dispensed Items" must match TAB_DISPENSED_ITEMS.
 L["CHAT_NONE_ACTIVE_FOR_CLASS"] =
 	"No hay objetos configurados para dispensar mientras juegas con un %s. Abre Opciones > Objetos dispensados para habilitar objetos para esta clase."
--- The item's name is appended after the colon by the code.
-L["CHAT_ITEM_SAVED"] = "Guardado:"
 -- "- Dispenser" is the macro's literal name and is never translated.
 L["CHAT_MACRO_DELETED"] = 'Macro de anuncio "- Dispenser" eliminada.'
 L["CHAT_MACRO_FULL"] = "No se pudo crear la macro: todas las ranuras de macro del personaje están en uso."
@@ -57,7 +59,7 @@ L["BUTTON_FILL"] = "Llenar ventana de comercio"
 -- Minimap Button
 --------------------------------------------------------------------------------
 
--- The tooltip's feature row reuses OPTIONS_DISPENSE_HEADER for its name; these are its state and click words.
+-- The tooltip's feature row reuses TAB_DISPENSE for its name; these are its state and click words.
 L["UI_ENABLED"] = "Activado"
 L["UI_DISABLED"] = "Desactivado"
 L["UI_LEFT_CLICK"] = "Clic izquierdo"
@@ -70,7 +72,7 @@ L["MINIMAP_OPTIONS_KEYBIND"] = "Mayús + Clic central"
 --------------------------------------------------------------------------------
 
 L["OPTIONS_DESCRIPTION"] =
-	"Llena automáticamente la ventana de comercio con agua, comida, piedras de salud o cualquier consumible que configures, en la cantidad que elegiste para la clase, el nivel y la pertenencia al grupo del compañero de comercio."
+	"Reparte consumibles sin esfuerzo. Llena automáticamente la ventana de comercio con agua, comida y piedras de salud. Añade cualquier objeto que quieras, como Arena de reloj de arena o pociones de resistencia, para repartirlo a tu banda."
 
 L["OPTIONS_WELCOME_MESSAGE"] = "Activar mensaje de bienvenida"
 L["OPTIONS_WELCOME_MESSAGE_DESC"] =
@@ -89,9 +91,9 @@ L["OPTIONS_COMMANDS_HEADER"] = "/Comandos"
 L["OPTIONS_COMMAND"] = "/wd"
 L["OPTIONS_COMMAND_DESCRIPTION"] = "Abre la interfaz de opciones de este accesorio."
 
-L["OPTIONS_DISPENSE_HEADER"] = "Dispensar"
-L["OPTIONS_DISPENSE_DESC"] =
-	"Llena automáticamente la ventana de comercio al abrirse un intercambio. Activa o desactiva cada opción de abajo por separado."
+-- Names the panel, its section header, and the mini-map tooltip's feature row.
+L["TAB_DISPENSE"] = "Dispensar"
+L["OPTIONS_DISPENSE_DESC"] = "Llena automáticamente la ventana de comercio al abrirse un intercambio."
 L["OPTIONS_DISPENSE_MASTER"] = "Activar dispensado"
 L["OPTIONS_DISPENSE_MASTER_DESC"] = "Llena automáticamente la ventana de comercio según tus ajustes."
 L["OPTIONS_DISPENSE_SOLO"] = "Activar para desconocidos"
@@ -104,21 +106,21 @@ L["OPTIONS_DISPENSE_RAID"] = "Activar para banda"
 L["OPTIONS_DISPENSE_RAID_DESC"] =
 	"Llena la ventana de comercio automáticamente al comerciar con un miembro de la banda."
 
-L["OPTIONS_TOOLTIPS_HEADER"] = "Inventario en las descripciones de jugador"
+L["TAB_INVENTORY_TOOLTIPS"] = "Descripciones de inventario"
 L["OPTIONS_TOOLTIPS_DESC"] =
-	"Muestra el inventario para regalar en las descripciones de los miembros del grupo que usan Water Dispenser."
+	"Muestra el inventario para regalar en las descripciones de jugador de los miembros del grupo que usan Water Dispenser."
 L["OPTIONS_SHOW_INVENTORY"] = "Mostrar inventario en las descripciones de jugador"
 L["OPTIONS_SHOW_INVENTORY_DESC"] =
 	"Añade un bloque de Water Dispenser a las descripciones de jugador con lo que tienen configurado para repartir y cuántos llevan encima, mostrándose el tuyo siempre, estés en grupo o no."
 L["OPTIONS_SHARE_INVENTORY"] = "Compartir mi inventario"
 L["OPTIONS_SHARE_INVENTORY_DESC"] =
-	"Comunica a tu grupo y a tu banda lo que llevas encima para que tu inventario aparezca cuando te apunten, sin publicar nada en el chat ni avisar a nadie fuera de tu grupo, y desactivarlo te deja seguir viendo el de los demás."
+	"Comunica a tu grupo y a tu banda lo que llevas encima para que tu inventario aparezca cuando pasen el ratón por encima de ti, sin publicar nada en el chat ni avisar a nadie fuera de tu grupo, y desactivarlo te deja seguir viendo el de los demás."
 
 L["OPTIONS_COMBAT_HEADER"] = "Combate"
 L["OPTIONS_COMBAT_DESC"] = "WoW impide que los accesorios muevan objetos a un comercio durante el combate."
 L["OPTIONS_COMBAT_NOTIFY"] = "Activar notificaciones cuando el dispensado esté bloqueado"
 L["OPTIONS_COMBAT_NOTIFY_DESC"] =
-	"Muestra un aviso en tu ventana de chat cuando el combate impide llenar un comercio, y desactivado Water Dispenser se queda en silencio, sin explicar por qué el comercio siguió vacío."
+	"Muestra un aviso en tu ventana de chat cuando el combate impide llenar un comercio, y con esto desactivado Water Dispenser calla sobre por qué el comercio siguió vacío."
 
 --------------------------------------------------------------------------------
 -- Options — Dispensed Items
@@ -166,7 +168,7 @@ L["OPTIONS_ITEM_INCLUDE_QUANTITY_DESC"] =
 	"Desactivado nombra el objeto sin número al lado, lo que queda mejor para algo de lo que solo llevas uno, como una piedra de salud."
 L["OPTIONS_ITEM_PLAYER_CLASSES"] = "Dispensar solo al jugar con estas clases"
 L["OPTIONS_ITEM_PLAYER_CLASSES_DESC"] =
-	"Solo llena comercios y añade este objeto al anuncio cuando la clase de tu personaje esté seleccionada abajo."
+	"Llena comercios, añade este objeto a la macro de anuncio y lo muestra en tu descripción de jugador solo cuando la clase de tu personaje esté seleccionada abajo."
 L["OPTIONS_ITEM_REMOVE"] = "Eliminar objeto"
 L["OPTIONS_ITEM_REMOVE_CONFIRM"] = "¿Eliminar este objeto de la configuración de comercio?"
 
@@ -205,6 +207,8 @@ L["ANNOUNCEMENTS_AND"] = "y"
 --------------------------------------------------------------------------------
 
 L["OPTIONS_SUPPORT"] = "Comentarios y soporte"
+-- Precedes the version number on the General panel's last line.
+L["VERSION"] = "Versión"
 L["SUPPORT_CURSEFORGE"] = "CurseForge"
 L["SUPPORT_GITHUB"] = "GitHub"
 L["SUPPORT_DISCORD"] = "Discord"
@@ -216,4 +220,4 @@ L["SUPPORT_WAGO"] = "Wago"
 
 L["ITEM_MAGE_WATER"] = "Agua conjurada"
 L["ITEM_MAGE_FOOD"] = "Comida conjurada"
-L["ITEM_WARLOCK_HEALTHSTONE"] = "Piedras de salud"
+L["ITEM_WARLOCK_HEALTHSTONE"] = "Piedra de salud"

@@ -13,8 +13,10 @@ L["ADDON_TITLE"] = "Water Dispenser"
 -- Chat Messages
 --------------------------------------------------------------------------------
 
--- All player-facing chat prints live here, regardless of which feature emits them.
--- %s is the add-on version; the menu path is the game client's own labels.
+--[[
+	All player-facing chat prints live here, regardless of which feature emits them.
+	%s is the add-on version; the menu path is the game client's own labels.
+]]
 L["CHAT_LOADED"] =
 	"버전 %s. 설정(이 메시지를 끄는 옵션 포함)은 옵션 > 애드온 > Water Dispenser에서 찾을 수 있습니다. 이 애드온이 마음에 드시나요? 친구에게 알려주세요! (="
 L["CHAT_NO_TRADE"] = "활성화된 거래 창이 없습니다."
@@ -22,8 +24,10 @@ L["CHAT_COMBAT_BLOCKED"] = "WoW는 전투 중 자동 거래를 차단합니다."
 L["CHAT_OPTIONS_IN_COMBAT"] = "안전을 위해 전투 중에는 설정 창을 열 수 없습니다."
 -- The item and its count are appended after the colon by the code.
 L["CHAT_MISSING_STACK"] = "부족:"
--- %s is the item's name, %d the Maximum per Session it has hit.
--- "Maximum per Session" must match OPTIONS_ITEM_SESSION_CAP.
+--[[
+	%s is the item's name, %d the Maximum per Session it has hit.
+	"Maximum per Session" must match OPTIONS_ITEM_SESSION_CAP.
+]]
 L["CHAT_SESSION_CAP_REACHED"] =
 	"%s은(는) 추가되지 않았습니다: 이번 세션에 이미 %d개를 받았습니다. 세션당 최대량을 변경하거나, 다시 불러와 초기화하세요."
 -- %s is the item's name, %d the amount that could not be split off.
@@ -32,8 +36,6 @@ L["CHAT_SPLIT_REFUSED"] =
 -- %s is the player's class name. "Dispensed Items" must match TAB_DISPENSED_ITEMS.
 L["CHAT_NONE_ACTIVE_FOR_CLASS"] =
 	"%s(으)로 플레이하는 동안 분배하도록 설정된 아이템이 없습니다. 옵션 > 분배 아이템을 열어 이 직업에 대한 아이템을 활성화하세요."
--- The item's name is appended after the colon by the code.
-L["CHAT_ITEM_SAVED"] = "저장됨:"
 -- "- Dispenser" is the macro's literal name and is never translated.
 L["CHAT_MACRO_DELETED"] = '"- Dispenser" 알림 매크로가 삭제되었습니다.'
 L["CHAT_MACRO_FULL"] = "캐릭터 전용 매크로 슬롯이 꽉 차서 매크로를 만들 수 없습니다."
@@ -57,7 +59,7 @@ L["BUTTON_FILL"] = "거래 창 채우기"
 -- Minimap Button
 --------------------------------------------------------------------------------
 
--- The tooltip's feature row reuses OPTIONS_DISPENSE_HEADER for its name; these are its state and click words.
+-- The tooltip's feature row reuses TAB_DISPENSE for its name; these are its state and click words.
 L["UI_ENABLED"] = "활성화됨"
 L["UI_DISABLED"] = "비활성화됨"
 L["UI_LEFT_CLICK"] = "좌클릭"
@@ -70,7 +72,7 @@ L["MINIMAP_OPTIONS_KEYBIND"] = "Shift + 가운데 클릭"
 --------------------------------------------------------------------------------
 
 L["OPTIONS_DESCRIPTION"] =
-	"거래 대상의 직업, 레벨, 파티 소속에 맞춰 지정한 수량만큼 물, 음식, 생명석 또는 직접 설정한 모든 소비 아이템으로 거래 창을 자동으로 채웁니다."
+	"손쉬운 소비 아이템 분배. 거래 창을 물, 음식, 생명석으로 자동으로 채웁니다. 모래시계 모래나 저항력 물약처럼 원하는 아이템을 무엇이든 추가해 공격대에 나눠 주세요."
 
 L["OPTIONS_WELCOME_MESSAGE"] = "환영 메시지 사용"
 L["OPTIONS_WELCOME_MESSAGE_DESC"] =
@@ -89,9 +91,9 @@ L["OPTIONS_COMMANDS_HEADER"] = "/명령어"
 L["OPTIONS_COMMAND"] = "/wd"
 L["OPTIONS_COMMAND_DESCRIPTION"] = "이 애드온의 설정 창을 엽니다."
 
-L["OPTIONS_DISPENSE_HEADER"] = "분배"
-L["OPTIONS_DISPENSE_DESC"] =
-	"거래가 열리면 거래 창을 자동으로 채웁니다. 아래 각 옵션을 개별적으로 켜고 끄십시오."
+-- Names the panel, its section header, and the mini-map tooltip's feature row.
+L["TAB_DISPENSE"] = "분배"
+L["OPTIONS_DISPENSE_DESC"] = "거래가 열리면 거래 창을 자동으로 채웁니다."
 L["OPTIONS_DISPENSE_MASTER"] = "분배 활성화"
 L["OPTIONS_DISPENSE_MASTER_DESC"] = "설정에 따라 거래 창을 자동으로 채웁니다."
 L["OPTIONS_DISPENSE_SOLO"] = "모르는 사람에게 사용"
@@ -102,9 +104,9 @@ L["OPTIONS_DISPENSE_GROUP_DESC"] = "파티원과 거래할 때 거래 창을 자
 L["OPTIONS_DISPENSE_RAID"] = "공격대에 사용"
 L["OPTIONS_DISPENSE_RAID_DESC"] = "공격대원과 거래할 때 거래 창을 자동으로 채웁니다."
 
-L["OPTIONS_TOOLTIPS_HEADER"] = "플레이어 툴팁의 보유 목록"
+L["TAB_INVENTORY_TOOLTIPS"] = "보유 목록 툴팁"
 L["OPTIONS_TOOLTIPS_DESC"] =
-	"Water Dispenser를 사용하는 파티원의 툴팁에 나눠 줄 수 있는 보유 목록을 표시합니다."
+	"Water Dispenser를 사용하는 파티원의 플레이어 툴팁에 나눠 줄 수 있는 보유 목록을 표시합니다."
 L["OPTIONS_SHOW_INVENTORY"] = "플레이어 툴팁에 보유 목록 표시"
 L["OPTIONS_SHOW_INVENTORY_DESC"] =
 	"플레이어 툴팁에 Water Dispenser 항목을 추가해 그들이 나눠 주도록 설정한 것과 보유 수량을 보여 주며, 본인의 목록은 파티 여부와 관계없이 항상 표시됩니다."
@@ -117,7 +119,7 @@ L["OPTIONS_COMBAT_DESC"] =
 	"WoW는 전투 중 애드온이 거래 창으로 아이템을 옮기는 것을 차단합니다."
 L["OPTIONS_COMBAT_NOTIFY"] = "분배가 차단되었을 때 알림 사용"
 L["OPTIONS_COMBAT_NOTIFY_DESC"] =
-	"전투로 인해 거래를 채우지 못했을 때 대화창에 알림을 출력하며, 이 옵션을 끄면 Water Dispenser는 조용해져 거래가 비어 있는 이유를 알려 주지 않습니다."
+	"전투로 인해 거래를 채우지 못했을 때 대화창에 알림을 출력하며, 이 옵션을 끄면 Water Dispenser는 거래가 비어 있는 이유를 알려 주지 않습니다."
 
 --------------------------------------------------------------------------------
 -- Options — Dispensed Items
@@ -167,7 +169,7 @@ L["OPTIONS_ITEM_INCLUDE_QUANTITY_DESC"] =
 	"끄면 아이템 옆에 수량 없이 이름만 표시되며, 생명석처럼 하나만 가지고 다니는 아이템은 그 편이 더 자연스럽습니다."
 L["OPTIONS_ITEM_PLAYER_CLASSES"] = "특정 직업일 때만 분배"
 L["OPTIONS_ITEM_PLAYER_CLASSES_DESC"] =
-	"본인 캐릭터의 직업이 아래에서 선택되어 있을 때만 거래를 채우고 알림에 포함합니다."
+	"본인 캐릭터의 직업이 아래에서 선택되어 있을 때만 거래를 채우고, 알림 매크로에 넣고, 플레이어 툴팁에 표시합니다."
 L["OPTIONS_ITEM_REMOVE"] = "아이템 제거"
 L["OPTIONS_ITEM_REMOVE_CONFIRM"] = "거래 설정에서 이 아이템을 제거하시겠습니까?"
 
@@ -206,6 +208,8 @@ L["ANNOUNCEMENTS_AND"] = "및"
 --------------------------------------------------------------------------------
 
 L["OPTIONS_SUPPORT"] = "피드백 및 지원"
+-- Precedes the version number on the General panel's last line.
+L["VERSION"] = "버전"
 L["SUPPORT_CURSEFORGE"] = "CurseForge"
 L["SUPPORT_GITHUB"] = "GitHub"
 L["SUPPORT_DISCORD"] = "Discord"

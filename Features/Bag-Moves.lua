@@ -14,9 +14,13 @@ local _, ns = ...
 	  Portion  splits an exact count onto the cursor, for the caller to drop into a
 	           trade slot.
 
-	Neither is the merge step README-Technical bans. That one ran *inside* an open
-	trade and made a mid-trade conjure wait for a full stack; the restack never runs
-	with a trade open, and a portion only ever produces the amount the fill asked for.
+	The merge primitive is also exported for the fill, which combines loose partials
+	of one item *during* a trade so the partner receives one stack rather than a
+	slot per scrap. That is not the merge step README-Technical bans: that one made
+	a mid-trade conjure wait for a full stack, where the fill's merge builds exactly
+	the amount owed, never touches an offered (locked) slot, and stands down while a
+	conjure is waiting to be placed. The restack itself still never runs with a
+	trade open.
 
 	Both follow the same rules, learned the hard way in Consumable-Connoisseur's
 	Restocker: never move against a locked slot, and never leave an item stranded on
@@ -117,8 +121,15 @@ local function Merge(src, dst)
 end
 
 --[[
-	Every merge this pass can make without reusing a slot, then hand back to the
-	event loop.
+	Merges (src) onto (dst), both {Bag, Slot}. Exported for the fill; see the file
+	header for why a merge is allowed there and the restack is not.
+]]
+ns.MergeSlots = Merge
+
+--[[
+	Every merge one item's partials allow in a single pass without reusing a slot,
+	returning how many were issued. The restack runs it over every tracked item; the
+	fill runs it over the loose slots of the one item it is shaping a stack for.
 
 	The "one move per pass" rule exists because a slot locks for its server round
 	trip and a second move against a locked slot is dropped with no error. That
@@ -134,16 +145,24 @@ end
 	It terminates: a merge either empties its source or fills its destination, so
 	each pass leaves strictly fewer partial stacks of that item than it found.
 ]]
+function ns.MergePartials(list)
+	if #list < 2 then
+		return 0
+	end
+	table.sort(list, ByCountDescending)
+	local low, high, moves = #list, 1, 0
+	while high < low do
+		Merge(list[low], list[high])
+		moves = moves + 1
+		low, high = low - 1, high + 1
+	end
+	return moves
+end
+
+-- Every tracked item's partials, one pass each, then hand back to the event loop.
 local function MergeDisjoint()
 	for _, list in pairs(CollectPartials()) do
-		if #list >= 2 then
-			table.sort(list, ByCountDescending)
-			local low, high = #list, 1
-			while high < low do
-				Merge(list[low], list[high])
-				low, high = low - 1, high + 1
-			end
-		end
+		ns.MergePartials(list)
 	end
 end
 
@@ -255,38 +274,66 @@ function ns.SplitToCursor(bag, slot, count)
 	ClearCursor()
 
 	--[[
-		Two entry points, tried in turn. On Classic Era 1.15.9 the C_Container one has
-		been seen answering with the whole stack, and some legacy container globals do
-		survive on that client, so the older one gets a go if the first leaves the
-		cursor empty.
+		Two entry points, and the second runs only when the first demonstrably did
+		nothing at all.
+
+		Retrying on an empty cursor alone is what put a red "Couldn't split those
+		items" on the screen every so often: the cursor does not reliably read as
+		occupied in the same frame the split was issued, so a split that had worked
+		looked like a no-op, the retry fired at a slot the first call had already
+		locked, and the client refused it out loud while the trade went on to fill
+		correctly. The source slot is the honest witness -- locked, emptied, or
+		holding a different count all mean the first call was heard -- and only a slot
+		still reading exactly what it read before is worth a second attempt.
 	]]
 	ns.SplitContainerItem(bag, slot, count)
-	if not CursorHasItem() and ns.SplitContainerItemLegacy then
-		ns.SplitContainerItemLegacy(bag, slot, count)
-	end
-	if not CursorHasItem() then
-		return false
+	local modernTook = CursorHasItem() and true or false
+
+	local mid = ns.GetContainerItemInfo(bag, slot)
+	local midState
+	if not mid then
+		midState = "empty"
+	elseif mid.isLocked then
+		midState = "locked"
+	else
+		midState = tostring(mid.stackCount or 0)
 	end
 
+	local retried = false
+	if not modernTook and midState == tostring(before) and ns.SplitContainerItemLegacy then
+		retried = true
+		ns.SplitContainerItemLegacy(bag, slot, count)
+	end
+	local took = CursorHasItem() and true or false
+
 	--[[
+		Logged on both paths, and it names which entry point answered. The client's
+		red "Couldn't split those items" comes from whichever call it refused, and a
+		refusal is silent to us, so a report that does not say whether the retry ran
+		cannot say which call to stop making.
+
 		Recorded, not acted on. What the source slot reads this instant is the best
-		clue available to a bug report about whether the count was honored -- left=18
-		on a 20 asked for 2 means yes, left=20 or an empty slot means the client did
-		something else -- but it is not reliable enough to decide on, so the caller
-		stows the cursor either way and lets the next scan tell the truth.
+		clue available about whether the count was honored -- left=18 on a 20 asked
+		for 2 means yes, left=20 or an empty slot means the client did something else
+		-- but it is not reliable enough to decide on, so the caller stows the cursor
+		either way and lets the next scan tell the truth.
 	]]
 	if ns.diagnostics and ns.diagnostics.logging then
 		local after = ns.GetContainerItemInfo(bag, slot)
 		ns:LogEventNow(
 			"SPLIT",
-			bag,
-			slot,
+			bag .. ":" .. slot,
 			"asked=" .. count,
 			"before=" .. before,
+			"mid=" .. midState,
+			"modern=" .. tostring(modernTook),
+			"retry=" .. (ns.SplitContainerItemLegacy and tostring(retried) or "absent"),
+			"took=" .. tostring(took),
 			"left=" .. tostring(after and after.stackCount or 0)
 		)
 	end
-	return true
+
+	return took
 end
 
 --[[

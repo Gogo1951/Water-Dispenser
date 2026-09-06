@@ -13,8 +13,10 @@ L["ADDON_TITLE"] = "Water Dispenser"
 -- Chat Messages
 --------------------------------------------------------------------------------
 
--- All player-facing chat prints live here, regardless of which feature emits them.
--- %s is the add-on version; the menu path is the game client's own labels.
+--[[
+	All player-facing chat prints live here, regardless of which feature emits them.
+	%s is the add-on version; the menu path is the game client's own labels.
+]]
 L["CHAT_LOADED"] =
 	"版本 %s。設定（包含關閉此訊息的選項）可以在 選項 > 插件 > Water Dispenser 中找到。喜歡這個插件嗎？分享給你的朋友吧！(="
 L["CHAT_NO_TRADE"] = "沒有已開啟的交易視窗。"
@@ -22,8 +24,10 @@ L["CHAT_COMBAT_BLOCKED"] = "魔獸世界會在戰鬥中阻止自動交易。"
 L["CHAT_OPTIONS_IN_COMBAT"] = "基於安全考量，戰鬥中無法開啟選項介面。"
 -- The item and its count are appended after the colon by the code.
 L["CHAT_MISSING_STACK"] = "缺少："
--- %s is the item's name, %d the Maximum per Session it has hit.
--- "Maximum per Session" must match OPTIONS_ITEM_SESSION_CAP.
+--[[
+	%s is the item's name, %d the Maximum per Session it has hit.
+	"Maximum per Session" must match OPTIONS_ITEM_SESSION_CAP.
+]]
 L["CHAT_SESSION_CAP_REACHED"] =
 	"%s 未加入：本次登入他已經拿到了 %d 個。請調整每次登入上限，或重新載入以重置。"
 -- %s is the item's name, %d the amount that could not be split off.
@@ -32,8 +36,6 @@ L["CHAT_SPLIT_REFUSED"] =
 -- %s is the player's class name. "Dispensed Items" must match TAB_DISPENSED_ITEMS.
 L["CHAT_NONE_ACTIVE_FOR_CLASS"] =
 	"當你使用 %s 遊玩時，沒有設定任何要分發的物品。請打開 選項 > 分發物品 啟用適用於此職業的物品。"
--- The item's name is appended after the colon by the code.
-L["CHAT_ITEM_SAVED"] = "已儲存："
 -- "- Dispenser" is the macro's literal name and is never translated.
 L["CHAT_MACRO_DELETED"] = '喊話巨集 "- Dispenser" 已刪除。'
 L["CHAT_MACRO_FULL"] = "無法建立巨集：角色專屬巨集數量已達上限。"
@@ -57,7 +59,7 @@ L["BUTTON_FILL"] = "填充交易視窗"
 -- Minimap Button
 --------------------------------------------------------------------------------
 
--- The tooltip's feature row reuses OPTIONS_DISPENSE_HEADER for its name; these are its state and click words.
+-- The tooltip's feature row reuses TAB_DISPENSE for its name; these are its state and click words.
 L["UI_ENABLED"] = "已啟用"
 L["UI_DISABLED"] = "已停用"
 L["UI_LEFT_CLICK"] = "左鍵點擊"
@@ -70,7 +72,7 @@ L["MINIMAP_OPTIONS_KEYBIND"] = "Shift + 中鍵點擊"
 --------------------------------------------------------------------------------
 
 L["OPTIONS_DESCRIPTION"] =
-	"根據交易對象的職業、等級和隊伍關係，按你設定的數量自動用水、食物、治療石或任何你設定的消耗品填充交易視窗。"
+	"輕鬆分發消耗品。自動用水、食物和治療石填充交易視窗。你還可以加入任何想給出的物品，例如沙漏之沙或各類抗性藥水，分發給你的團隊。"
 
 L["OPTIONS_WELCOME_MESSAGE"] = "啟用歡迎訊息"
 L["OPTIONS_WELCOME_MESSAGE_DESC"] = "當 Water Dispenser 載入時，在聊天框輸出一行問候語。"
@@ -88,8 +90,9 @@ L["OPTIONS_COMMANDS_HEADER"] = "/指令"
 L["OPTIONS_COMMAND"] = "/wd"
 L["OPTIONS_COMMAND_DESCRIPTION"] = "開啟本插件的選項介面。"
 
-L["OPTIONS_DISPENSE_HEADER"] = "分發"
-L["OPTIONS_DISPENSE_DESC"] = "開啟交易時自動填充交易視窗。下方每個選項均可單獨開關。"
+-- Names the panel, its section header, and the mini-map tooltip's feature row.
+L["TAB_DISPENSE"] = "分發"
+L["OPTIONS_DISPENSE_DESC"] = "開啟交易時自動填充交易視窗。"
 L["OPTIONS_DISPENSE_MASTER"] = "啟用分發"
 L["OPTIONS_DISPENSE_MASTER_DESC"] = "根據你的設定自動填充交易視窗。"
 L["OPTIONS_DISPENSE_SOLO"] = "對陌生人啟用"
@@ -99,20 +102,20 @@ L["OPTIONS_DISPENSE_GROUP_DESC"] = "當與隊伍成員交易時，自動填充�
 L["OPTIONS_DISPENSE_RAID"] = "對團隊啟用"
 L["OPTIONS_DISPENSE_RAID_DESC"] = "當與團隊成員交易時，自動填充交易視窗。"
 
-L["OPTIONS_TOOLTIPS_HEADER"] = "玩家提示中的庫存"
-L["OPTIONS_TOOLTIPS_DESC"] = "在使用 Water Dispenser 的隊友提示資訊中顯示可分發的庫存。"
+L["TAB_INVENTORY_TOOLTIPS"] = "庫存提示"
+L["OPTIONS_TOOLTIPS_DESC"] = "在使用 Water Dispenser 的隊友的玩家提示資訊中顯示可分發的庫存。"
 L["OPTIONS_SHOW_INVENTORY"] = "在玩家提示中顯示庫存"
 L["OPTIONS_SHOW_INVENTORY_DESC"] =
 	"在玩家提示資訊中加入一個 Water Dispenser 區塊，列出他們設定為分發的內容以及攜帶的數量，而無論是否組隊，你自己的庫存都會永遠顯示。"
 L["OPTIONS_SHARE_INVENTORY"] = "分享我的庫存"
 L["OPTIONS_SHARE_INVENTORY_DESC"] =
-	"告知你的隊伍和團隊你攜帶了什麼，這樣別人指向你時就能看到你的庫存，同時不會向聊天頻道發送任何內容，隊伍之外的人也不會知道，而且關閉後你依然可以查看別人的庫存。"
+	"告知你的隊伍和團隊你攜帶了什麼，這樣別人把滑鼠移到你身上時就能看到你的庫存，同時不會向聊天頻道發送任何內容，隊伍之外的人也不會知道，而且關閉後你依然可以查看別人的庫存。"
 
 L["OPTIONS_COMBAT_HEADER"] = "戰鬥"
 L["OPTIONS_COMBAT_DESC"] = "魔獸世界禁止插件在戰鬥中將物品放入交易視窗。"
 L["OPTIONS_COMBAT_NOTIFY"] = "分發被阻止時啟用提示"
 L["OPTIONS_COMBAT_NOTIFY_DESC"] =
-	"當戰鬥導致交易無法填充時，在聊天框中輸出提示，而關閉後 Water Dispenser 將保持沉默，不會說明交易為何仍是空的。"
+	"當戰鬥導致交易無法填充時，在聊天框中輸出提示，而關閉後 Water Dispenser 不會再說明交易為何仍是空的。"
 
 --------------------------------------------------------------------------------
 -- Options — Dispensed Items
@@ -158,7 +161,7 @@ L["OPTIONS_ITEM_INCLUDE_QUANTITY_DESC"] =
 	"關閉後只顯示物品名稱而不帶數量，這對治療石這類你只會隨身帶一個的物品讀起來更自然。"
 L["OPTIONS_ITEM_PLAYER_CLASSES"] = "僅在使用這些職業時分發"
 L["OPTIONS_ITEM_PLAYER_CLASSES_DESC"] =
-	"僅當你的角色職業在下方被選取時，才填充交易並將此物品加入喊話。"
+	"僅當你的角色職業在下方被選取時，才填充交易、把此物品寫進喊話巨集，並顯示在你的玩家提示中。"
 L["OPTIONS_ITEM_REMOVE"] = "移除物品"
 L["OPTIONS_ITEM_REMOVE_CONFIRM"] = "是否從交易設定中移除此物品？"
 
@@ -197,6 +200,8 @@ L["ANNOUNCEMENTS_AND"] = "和"
 --------------------------------------------------------------------------------
 
 L["OPTIONS_SUPPORT"] = "意見與支援"
+-- Precedes the version number on the General panel's last line.
+L["VERSION"] = "版本"
 L["SUPPORT_CURSEFORGE"] = "CurseForge"
 L["SUPPORT_GITHUB"] = "GitHub"
 L["SUPPORT_DISCORD"] = "Discord"

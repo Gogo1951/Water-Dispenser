@@ -68,8 +68,10 @@ local updateTimer
 -- Latches the "macro slots full" warning to once until a slot frees up.
 local macroFullWarned = false
 
--- Body last written to the macro. Bags settle far more often than the giveaway
--- list actually changes, so an unchanged body skips the write entirely.
+--[[
+	Body last written to the macro. Bags settle far more often than the giveaway
+	list actually changes, so an unchanged body skips the write entirely.
+]]
 local lastMacroBody = nil
 
 --------------------------------------------------------------------------------

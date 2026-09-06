@@ -13,8 +13,10 @@ L["ADDON_TITLE"] = "Water Dispenser"
 -- Chat Messages
 --------------------------------------------------------------------------------
 
--- All player-facing chat prints live here, regardless of which feature emits them.
--- %s is the add-on version; the menu path is the game client's own labels.
+--[[
+	All player-facing chat prints live here, regardless of which feature emits them.
+	%s is the add-on version; the menu path is the game client's own labels.
+]]
 L["CHAT_LOADED"] =
 	"Версия %s. Настройки (включая отключение этого сообщения) находятся в Настройки > Модификации > Water Dispenser. Нравится аддон? Расскажите друзьям! (="
 L["CHAT_NO_TRADE"] = "Нет активного окна обмена."
@@ -23,8 +25,10 @@ L["CHAT_OPTIONS_IN_COMBAT"] =
 	"В целях безопасности окно настроек нельзя открыть во время боя."
 -- The item and its count are appended after the colon by the code.
 L["CHAT_MISSING_STACK"] = "Не хватает:"
--- %s is the item's name, %d the Maximum per Session it has hit.
--- "Maximum per Session" must match OPTIONS_ITEM_SESSION_CAP.
+--[[
+	%s is the item's name, %d the Maximum per Session it has hit.
+	"Maximum per Session" must match OPTIONS_ITEM_SESSION_CAP.
+]]
 L["CHAT_SESSION_CAP_REACHED"] =
 	"%s не добавлено: этот игрок уже получил свои %d за сессию. Измените Максимум за сессию или перезагрузите интерфейс для сброса."
 -- %s is the item's name, %d the amount that could not be split off.
@@ -33,8 +37,6 @@ L["CHAT_SPLIT_REFUSED"] =
 -- %s is the player's class name. "Dispensed Items" must match TAB_DISPENSED_ITEMS.
 L["CHAT_NONE_ACTIVE_FOR_CLASS"] =
 	"Нет предметов для раздачи, пока вы играете за класс %s. Откройте Настройки > Раздаваемые предметы, чтобы включить предметы для этого класса."
--- The item's name is appended after the colon by the code.
-L["CHAT_ITEM_SAVED"] = "Сохранено:"
 -- "- Dispenser" is the macro's literal name and is never translated.
 L["CHAT_MACRO_DELETED"] = 'Макрос анонса "- Dispenser" удален.'
 L["CHAT_MACRO_FULL"] =
@@ -59,7 +61,7 @@ L["BUTTON_FILL"] = "Заполнить окно обмена"
 -- Minimap Button
 --------------------------------------------------------------------------------
 
--- The tooltip's feature row reuses OPTIONS_DISPENSE_HEADER for its name; these are its state and click words.
+-- The tooltip's feature row reuses TAB_DISPENSE for its name; these are its state and click words.
 L["UI_ENABLED"] = "Включено"
 L["UI_DISABLED"] = "Отключено"
 L["UI_LEFT_CLICK"] = "ЛКМ"
@@ -72,7 +74,7 @@ L["MINIMAP_OPTIONS_KEYBIND"] = "Shift + СКМ"
 --------------------------------------------------------------------------------
 
 L["OPTIONS_DESCRIPTION"] =
-	"Автоматически заполняет окно обмена водой, едой, камнями здоровья или любым расходуемым предметом, который вы настроите, в количестве, выбранном для класса, уровня и группы партнера по обмену."
+	"Раздача расходников без хлопот. Автоматически заполняет окно обмена водой, едой и камнями здоровья. Добавьте любой предмет, какой захотите, например Песок песочных часов или зелья сопротивления, чтобы раздавать его своему рейду."
 
 L["OPTIONS_WELCOME_MESSAGE"] = "Включить приветственное сообщение"
 L["OPTIONS_WELCOME_MESSAGE_DESC"] =
@@ -92,9 +94,10 @@ L["OPTIONS_COMMANDS_HEADER"] = "/Команды"
 L["OPTIONS_COMMAND"] = "/wd"
 L["OPTIONS_COMMAND_DESCRIPTION"] = "Открывает окно настроек этого аддона."
 
-L["OPTIONS_DISPENSE_HEADER"] = "Раздача"
+-- Names the panel, its section header, and the mini-map tooltip's feature row.
+L["TAB_DISPENSE"] = "Раздача"
 L["OPTIONS_DISPENSE_DESC"] =
-	"Автоматически заполняет окно обмена при его открытии. Переключайте каждую настройку ниже независимо."
+	"Автоматически заполняет окно обмена при его открытии."
 L["OPTIONS_DISPENSE_MASTER"] = "Включить раздачу"
 L["OPTIONS_DISPENSE_MASTER_DESC"] =
 	"Автоматически заполняет окно обмена на основе ваших настроек."
@@ -108,9 +111,9 @@ L["OPTIONS_DISPENSE_RAID"] = "Включить для рейда"
 L["OPTIONS_DISPENSE_RAID_DESC"] =
 	"Автоматически заполняет окно обмена при обмене с членом вашего рейда."
 
-L["OPTIONS_TOOLTIPS_HEADER"] = "Запасы во всплывающих подсказках игроков"
+L["TAB_INVENTORY_TOOLTIPS"] = "Подсказки с запасами"
 L["OPTIONS_TOOLTIPS_DESC"] =
-	"Показывает запасы для раздачи в подсказках членов группы, у которых установлен Water Dispenser."
+	"Показывает запасы для раздачи в подсказках игроков из вашей группы, у которых установлен Water Dispenser."
 L["OPTIONS_SHOW_INVENTORY"] =
 	"Показывать запасы во всплывающих подсказках игроков"
 L["OPTIONS_SHOW_INVENTORY_DESC"] =
@@ -125,7 +128,7 @@ L["OPTIONS_COMBAT_DESC"] =
 L["OPTIONS_COMBAT_NOTIFY"] =
 	"Включить уведомления, когда раздача заблокирована"
 L["OPTIONS_COMBAT_NOTIFY_DESC"] =
-	"Выводит заметку в чат, когда бой мешает заполнить обмен, а в отключенном виде Water Dispenser молчит, ничем не объясняя, почему обмен остался пустым."
+	"Выводит заметку в чат, когда бой мешает заполнить обмен, а если отключить, Water Dispenser промолчит о том, почему обмен остался пустым."
 
 --------------------------------------------------------------------------------
 -- Options — Dispensed Items
@@ -176,7 +179,7 @@ L["OPTIONS_ITEM_INCLUDE_QUANTITY_DESC"] =
 	"В отключенном виде предмет называется без числа рядом, что лучше читается для того, чего у вас всегда только один, вроде камня здоровья."
 L["OPTIONS_ITEM_PLAYER_CLASSES"] = "Раздавать, только играя этими классами"
 L["OPTIONS_ITEM_PLAYER_CLASSES_DESC"] =
-	"Заполнять обмен и включать этот предмет в анонс только тогда, когда класс вашего персонажа выбран ниже."
+	"Заполняет обмен, добавляет этот предмет в макрос анонса и показывает его в вашей подсказке игрока только тогда, когда класс вашего персонажа выбран ниже."
 L["OPTIONS_ITEM_REMOVE"] = "Удалить предмет"
 L["OPTIONS_ITEM_REMOVE_CONFIRM"] = "Удалить этот предмет из настроек обмена?"
 
@@ -215,6 +218,8 @@ L["ANNOUNCEMENTS_AND"] = "и"
 --------------------------------------------------------------------------------
 
 L["OPTIONS_SUPPORT"] = "Отзывы и поддержка"
+-- Precedes the version number on the General panel's last line.
+L["VERSION"] = "Версия"
 L["SUPPORT_CURSEFORGE"] = "CurseForge"
 L["SUPPORT_GITHUB"] = "GitHub"
 L["SUPPORT_DISCORD"] = "Discord"
@@ -226,4 +231,4 @@ L["SUPPORT_WAGO"] = "Wago"
 
 L["ITEM_MAGE_WATER"] = "Сотворенная вода"
 L["ITEM_MAGE_FOOD"] = "Сотворенная еда"
-L["ITEM_WARLOCK_HEALTHSTONE"] = "Камни здоровья"
+L["ITEM_WARLOCK_HEALTHSTONE"] = "Камень здоровья"
