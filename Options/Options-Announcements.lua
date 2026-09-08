@@ -36,7 +36,7 @@ end
 -- Live Preview
 --------------------------------------------------------------------------------
 
--- Current macro message colored for the preview pane, or a muted notice naming why there is nothing to announce.
+-- Current macro message in helper silver, or a muted notice naming why there is nothing to announce.
 local function GetPreviewText()
 	--[[
 		Dispense off is its own notice: the generic empty one tells the player to
@@ -48,7 +48,12 @@ local function GetPreviewText()
 	if ns.BuildAnnouncementMessage then
 		local message = ns.BuildAnnouncementMessage()
 		if message then
-			return GetColor("TEXT") .. message .. "|r"
+			--[[
+				HELP, not TEXT: this line is helper text -- a preview of what the macro
+				would say -- and white read as the panel's own body copy, as though the
+				add-on were stating it rather than showing it.
+			]]
+			return GetColor("HELP") .. message .. "|r"
 		end
 	end
 	return GetColor("MUTED") .. L["OPTIONS_ANNOUNCEMENTS_PREVIEW_EMPTY"] .. "|r"

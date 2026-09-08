@@ -371,6 +371,12 @@ ns.DIAGNOSTIC_API_CHECKS = {
 		end,
 	},
 	{
+		"UnitIsInMyGuild",
+		function()
+			return type(UnitIsInMyGuild) == "function"
+		end,
+	},
+	{
 		"IsSpellKnown",
 		function()
 			return type(IsSpellKnown) == "function"
@@ -468,21 +474,9 @@ ns.DIAGNOSTIC_API_CHECKS = {
 		end,
 	},
 	{
-		"GetAddOnInfo (legacy)",
-		function()
-			return type(GetAddOnInfo) == "function"
-		end,
-	},
-	{
 		"C_AddOns.GetNumAddOns",
 		function()
 			return type(C_AddOns) == "table" and type(C_AddOns.GetNumAddOns) == "function"
-		end,
-	},
-	{
-		"GetNumAddOns (legacy)",
-		function()
-			return type(GetNumAddOns) == "function"
 		end,
 	},
 	{
@@ -639,11 +633,13 @@ function ns:BuildContextReport()
 				perfectly healthy config for a trade that hands over nothing.
 			]]
 			lines[#lines + 1] = string.format(
-				"  %s: activeForPlayer=%s, distribute=%s (allowed now: %s), reserve=%d, sessionCap=%s, %s counts: %s",
+				"  %s: activeForPlayer=%s, distribute=%s (allowed now: %s), guildiesOnly=%s, reserve=%d, sessionCap=%s, %s counts: %s",
 				tostring(ns.GetItemConfigName(key, itemConfig) or key),
 				tostring(active),
-				tostring(itemConfig.Distribute or "Always"),
+				-- Normalized, so a profile still carrying the retired Group or Raid reads as what it now does.
+				ns.NormalizeDistribute(itemConfig.Distribute),
 				tostring(ns.IsItemDistributableNow(itemConfig)),
+				tostring(itemConfig.GuildiesOnly and true or false),
 				ns.GetItemReserve(itemConfig),
 				tostring(ns.GetItemSessionCap(itemConfig) or "off"),
 				scope,
@@ -677,14 +673,15 @@ end
 function ns:BuildAddOnReport()
 	local lines = { GetClientHeader(), "" }
 	--[[
-		GetAddOnMetadata's legacy global is gone on Era 1.15.9 (the API probe reports
-		it absent), so this namespace is called directly. Its two siblings are probed
-		rather than assumed: they moved in the same patch, but that is not the same as
-		having watched them fail.
+		All three of these moved into C_AddOns in the same patch, and the API probe has
+		now watched the legacy globals fail on Era 1.15.9, so the namespace is called
+		directly. The `or GetAddOnInfo` tails that used to sit here were never a real
+		guard anyway -- the line below them indexed C_AddOns unconditionally, so a
+		client without the namespace was already an error rather than a fallback.
 	]]
-	local getInfo = C_AddOns.GetAddOnInfo or GetAddOnInfo
+	local getInfo = C_AddOns.GetAddOnInfo
 	local getMeta = C_AddOns.GetAddOnMetadata
-	local count = (C_AddOns.GetNumAddOns or GetNumAddOns)()
+	local count = C_AddOns.GetNumAddOns()
 	for index = 1, count do
 		local name, _, _, loadable = getInfo(index)
 		local version = getMeta(index, "Version") or "?"

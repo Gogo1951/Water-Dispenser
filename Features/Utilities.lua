@@ -145,28 +145,63 @@ function ns.GetClassName(class)
 end
 
 --[[
-	Whether an item may go out at all right now, judged on the group the *player* is
-	in rather than on the trade partner.
+	The stored Distribute value, folded to one the add-on still understands. A
+	profile written before Group and Raid were dropped still carries them, and a
+	value with no meaning here counts as no gate rather than a gate that never
+	opens: for a rule about withholding items, erring toward giving is the safe
+	direction, and it matches the item that has no stored value at all.
+]]
+function ns.NormalizeDistribute(value)
+	for _, mode in ipairs(ns.DISTRIBUTE_MODES) do
+		if value == mode then
+			return value
+		end
+	end
+	return "Always"
+end
 
-	  Always  never gates, and is what an item with no value stored falls back to.
-	  Group   any group, party or raid -- grouped at all.
-	  Raid    a raid and nothing else, for things only worth handing out there.
+--[[
+	Whether an item may go out at all right now, judged on where the *player* is
+	rather than on the trade partner.
 
-	Group deliberately includes raids: a raid is a group, and an item worth sharing
-	with a party is worth sharing with twenty people. Raid is the narrow one.
+	  Always    never gates, and is what an item with no value stored falls back to.
+	  Instance  a dungeon, raid, battleground or arena, and nowhere else.
+
+	This is only ever about place. Who is owed how much is the per-class Party and
+	Raid columns' business, and they say it better: an item nobody should get in a
+	party is a column of zeros. What the columns cannot express is the difference
+	between a group standing in a city and the same group inside a dungeon, which
+	is the whole of what Instance adds.
 
 	The same answer gates the fill, the player tooltip and the announcement macro,
 	so an item that cannot be given right now is never advertised either.
 ]]
 function ns.IsItemDistributableNow(itemConfig)
-	local mode = itemConfig and itemConfig.Distribute
-	if mode == "Raid" then
-		return IsInRaid() and true or false
-	end
-	if mode == "Group" then
-		return IsInGroup() and true or false
+	local mode = ns.NormalizeDistribute(itemConfig and itemConfig.Distribute)
+	if mode == "Instance" then
+		return IsInInstance() and true or false
 	end
 	return true
+end
+
+--[[
+	Whether the partner in front of the player passes the item's guild gate. Kept
+	apart from IsItemDistributableNow because the two ask different questions: that
+	one is about the player and settles whether the item is offered or announced at
+	all, this one is about whoever opened the trade and can only ever empty one
+	trade window.
+
+	inMyGuild is read off the unit once at TRADE_SHOW rather than here, so this
+	stays a plain rule with no unit call in it -- and being guildless is a real
+	answer, not a missing one: it means nobody qualifies, which the option's helper
+	line says out loud rather than leaving the player with a window that fills with
+	nothing and no reason why.
+]]
+function ns.IsItemAllowedForPartner(itemConfig, inMyGuild)
+	if not (itemConfig and itemConfig.GuildiesOnly) then
+		return true
+	end
+	return inMyGuild and true or false
 end
 
 --[[

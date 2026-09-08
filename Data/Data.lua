@@ -47,8 +47,19 @@ ns.OPTIONS_SUB_INDENT_WIDTH = 0.115 -- the blank cell a sub-option row leads wit
 	When an item may be handed out at all, on top of the per-class amounts. Stored
 	verbatim in the profile, so these strings are part of the saved format; the
 	dropdown's labels are separate locale keys. Order is the order they list in.
+
+	Group and Raid used to sit here and were dropped as saying nothing the amounts
+	did not already say: the Party and Raid columns hold a zero for "none of this
+	to a party", which is what those two modes were for. What no column can say is
+	*where* -- a five-man out in the world and a five-man in a dungeon are both the
+	Party column -- so Instance is the one gate that earns its place, for an item
+	worth handing out inside a dungeon or raid and nowhere else.
+
+	A profile written before this still carries "Group" or "Raid". Nothing migrates
+	the file; ns.NormalizeDistribute folds an unrecognized value back to Always on
+	read, so the same profile still opens on an older client.
 ]]
-ns.DISTRIBUTE_MODES = { "Always", "Group", "Raid" }
+ns.DISTRIBUTE_MODES = { "Always", "Instance" }
 
 --------------------------------------------------------------------------------
 -- Bags

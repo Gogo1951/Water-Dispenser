@@ -38,7 +38,7 @@ L["CHAT_MISSING_STACK"] = "Не хватает:"
 	"Maximum per Session" is the label of OPTIONS_ITEM_SESSION_CAP, minus its "Enable".
 ]]
 L["CHAT_SESSION_CAP_REACHED"] =
-	"%s не добавлено: этот игрок уже получил свои %d за сессию. Измените Максимум за сессию или перезагрузите интерфейс для сброса."
+	"%s не добавлено: этот игрок уже получил %d за эту сессию. Измените Максимум за сессию или перезагрузите интерфейс для сброса."
 -- %s is the item's name, %d the amount that could not be split off.
 L["CHAT_SPLIT_REFUSED"] =
 	"%s не добавлено: клиент отказался отделить %d от стопки, а передать вместо этого целую стопку значило бы отдать намного больше, чем вы просили. Задайте для этого предмета количество, равное целой стопке, чтобы обменять его."
@@ -147,7 +147,7 @@ L["OPTIONS_COMBAT_NOTIFY_DESC"] =
 
 L["TAB_INVENTORY_TOOLTIPS"] = "Подсказки с запасами"
 L["OPTIONS_TOOLTIPS_DESC"] =
-	"Показывает запасы для раздачи в подсказках игроков из вашей группы, у которых установлен Water Dispenser, и отмечает такие предметы в ваших собственных сумках."
+	"Показывает в подсказках игроков из вашей группы, у которых установлен Water Dispenser, что они настроили для раздачи, и отмечает эти предметы в ваших собственных сумках."
 L["OPTIONS_SHOW_INVENTORY"] =
 	"Показывать запасы во всплывающих подсказках игроков"
 L["OPTIONS_SHOW_INVENTORY_DESC"] =
@@ -169,7 +169,7 @@ L["OPTIONS_ITEMS_DESC"] =
 	"Настройте, сколько каждого предмета раздавать. Количество считается в отдельных предметах, поэтому 20 воды означают 20 воды, а 1 зелье означает 1 зелье. При необходимости стопка делится до точного количества."
 -- "Add an Item" must match OPTIONS_ADD_ITEM.
 L["OPTIONS_ITEMS_EMPTY"] =
-	'Нет настроенных предметов. Выберите "Добавить предмет" в списке, чтобы добавить расходуемые предметы из ваших сумок.'
+	'Нет настроенных предметов. Выберите "Добавить предмет" в списке, чтобы добавить любой передаваемый предмет из ваших сумок.'
 
 L["OPTIONS_ITEM_AMOUNTS"] = "Количество"
 L["OPTIONS_ITEM_AMOUNTS_DESC"] =
@@ -185,14 +185,20 @@ L["OPTIONS_ITEM_COUNT_TOO_HIGH"] =
 L["OPTIONS_ITEM_COUNT_INVALID"] =
 	"Введите количество предметов или 0, чтобы никогда не раздавать этот предмет."
 L["OPTIONS_ITEM_SETTINGS"] = "Настройки предмета"
--- "In Group" and "In Raid" in the tooltip must match the two dropdown entries below.
 L["OPTIONS_ITEM_DISTRIBUTE"] = "Выдавать"
+-- "In Instance" must match the dropdown entry below.
 L["OPTIONS_ITEM_DISTRIBUTE_DESC"] =
-	"Задает, когда этот предмет вообще выдается, ведь за пределами выбранной группы он никогда не передается, не анонсируется и не показывается в вашей подсказке, причем В группе охватывает группу или рейд, а В рейде только рейды."
--- Dropdown entries. The stored values are "Always", "Group", and "Raid"; these are only their labels.
+	"Задает, где этот предмет вообще раздается: в любом другом месте он никогда не передается, не попадает в анонс и не отображается в вашей подсказке. Вариант В подземельях охватывает подземелья, рейды, поля боя и арены. Чтобы вместо этого придержать предмет от группы или рейда, задайте в этом столбце количество 0."
+-- Dropdown entries. The stored values are "Always" and "Instance"; these are only their labels.
 L["OPTIONS_ITEM_DISTRIBUTE_ALWAYS"] = "Всегда"
-L["OPTIONS_ITEM_DISTRIBUTE_GROUP"] = "В группе"
-L["OPTIONS_ITEM_DISTRIBUTE_RAID"] = "В рейде"
+L["OPTIONS_ITEM_DISTRIBUTE_INSTANCE"] = "В подземельях"
+L["OPTIONS_ITEM_GUILDIES_ONLY"] = "Только согильдийцам"
+L["OPTIONS_ITEM_GUILDIES_ONLY_DESC"] =
+	"Пропускает этот предмет, если игрок, с которым вы обмениваетесь, не состоит в вашей гильдии."
+-- Panel line under the toggle, not a tooltip: it names the guild, which no fixed string can. %s is the player's guild.
+L["OPTIONS_ITEM_GUILDIES_ONLY_HELP"] = "Отдавать только участникам <%s>."
+L["OPTIONS_ITEM_GUILDIES_ONLY_NO_GUILD"] =
+	"Вы не состоите в гильдии, поэтому так этот предмет не достанется никому."
 L["OPTIONS_ITEM_FACTOR_LEVEL"] = "Учитывать требуемый уровень предмета"
 L["OPTIONS_ITEM_FACTOR_LEVEL_DESC"] =
 	"Пропускает этот предмет, если уровень партнера по обмену ниже требуемого для предмета."
@@ -235,7 +241,7 @@ L["OPTIONS_ANNOUNCEMENTS_DESC"] =
 L["OPTIONS_ANNOUNCEMENTS_ENABLE"] = "Включить макрос анонса"
 -- "- Dispenser" is the macro's literal name and is never translated.
 L["OPTIONS_ANNOUNCEMENTS_ENABLE_DESC"] =
-	'Поддерживает персональный макрос "- Dispenser" в актуальном состоянии в соответствии с вашим текущим списком раздачи и удаляет макрос, когда вы это отключаете.'
+	'Поддерживает персональный макрос "- Dispenser" в актуальном состоянии в соответствии с вашими текущими раздаваемыми предметами и удаляет макрос, когда вы это отключаете.'
 -- "Enable Reserves" must match OPTIONS_ITEM_RESERVE.
 L["OPTIONS_ANNOUNCEMENTS_PREVIEW_EMPTY"] =
 	"Нечего анонсировать. Настройте предметы, пополните сумки или уменьшите резерв в разделе Включить резерв."

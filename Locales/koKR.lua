@@ -139,7 +139,7 @@ L["OPTIONS_COMBAT_NOTIFY_DESC"] =
 
 L["TAB_INVENTORY_TOOLTIPS"] = "보유 목록 툴팁"
 L["OPTIONS_TOOLTIPS_DESC"] =
-	"Water Dispenser를 사용하는 파티원의 플레이어 툴팁에 나눠 줄 수 있는 보유 목록을 표시하고, 자신의 가방 속 해당 아이템에도 표시를 남깁니다."
+	"Water Dispenser를 사용하는 파티원이 나눠 주도록 설정한 것을 그들의 플레이어 툴팁에 표시하고, 자신의 가방 속 해당 아이템에도 표시를 남깁니다."
 L["OPTIONS_SHOW_INVENTORY"] = "플레이어 툴팁에 보유 목록 표시"
 L["OPTIONS_SHOW_INVENTORY_DESC"] =
 	"플레이어 툴팁에 Water Dispenser 항목을 추가해 그들이 나눠 주도록 설정한 것과 나눠 줄 수 있는 수량을 보여 주며, 본인의 목록은 파티 여부와 관계없이 항상 표시됩니다."
@@ -159,7 +159,7 @@ L["OPTIONS_ITEMS_DESC"] =
 	"각 아이템을 얼마나 분배할지 설정하세요. 수량은 묶음이 아니라 개수로 세므로 물 20개는 물 20개, 물약 1개는 물약 1개입니다. 필요하면 묶음을 정확한 수량만큼 쪼갭니다."
 -- "Add an Item" must match OPTIONS_ADD_ITEM.
 L["OPTIONS_ITEMS_EMPTY"] =
-	'설정된 아이템이 없습니다. 목록에서 "아이템 추가"를 선택하여 가방에 있는 소비 아이템을 추가하세요.'
+	'설정된 아이템이 없습니다. 목록에서 "아이템 추가"를 선택하여 가방에 있는 거래 가능한 아이템을 무엇이든 추가하세요.'
 
 L["OPTIONS_ITEM_AMOUNTS"] = "수량"
 L["OPTIONS_ITEM_AMOUNTS_DESC"] =
@@ -175,14 +175,19 @@ L["OPTIONS_ITEM_COUNT_TOO_HIGH"] =
 L["OPTIONS_ITEM_COUNT_INVALID"] =
 	"아이템 개수를 입력하거나, 절대 분배하지 않으려면 0을 입력하세요."
 L["OPTIONS_ITEM_SETTINGS"] = "아이템 설정"
--- "In Group" and "In Raid" in the tooltip must match the two dropdown entries below.
 L["OPTIONS_ITEM_DISTRIBUTE"] = "분배 범위"
+-- "In Instance" must match the dropdown entry below.
 L["OPTIONS_ITEM_DISTRIBUTE_DESC"] =
-	"이 아이템을 언제 나눠 줄지 정하며, 선택한 범위를 벗어나면 거래되지도, 알림에 포함되지도, 툴팁에 표시되지도 않고, 파티에서는 파티와 공격대를 모두 포함하며 공격대에서는 공격대만 해당합니다."
--- Dropdown entries. The stored values are "Always", "Group", and "Raid"; these are only their labels.
+	"이 아이템을 어디에서 나눠 줄지 정합니다. 그 밖의 장소에서는 거래되지도, 알림에 오르지도, 툴팁에 표시되지도 않습니다. 인스턴스에서만 옵션은 던전, 공격대, 전장, 투기장을 포함합니다. 대신 파티나 공격대에만 주지 않으려면 해당 열의 수량을 0으로 설정하세요."
+-- Dropdown entries. The stored values are "Always" and "Instance"; these are only their labels.
 L["OPTIONS_ITEM_DISTRIBUTE_ALWAYS"] = "항상"
-L["OPTIONS_ITEM_DISTRIBUTE_GROUP"] = "파티에서"
-L["OPTIONS_ITEM_DISTRIBUTE_RAID"] = "공격대에서"
+L["OPTIONS_ITEM_DISTRIBUTE_INSTANCE"] = "인스턴스에서만"
+L["OPTIONS_ITEM_GUILDIES_ONLY"] = "길드원에게만"
+L["OPTIONS_ITEM_GUILDIES_ONLY_DESC"] = "거래 상대가 내 길드원이 아니면 이 아이템을 건너뜁니다."
+-- Panel line under the toggle, not a tooltip: it names the guild, which no fixed string can. %s is the player's guild.
+L["OPTIONS_ITEM_GUILDIES_ONLY_HELP"] = "<%s> 길드원에게만 줍니다."
+L["OPTIONS_ITEM_GUILDIES_ONLY_NO_GUILD"] =
+	"길드에 가입되어 있지 않아, 이 설정으로는 아무에게도 아이템이 나가지 않습니다."
 L["OPTIONS_ITEM_FACTOR_LEVEL"] = "아이템의 요구 레벨 고려"
 L["OPTIONS_ITEM_FACTOR_LEVEL_DESC"] =
 	"거래 대상의 레벨이 아이템의 요구 레벨보다 낮으면 이 아이템을 건너뜁니다."
@@ -223,7 +228,7 @@ L["OPTIONS_ANNOUNCEMENTS_DESC"] =
 L["OPTIONS_ANNOUNCEMENTS_ENABLE"] = "알림 매크로 사용"
 -- "- Dispenser" is the macro's literal name and is never translated.
 L["OPTIONS_ANNOUNCEMENTS_ENABLE_DESC"] =
-	'"- Dispenser"라는 캐릭터 전용 매크로를 현재 나눔 목록에 맞게 항상 최신화하며, 이 옵션을 끄면 매크로를 삭제합니다.'
+	'"- Dispenser"라는 캐릭터 전용 매크로를 현재 분배 아이템에 맞게 항상 최신화하며, 이 옵션을 끄면 매크로를 삭제합니다.'
 -- "Enable Reserves" must match OPTIONS_ITEM_RESERVE.
 L["OPTIONS_ANNOUNCEMENTS_PREVIEW_EMPTY"] =
 	"알릴 내용이 없습니다. 아이템을 설정하거나, 가방을 채우거나, 예비 수량 사용에서 값을 낮추세요."

@@ -15,6 +15,8 @@ ns.State = {
 		Class = nil,
 		Level = nil,
 		Party = false,
+		-- Whether the partner shares the player's guild, for items gated to guildies.
+		Guild = false,
 		-- Captured at TRADE_SHOW: UnitName("NPC") is gone by the time the trade closes.
 		Partner = nil,
 	},

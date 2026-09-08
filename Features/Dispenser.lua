@@ -508,11 +508,14 @@ function ns.FillTrade(forced)
 			activeForPlayer = activeForPlayer + 1
 		end
 		--[[
-			The group gate is kept out of activeForPlayer on purpose: that count drives the
-			"nothing is set up for your class" hint, and an item held back only because you
-			are not in a raid is very much set up for your class.
+			Both gates are kept out of activeForPlayer on purpose: that count drives the
+			"nothing is set up for your class" hint, and an item held back only because
+			you are not in an instance, or because this particular partner is not a
+			guildmate, is very much set up for your class.
 		]]
-		local canDistribute = isActive and ns.IsItemDistributableNow(itemConfig)
+		local canDistribute = isActive
+			and ns.IsItemDistributableNow(itemConfig)
+			and ns.IsItemAllowedForPartner(itemConfig, trade.Guild)
 		-- Every count here is in individual items, the configured amount included.
 		local needed = canDistribute and CountForScope(itemConfig, scope, trade.Class) or 0
 		-- Items already in the trade window count toward the target.
@@ -859,6 +862,8 @@ local function OnTradeShow()
 		trade.Level = UnitLevel("player") + 10
 	end
 	trade.Party = UnitInParty("NPC") or UnitInRaid("NPC")
+	-- Read here with the unit still around, like Class and Level above it.
+	trade.Guild = UnitIsInMyGuild("NPC") and true or false
 	trade.Partner = ns.TradePartnerKey()
 	movesThisTrade = 0
 	wipe(movesPerItem)
@@ -922,6 +927,7 @@ local function OnTradeClosed()
 	trade.Class = nil
 	trade.Level = nil
 	trade.Party = false
+	trade.Guild = false
 	trade.Partner = nil
 	ns.State.MissingStack = false
 

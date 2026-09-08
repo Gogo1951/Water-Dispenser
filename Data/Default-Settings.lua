@@ -48,6 +48,7 @@ ns.DATABASE_DEFAULTS = {
 			MageWater = {
 				NoRemove = true,
 				Distribute = "Always",
+				GuildiesOnly = false,
 				FactorLevel = false,
 				-- Mages reserve a personal stash; everything beyond it is giveable.
 				KeepAtLeastEnabled = true,
@@ -65,6 +66,7 @@ ns.DATABASE_DEFAULTS = {
 			MageFood = {
 				NoRemove = true,
 				Distribute = "Always",
+				GuildiesOnly = false,
 				FactorLevel = false,
 				KeepAtLeastEnabled = false,
 				KeepAtLeast = 0,
@@ -81,6 +83,7 @@ ns.DATABASE_DEFAULTS = {
 			WarlockHealthstone = {
 				NoRemove = true,
 				Distribute = "Always",
+				GuildiesOnly = false,
 				FactorLevel = false,
 				-- No count in the announcement: listeners care that you have one.
 				IncludeQuantity = false,

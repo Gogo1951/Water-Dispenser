@@ -37,7 +37,7 @@ L["CHAT_MISSING_STACK"] = "Missing:"
 	"Maximum per Session" is the label of OPTIONS_ITEM_SESSION_CAP, minus its "Enable".
 ]]
 L["CHAT_SESSION_CAP_REACHED"] =
-	"%s not added: they've had their %d this session. Change Maximum per Session, or reload to reset."
+	"%s not added: they have already had %d this session. Change Maximum per Session, or reload to reset."
 -- %s is the item's name, %d the amount that could not be split off.
 L["CHAT_SPLIT_REFUSED"] =
 	"%s not added: this client would not split %d off a stack, and handing over a whole stack instead would give away far more than you asked for. Set this item's amount to a whole stack to trade it."
@@ -137,7 +137,7 @@ L["OPTIONS_COMBAT_NOTIFY_DESC"] =
 
 L["TAB_INVENTORY_TOOLTIPS"] = "Inventory Tooltips"
 L["OPTIONS_TOOLTIPS_DESC"] =
-	"Shows giveaway inventory on player tooltips for group members running Water Dispenser, and marks the items in your own bags."
+	"Shows what group members running Water Dispenser have set up to give out on their player tooltips, and marks those items in your own bags."
 L["OPTIONS_SHOW_INVENTORY"] = "Show Inventory in Player Tooltips"
 L["OPTIONS_SHOW_INVENTORY_DESC"] =
 	"Adds a Water Dispenser block to player tooltips listing what they have set up to give out and how many they have to give, with your own always showing whether you are grouped or not."
@@ -156,7 +156,8 @@ L["TAB_DISPENSED_ITEMS"] = "Dispensed Items"
 L["OPTIONS_ITEMS_DESC"] =
 	"Configure how many of each item to dispense. Amounts are counted in individual items, so 20 water means 20 water, and 1 potion means 1 potion. A stack is split down to the exact amount if it has to be."
 -- "Add an Item" must match OPTIONS_ADD_ITEM.
-L["OPTIONS_ITEMS_EMPTY"] = 'No items configured. Select "Add an Item" in the list to add consumables from your bags.'
+L["OPTIONS_ITEMS_EMPTY"] =
+	'No items configured. Select "Add an Item" in the list to add anything tradable from your bags.'
 
 L["OPTIONS_ITEM_AMOUNTS"] = "Amounts"
 L["OPTIONS_ITEM_AMOUNTS_DESC"] =
@@ -170,14 +171,18 @@ L["OPTIONS_ITEM_APPLY"] = "Apply"
 L["OPTIONS_ITEM_COUNT_TOO_HIGH"] = "That's more than this item can dispense. The most it takes is %d."
 L["OPTIONS_ITEM_COUNT_INVALID"] = "Enter a number of items, or 0 to never dispense this."
 L["OPTIONS_ITEM_SETTINGS"] = "Item Settings"
--- "In Group" and "In Raid" in the tooltip must match the two dropdown entries below.
 L["OPTIONS_ITEM_DISTRIBUTE"] = "Distribute"
+-- "In Instance" must match the dropdown entry below.
 L["OPTIONS_ITEM_DISTRIBUTE_DESC"] =
-	"Sets when this item is handed out at all, never traded, announced, or shown on your tooltip outside the group you pick, with In Group covering a party or a raid and In Raid covering raids only."
--- Dropdown entries. The stored values are "Always", "Group", and "Raid"; these are only their labels.
+	"Sets where this item is handed out at all: anywhere else it is never traded, announced, or shown on your tooltip. In Instance covers dungeons, raids, battlegrounds, and arenas. To hold an item back from a party or a raid instead, set that column's amounts to 0."
+-- Dropdown entries. The stored values are "Always" and "Instance"; these are only their labels.
 L["OPTIONS_ITEM_DISTRIBUTE_ALWAYS"] = "Always"
-L["OPTIONS_ITEM_DISTRIBUTE_GROUP"] = "In Group"
-L["OPTIONS_ITEM_DISTRIBUTE_RAID"] = "In Raid"
+L["OPTIONS_ITEM_DISTRIBUTE_INSTANCE"] = "In Instance"
+L["OPTIONS_ITEM_GUILDIES_ONLY"] = "Guildies Only"
+L["OPTIONS_ITEM_GUILDIES_ONLY_DESC"] = "Skips this item when the person you are trading with is not in your guild."
+-- Panel line under the toggle, not a tooltip: it names the guild, which no fixed string can. %s is the player's guild.
+L["OPTIONS_ITEM_GUILDIES_ONLY_HELP"] = "Only give to <%s> members."
+L["OPTIONS_ITEM_GUILDIES_ONLY_NO_GUILD"] = "You are not in a guild, so this gives the item to no one."
 L["OPTIONS_ITEM_FACTOR_LEVEL"] = "Factor in the Item's Required Level"
 L["OPTIONS_ITEM_FACTOR_LEVEL_DESC"] = "Skips this item when the trade partner is below the item's required level."
 L["OPTIONS_ITEM_RESERVE"] = "Enable Reserves"
@@ -217,7 +222,7 @@ L["OPTIONS_ANNOUNCEMENTS_DESC"] =
 L["OPTIONS_ANNOUNCEMENTS_ENABLE"] = "Enable Announcement Macro"
 -- "- Dispenser" is the macro's literal name and is never translated.
 L["OPTIONS_ANNOUNCEMENTS_ENABLE_DESC"] =
-	'Keeps a character-specific macro named "- Dispenser" up to date with your current giveaway list, and deletes the macro when you turn this off.'
+	'Keeps a character-specific macro named "- Dispenser" up to date with your current dispensed items, and deletes the macro when you turn this off.'
 -- "Enable Reserves" must match OPTIONS_ITEM_RESERVE.
 L["OPTIONS_ANNOUNCEMENTS_PREVIEW_EMPTY"] =
 	"Nothing to announce. Configure items, restock your bags, or lower a reserve under Enable Reserves."
