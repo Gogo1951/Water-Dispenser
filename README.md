@@ -6,15 +6,15 @@ Effortless consumable distribution. Auto-fill the trade window with water, food,
 
 ## Features
 
-🎯 **Right Item, Right Amount** // Water and food automatically step down to the best rank your trade partner can use. Amounts are always individual items, not stacks, so you can hand over exactly one Hourglass Sand, Resistance Potion, Flask, or Venom Sac from a full stack.
+🎯 **Right Item, Right Amount** // Automatically gives each player the best water or food rank they can use, based on your distribution rules for their class.
 
-👀 **Player Tooltips & Announcement Macro** // Hover a party or raid member to see everything they've configured to give, including a warlock's Healthstone rank. Your own bag items say when they are set to be handed out. An optional one-click macro announces your own leftovers to party or raid chat, with shift-clickable item links.
+👀 **Player Tooltips & Announcement Macro** // See what each player in your group is configured to receive, and announce your leftovers with a macro.
 
-⚙️ **Your Rules, Your Stash** // Set how much each class gets from you as a stranger, party member, or raid member. Reserves protect your personal supply so only your surplus goes out, while Maximum per Session keeps one person from draining your expensive potions trade after trade.
+⚙️ **Your Rules, Your Stash** // Set different amounts by class, protect a personal reserve, and cap how many of an item any given player can receive per raid.
 
-🧹 **Tidy Bags After a Trade** // Conjured water and food land in a new bag slot after every cast, and the game never combines them again. Water Dispenser merges those loose partial stacks once, just after a trade window closes, so a full stack is ready next time.
+🧹 **Tidy Bags After a Trade** // Automatically combines loose conjured water and food stacks after trades, while leaving your bags alone during normal play.
 
-🦺 **Safety First** // Only moves the consumables you've configured, never anything else. It never rearranges your bags while you are just playing: the only time it touches them outside a trade is the moment one closes, and even then it stands down in combat or if you are holding anything.
+🦺 **Safety First** // Water Dispenser only trades items you choose.
 
 ## Setup
 
