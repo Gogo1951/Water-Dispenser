@@ -38,7 +38,7 @@ L["CHAT_MISSING_STACK"] = "Manquant :"
 	"Maximum per Session" is the label of OPTIONS_ITEM_SESSION_CAP, minus its "Enable".
 ]]
 L["CHAT_SESSION_CAP_REACHED"] =
-	"%s non ajouté : il a déjà reçu ses %d cette session. Modifiez Maximum par session, ou rechargez pour réinitialiser."
+	"%s non ajouté : il a déjà reçu %d cette session. Modifiez Maximum par session, ou rechargez pour réinitialiser."
 -- %s is the item's name, %d the amount that could not be split off.
 L["CHAT_SPLIT_REFUSED"] =
 	"%s non ajouté : ce client a refusé de séparer %d d'une pile, et donner une pile entière à la place donnerait bien plus que ce que vous demandiez. Réglez la quantité de cet objet sur une pile entière pour l'échanger."
@@ -141,7 +141,7 @@ L["OPTIONS_COMBAT_NOTIFY_DESC"] =
 
 L["TAB_INVENTORY_TOOLTIPS"] = "Infobulles d'inventaire"
 L["OPTIONS_TOOLTIPS_DESC"] =
-	"Affiche l'inventaire à distribuer dans les infobulles de joueur des membres du groupe qui utilisent Water Dispenser, et signale les objets dans vos propres sacs."
+	"Affiche dans les infobulles de joueur des membres du groupe qui utilisent Water Dispenser ce qu'ils ont configuré à distribuer, et signale ces objets dans vos propres sacs."
 L["OPTIONS_SHOW_INVENTORY"] = "Afficher l'inventaire dans les infobulles de joueur"
 L["OPTIONS_SHOW_INVENTORY_DESC"] =
 	"Ajoute un bloc Water Dispenser aux infobulles de joueur listant ce qu'ils ont configuré à distribuer et combien ils peuvent en donner, le vôtre s'affichant toujours, en groupe ou non."
@@ -161,7 +161,7 @@ L["OPTIONS_ITEMS_DESC"] =
 	"Configurez combien distribuer de chaque objet. Les quantités se comptent en objets individuels, donc 20 eaux signifient 20 eaux, et 1 potion signifie 1 potion. Une pile est découpée à la quantité exacte s'il le faut."
 -- "Add an Item" must match OPTIONS_ADD_ITEM.
 L["OPTIONS_ITEMS_EMPTY"] =
-	'Aucun objet configuré. Sélectionnez "Ajouter un objet" dans la liste pour ajouter des consommables de vos sacs.'
+	'Aucun objet configuré. Sélectionnez "Ajouter un objet" dans la liste pour ajouter n\'importe quel objet échangeable de vos sacs.'
 
 L["OPTIONS_ITEM_AMOUNTS"] = "Quantités"
 L["OPTIONS_ITEM_AMOUNTS_DESC"] =
@@ -175,14 +175,19 @@ L["OPTIONS_ITEM_APPLY"] = "Appliquer"
 L["OPTIONS_ITEM_COUNT_TOO_HIGH"] = "C'est plus que ce que cet objet peut distribuer. Le maximum est %d."
 L["OPTIONS_ITEM_COUNT_INVALID"] = "Saisissez un nombre d'objets, ou 0 pour ne jamais distribuer celui-ci."
 L["OPTIONS_ITEM_SETTINGS"] = "Paramètres de l'objet"
--- "In Group" and "In Raid" in the tooltip must match the two dropdown entries below.
 L["OPTIONS_ITEM_DISTRIBUTE"] = "Attribuer"
+-- "In Instance" must match the dropdown entry below.
 L["OPTIONS_ITEM_DISTRIBUTE_DESC"] =
-	"Définit quand cet objet est remis, car en dehors du groupe choisi il n'est jamais échangé, ni annoncé, ni affiché dans votre infobulle, En groupe couvrant un groupe ou un raid et En raid couvrant les raids uniquement."
--- Dropdown entries. The stored values are "Always", "Group", and "Raid"; these are only their labels.
+	"Définit où cet objet est distribué : partout ailleurs il n'est jamais échangé, ni annoncé, ni affiché dans votre infobulle. En instance couvre les donjons, les raids, les champs de bataille et les arènes. Pour retenir un objet face à un groupe ou à un raid, mettez plutôt à 0 les quantités de cette colonne."
+-- Dropdown entries. The stored values are "Always" and "Instance"; these are only their labels.
 L["OPTIONS_ITEM_DISTRIBUTE_ALWAYS"] = "Toujours"
-L["OPTIONS_ITEM_DISTRIBUTE_GROUP"] = "En groupe"
-L["OPTIONS_ITEM_DISTRIBUTE_RAID"] = "En raid"
+L["OPTIONS_ITEM_DISTRIBUTE_INSTANCE"] = "En instance"
+L["OPTIONS_ITEM_GUILDIES_ONLY"] = "Guilde uniquement"
+L["OPTIONS_ITEM_GUILDIES_ONLY_DESC"] =
+	"Ignore cet objet quand la personne avec qui vous échangez n'est pas dans votre guilde."
+-- Panel line under the toggle, not a tooltip: it names the guild, which no fixed string can. %s is the player's guild.
+L["OPTIONS_ITEM_GUILDIES_ONLY_HELP"] = "Donner uniquement aux membres de <%s>."
+L["OPTIONS_ITEM_GUILDIES_ONLY_NO_GUILD"] = "Vous n'êtes dans aucune guilde, donc ceci ne donne l'objet à personne."
 L["OPTIONS_ITEM_FACTOR_LEVEL"] = "Prendre en compte le niveau requis de l'objet"
 L["OPTIONS_ITEM_FACTOR_LEVEL_DESC"] =
 	"Ignore cet objet quand le partenaire d'échange est en dessous du niveau requis par l'objet."
@@ -223,7 +228,7 @@ L["OPTIONS_ANNOUNCEMENTS_DESC"] =
 L["OPTIONS_ANNOUNCEMENTS_ENABLE"] = "Activer la macro d'annonce"
 -- "- Dispenser" is the macro's literal name and is never translated.
 L["OPTIONS_ANNOUNCEMENTS_ENABLE_DESC"] =
-	'Maintient à jour une macro propre au personnage nommée "- Dispenser" avec votre liste de distribution actuelle, et supprime la macro quand vous la désactivez.'
+	'Maintient à jour une macro propre au personnage nommée "- Dispenser" avec vos objets distribués actuels, et supprime la macro quand vous la désactivez.'
 -- "Enable Reserves" must match OPTIONS_ITEM_RESERVE.
 L["OPTIONS_ANNOUNCEMENTS_PREVIEW_EMPTY"] =
 	"Rien à annoncer. Configurez des objets, remplissez vos sacs ou abaissez une réserve dans Activer les réserves."

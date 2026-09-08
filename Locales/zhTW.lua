@@ -135,7 +135,7 @@ L["OPTIONS_COMBAT_NOTIFY_DESC"] =
 
 L["TAB_INVENTORY_TOOLTIPS"] = "庫存提示"
 L["OPTIONS_TOOLTIPS_DESC"] =
-	"在使用 Water Dispenser 的隊友的玩家提示資訊中顯示可分發的庫存，並在你自己背包中的這些物品上做出標記。"
+	"在使用 Water Dispenser 的隊友的玩家提示資訊中顯示他們設定為分發的內容，並在你自己背包中的這些物品上做出標記。"
 L["OPTIONS_SHOW_INVENTORY"] = "在玩家提示中顯示庫存"
 L["OPTIONS_SHOW_INVENTORY_DESC"] =
 	"在玩家提示資訊中加入一個 Water Dispenser 區塊，列出他們設定為分發的內容以及可以送出的數量，而無論是否組隊，你自己的庫存都會永遠顯示。"
@@ -154,7 +154,8 @@ L["TAB_DISPENSED_ITEMS"] = "分發物品"
 L["OPTIONS_ITEMS_DESC"] =
 	"設定每種物品分發多少。數量按單個物品計算，所以 20 個水就是 20 個水，1 個藥水就是 1 個藥水。必要時會把一疊拆分到精確數量。"
 -- "Add an Item" must match OPTIONS_ADD_ITEM.
-L["OPTIONS_ITEMS_EMPTY"] = '未設定物品。請在清單中選擇 "新增物品"，從背包中加入消耗品。'
+L["OPTIONS_ITEMS_EMPTY"] =
+	'未設定物品。請在清單中選擇 "新增物品"，從背包中加入任何可交易的物品。'
 
 L["OPTIONS_ITEM_AMOUNTS"] = "數量"
 L["OPTIONS_ITEM_AMOUNTS_DESC"] =
@@ -168,14 +169,19 @@ L["OPTIONS_ITEM_APPLY"] = "套用"
 L["OPTIONS_ITEM_COUNT_TOO_HIGH"] = "超過了此物品可分發的數量。最多為 %d。"
 L["OPTIONS_ITEM_COUNT_INVALID"] = "請輸入物品數量，或輸入 0 表示永不分發。"
 L["OPTIONS_ITEM_SETTINGS"] = "物品設定"
--- "In Group" and "In Raid" in the tooltip must match the two dropdown entries below.
 L["OPTIONS_ITEM_DISTRIBUTE"] = "分發範圍"
+-- "In Instance" must match the dropdown entry below.
 L["OPTIONS_ITEM_DISTRIBUTE_DESC"] =
-	"設定此物品在什麼情況下才會送出，超出所選範圍時它既不會被交易，也不會被喊話，更不會顯示在你的提示中，其中隊伍中同時涵蓋隊伍和團隊，團隊中則僅限團隊。"
--- Dropdown entries. The stored values are "Always", "Group", and "Raid"; these are only their labels.
+	"設定此物品在哪裡才會被分發：在其他任何地方它都不會被交易、寫入喊話，也不會顯示在你的提示資訊中。副本中涵蓋地城、團隊副本、戰場和競技場。若只是想不給隊伍或團隊，請把該欄的數量設為 0。"
+-- Dropdown entries. The stored values are "Always" and "Instance"; these are only their labels.
 L["OPTIONS_ITEM_DISTRIBUTE_ALWAYS"] = "永遠"
-L["OPTIONS_ITEM_DISTRIBUTE_GROUP"] = "隊伍中"
-L["OPTIONS_ITEM_DISTRIBUTE_RAID"] = "團隊中"
+L["OPTIONS_ITEM_DISTRIBUTE_INSTANCE"] = "副本中"
+L["OPTIONS_ITEM_GUILDIES_ONLY"] = "僅限公會成員"
+L["OPTIONS_ITEM_GUILDIES_ONLY_DESC"] = "當交易對象不在你的公會中時，跳過該物品。"
+-- Panel line under the toggle, not a tooltip: it names the guild, which no fixed string can. %s is the player's guild.
+L["OPTIONS_ITEM_GUILDIES_ONLY_HELP"] = "只給 <%s> 的成員。"
+L["OPTIONS_ITEM_GUILDIES_ONLY_NO_GUILD"] =
+	"你沒有加入任何公會，所以這樣設定不會把該物品給任何人。"
 L["OPTIONS_ITEM_FACTOR_LEVEL"] = "考慮物品的等級需求"
 L["OPTIONS_ITEM_FACTOR_LEVEL_DESC"] = "當交易對象未達到該物品的使用等級時，跳過該物品。"
 L["OPTIONS_ITEM_RESERVE"] = "啟用保留數量"
@@ -215,7 +221,7 @@ L["OPTIONS_ANNOUNCEMENTS_DESC"] =
 L["OPTIONS_ANNOUNCEMENTS_ENABLE"] = "啟用喊話巨集"
 -- "- Dispenser" is the macro's literal name and is never translated.
 L["OPTIONS_ANNOUNCEMENTS_ENABLE_DESC"] =
-	'維護一個名為 "- Dispenser" 的角色專屬巨集，使其與你目前的分發清單保持同步，並在你關閉此選項時刪除該巨集。'
+	'維護一個名為 "- Dispenser" 的角色專屬巨集，使其與你目前的分發物品保持同步，並在你關閉此選項時刪除該巨集。'
 -- "Enable Reserves" must match OPTIONS_ITEM_RESERVE.
 L["OPTIONS_ANNOUNCEMENTS_PREVIEW_EMPTY"] =
 	"沒有可喊話的內容。設定物品，補充背包，或在啟用保留數量中調低保留值。"

@@ -38,7 +38,7 @@ L["CHAT_MISSING_STACK"] = "Fehlt:"
 	"Maximum per Session" is the label of OPTIONS_ITEM_SESSION_CAP, minus its "Enable".
 ]]
 L["CHAT_SESSION_CAP_REACHED"] =
-	"%s nicht hinzugefügt: Diese Person hat ihre %d in dieser Sitzung bereits bekommen. Ändere Maximum pro Sitzung oder lade neu, um zurückzusetzen."
+	"%s nicht hinzugefügt: Diese Person hat in dieser Sitzung bereits %d bekommen. Ändere Maximum pro Sitzung oder lade neu, um zurückzusetzen."
 -- %s is the item's name, %d the amount that could not be split off.
 L["CHAT_SPLIT_REFUSED"] =
 	"%s nicht hinzugefügt: Dieser Client wollte %d nicht von einem Stapel abteilen, und stattdessen einen ganzen Stapel zu übergeben würde weit mehr verschenken, als du wolltest. Setze die Menge dieses Gegenstands auf einen ganzen Stapel, um ihn zu handeln."
@@ -132,7 +132,7 @@ L["OPTIONS_COMBAT_HEADER"] = "Kampf"
 L["OPTIONS_COMBAT_DESC"] = "WoW hindert Add-ons daran, im Kampf Gegenstände in einen Handel zu legen."
 L["OPTIONS_COMBAT_NOTIFY"] = "Benachrichtigungen aktivieren, wenn die Ausgabe blockiert ist"
 L["OPTIONS_COMBAT_NOTIFY_DESC"] =
-	"Gibt einen Hinweis in deinem Chatfenster aus, wenn der Kampf das Füllen eines Handels verhindert, und deaktiviert schweigt Water Dispenser dazu, warum der Handel leer geblieben ist."
+	"Gibt einen Hinweis in deinem Chatfenster aus, wenn der Kampf das Füllen eines Handels verhindert, und wenn du sie ausschaltest, schweigt Water Dispenser dazu, warum der Handel leer geblieben ist."
 
 --------------------------------------------------------------------------------
 -- Options — Inventory Tooltips
@@ -140,7 +140,7 @@ L["OPTIONS_COMBAT_NOTIFY_DESC"] =
 
 L["TAB_INVENTORY_TOOLTIPS"] = "Inventar-Tooltips"
 L["OPTIONS_TOOLTIPS_DESC"] =
-	"Zeigt das Verschenk-Inventar in den Spieler-Tooltips von Gruppenmitgliedern, die Water Dispenser verwenden, und markiert die Gegenstände in deinen eigenen Taschen."
+	"Zeigt in den Spieler-Tooltips von Gruppenmitgliedern, die Water Dispenser verwenden, was sie zum Verschenken eingerichtet haben, und markiert diese Gegenstände in deinen eigenen Taschen."
 L["OPTIONS_SHOW_INVENTORY"] = "Inventar in Spieler-Tooltips anzeigen"
 L["OPTIONS_SHOW_INVENTORY_DESC"] =
 	"Fügt Spieler-Tooltips einen Water Dispenser-Block hinzu, der auflistet, was sie zum Verschenken eingerichtet haben und wie viele sie davon abgeben können, wobei dein eigener immer angezeigt wird, ob in einer Gruppe oder nicht."
@@ -149,7 +149,7 @@ L["OPTIONS_BAG_TOOLTIPS_DESC"] =
 	"Fügt dem Tooltip eines Taschengegenstands eine Water Dispenser-Zeile hinzu, wenn dieser Gegenstand zum Verschenken eingestellt ist, damit du auf einen Blick siehst, was das Add-on herausgeben wird."
 L["OPTIONS_SHARE_INVENTORY"] = "Mein Inventar teilen"
 L["OPTIONS_SHARE_INVENTORY_DESC"] =
-	"Teilt deiner Gruppe und deinem Schlachtzug mit, was du abzugeben hast, sodass dein Inventar erscheint, wenn sie mit der Maus über dich fahren, schreibt dabei nichts in den Chat und informiert niemanden außerhalb deiner Gruppe, und deaktiviert kannst du die Inventare anderer weiterhin lesen."
+	"Teilt deiner Gruppe und deinem Schlachtzug mit, was du abzugeben hast, sodass dein Inventar erscheint, wenn sie mit der Maus über dich fahren, schreibt dabei nichts in den Chat und informiert niemanden außerhalb deiner Gruppe, und wenn du es ausschaltest, kannst du die Inventare anderer weiterhin lesen."
 
 --------------------------------------------------------------------------------
 -- Options — Dispensed Items
@@ -160,7 +160,7 @@ L["OPTIONS_ITEMS_DESC"] =
 	"Lege fest, wie viele von jedem Gegenstand ausgegeben werden. Mengen zählen einzelne Gegenstände, 20 Wasser bedeutet also 20 Wasser, und 1 Trank bedeutet 1 Trank. Ein Stapel wird bei Bedarf auf die genaue Menge aufgeteilt."
 -- "Add an Item" must match OPTIONS_ADD_ITEM.
 L["OPTIONS_ITEMS_EMPTY"] =
-	'Keine Gegenstände konfiguriert. Wähle "Gegenstand hinzufügen" in der Liste, um Verbrauchsgegenstände aus deinen Taschen hinzuzufügen.'
+	'Keine Gegenstände konfiguriert. Wähle "Gegenstand hinzufügen" in der Liste, um beliebige handelbare Gegenstände aus deinen Taschen hinzuzufügen.'
 
 L["OPTIONS_ITEM_AMOUNTS"] = "Mengen"
 L["OPTIONS_ITEM_AMOUNTS_DESC"] =
@@ -174,14 +174,19 @@ L["OPTIONS_ITEM_APPLY"] = "Übernehmen"
 L["OPTIONS_ITEM_COUNT_TOO_HIGH"] = "Das ist mehr, als dieser Gegenstand ausgeben kann. Das Maximum ist %d."
 L["OPTIONS_ITEM_COUNT_INVALID"] = "Gib eine Anzahl von Gegenständen ein oder 0, um diesen nie auszugeben."
 L["OPTIONS_ITEM_SETTINGS"] = "Gegenstandseinstellungen"
--- "In Group" and "In Raid" in the tooltip must match the two dropdown entries below.
 L["OPTIONS_ITEM_DISTRIBUTE"] = "Verteilen"
+-- "In Instance" must match the dropdown entry below.
 L["OPTIONS_ITEM_DISTRIBUTE_DESC"] =
-	"Legt fest, wann dieser Gegenstand überhaupt herausgegeben wird, außerhalb der gewählten Gruppe nie gehandelt, angekündigt oder in deinem Tooltip gezeigt, wobei In Gruppe eine Gruppe oder einen Schlachtzug abdeckt und In Schlachtzug nur Schlachtzüge."
--- Dropdown entries. The stored values are "Always", "Group", and "Raid"; these are only their labels.
+	"Legt fest, wo dieser Gegenstand überhaupt ausgegeben wird: überall sonst wird er nie gehandelt, nie angekündigt und nie in deinem Tooltip gezeigt. In Instanzen umfasst Dungeons, Schlachtzüge, Schlachtfelder und Arenen. Um einen Gegenstand stattdessen vor einer Gruppe oder einem Schlachtzug zurückzuhalten, setze die Mengen dieser Spalte auf 0."
+-- Dropdown entries. The stored values are "Always" and "Instance"; these are only their labels.
 L["OPTIONS_ITEM_DISTRIBUTE_ALWAYS"] = "Immer"
-L["OPTIONS_ITEM_DISTRIBUTE_GROUP"] = "In Gruppe"
-L["OPTIONS_ITEM_DISTRIBUTE_RAID"] = "In Schlachtzug"
+L["OPTIONS_ITEM_DISTRIBUTE_INSTANCE"] = "In Instanzen"
+L["OPTIONS_ITEM_GUILDIES_ONLY"] = "Nur Gildenmitglieder"
+L["OPTIONS_ITEM_GUILDIES_ONLY_DESC"] =
+	"Überspringt diesen Gegenstand, wenn die Person, mit der du handelst, nicht in deiner Gilde ist."
+-- Panel line under the toggle, not a tooltip: it names the guild, which no fixed string can. %s is the player's guild.
+L["OPTIONS_ITEM_GUILDIES_ONLY_HELP"] = "Nur an Mitglieder von <%s> geben."
+L["OPTIONS_ITEM_GUILDIES_ONLY_NO_GUILD"] = "Du bist in keiner Gilde, also gibt dies den Gegenstand an niemanden aus."
 L["OPTIONS_ITEM_FACTOR_LEVEL"] = "Stufenanforderung des Gegenstands berücksichtigen"
 L["OPTIONS_ITEM_FACTOR_LEVEL_DESC"] =
 	"Überspringt diesen Gegenstand, wenn der Handelspartner unter der benötigten Stufe des Gegenstands liegt."
@@ -194,7 +199,7 @@ L["OPTIONS_ITEM_SESSION_CAP_DESC"] =
 -- The label carries the meaning on its own; the tooltip only says why you'd switch it off.
 L["OPTIONS_ITEM_INCLUDE_QUANTITY"] = "Menge im Spieler-Tooltip und Ankündigungs-Makro anzeigen"
 L["OPTIONS_ITEM_INCLUDE_QUANTITY_DESC"] =
-	"Aus benennt den Gegenstand ohne Zahl daneben, was sich bei etwas besser liest, von dem du immer nur eines trägst, wie einem Gesundheitsstein."
+	"Ausgeschaltet wird der Gegenstand ohne Zahl daneben genannt, was sich bei etwas besser liest, von dem du immer nur eines trägst, wie einem Gesundheitsstein."
 L["OPTIONS_ITEM_PLAYER_CLASSES"] = "Nur ausgeben, wenn diese Klassen gespielt werden"
 L["OPTIONS_ITEM_PLAYER_CLASSES_DESC"] =
 	"Füllt Handel, nimmt diesen Gegenstand in das Ankündigungs-Makro auf und zeigt ihn in deinem Spieler-Tooltip nur dann, wenn die Klasse deines Charakters unten ausgewählt ist."
@@ -222,7 +227,7 @@ L["OPTIONS_ANNOUNCEMENTS_DESC"] =
 L["OPTIONS_ANNOUNCEMENTS_ENABLE"] = "Ankündigungs-Makro aktivieren"
 -- "- Dispenser" is the macro's literal name and is never translated.
 L["OPTIONS_ANNOUNCEMENTS_ENABLE_DESC"] =
-	'Hält ein charakterspezifisches Makro namens "- Dispenser" mit deiner aktuellen Verschenkliste auf dem neuesten Stand und löscht das Makro, wenn du dies deaktivierst.'
+	'Hält ein charakterspezifisches Makro namens "- Dispenser" mit deinen aktuellen ausgegebenen Gegenständen auf dem neuesten Stand und löscht das Makro, wenn du dies deaktivierst.'
 -- "Enable Reserves" must match OPTIONS_ITEM_RESERVE.
 L["OPTIONS_ANNOUNCEMENTS_PREVIEW_EMPTY"] =
 	"Nichts anzukündigen. Konfiguriere Gegenstände, fülle deine Taschen auf oder senke eine Reserve unter Reserven aktivieren."

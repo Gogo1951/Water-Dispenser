@@ -136,8 +136,14 @@ end
 
 local function GetDistribute(info)
 	local config = GetItemConfig(info)
-	-- No stored value is no gate: the item is handed out whenever anything else allows it.
-	return (config and config.Distribute) or "Always"
+	--[[
+		Normalized rather than read raw. No stored value is no gate, and so is a value
+		this build no longer has -- a profile still holding the retired "Group" would
+		otherwise ask the dropdown to select an entry it does not list, which AceGUI
+		draws as an empty box, and the item would read as unconfigured when the gate
+		it actually runs under is Always.
+	]]
+	return ns.NormalizeDistribute(config and config.Distribute)
 end
 
 local function SetDistribute(info, value)
@@ -147,6 +153,41 @@ local function SetDistribute(info, value)
 	end
 	-- The macro and the group's tooltips both hide a gated item, so both need telling.
 	ns.RefreshGiveaways()
+end
+
+--[[
+	No RefreshGiveaways: this gate is about the person on the other side of the
+	trade window, so unlike Distribute it cannot change what the announcement macro
+	or the player tooltip should be showing right now. It is read again at the next
+	fill, which is the only place it applies.
+]]
+local function GetGuildiesOnly(info)
+	local config = GetItemConfig(info)
+	return (config and config.GuildiesOnly) and true or false
+end
+
+local function SetGuildiesOnly(info, value)
+	local config = GetItemConfig(info)
+	if config then
+		config.GuildiesOnly = value and true or false
+	end
+end
+
+--[[
+	Names the guild the gate would actually hold the item for, because "Guildies
+	Only" alone does not say which guild, and the player's answer changes under the
+	add-on without the panel being reopened.
+
+	Guildless is spelled out rather than left as an unfilled blank: switching this
+	on with no guild of your own means nobody qualifies, and a player who is not
+	told that reads the empty trade window as the add-on being broken.
+]]
+local function GuildiesOnlyHelp()
+	local guild = GetGuildInfo("player")
+	if not guild then
+		return GetColor("HELP") .. L["OPTIONS_ITEM_GUILDIES_ONLY_NO_GUILD"] .. "|r"
+	end
+	return GetColor("HELP") .. format(L["OPTIONS_ITEM_GUILDIES_ONLY_HELP"], guild) .. "|r"
 end
 
 local function GetFactorLevel(info)
@@ -199,6 +240,27 @@ local function SetPlayerClass(info, value)
 end
 
 --------------------------------------------------------------------------------
+-- Panel Grid
+--------------------------------------------------------------------------------
+
+--[[
+	This is the add-on's one childGroups = "tree" panel, so its rows are laid out
+	inside the tree's content pane rather than across the whole options frame, and
+	ns.OPTIONS_ROW_WIDTH does not fit there. A label and control totalling the
+	shared 3.4 overflows the pane, and AceGUI's flow layout does not clip an
+	overflowing row, it wraps it -- which is the caption stranded on a line above
+	its own dropdown.
+
+	So the pane gets one row width of its own. It is not a new grid: it is the
+	total the scope table's cells and the amount rows already add up to, named and
+	written down once so every row on the panel is built to the same number and
+	they all still end in the same column.
+]]
+local PANEL_ROW_WIDTH = 2.4
+local PANEL_LABEL_WIDTH = 1.0
+local PANEL_CONTROL_WIDTH = PANEL_ROW_WIDTH - PANEL_LABEL_WIDTH
+
+--------------------------------------------------------------------------------
 -- Scope Table
 --------------------------------------------------------------------------------
 
@@ -208,8 +270,7 @@ end
 	pinning each row in its own unnamed inline group. Laid out flat the cells would
 	pack onto whatever space is left on the line and the columns would drift apart.
 
-	Widths total less than ns.OPTIONS_ROW_WIDTH on purpose: a row sitting exactly on
-	the wrap boundary tips its last cell onto a line of its own.
+	The four cells total PANEL_ROW_WIDTH, the pane's row rather than the add-on's.
 ]]
 local TABLE_CLASS_WIDTH = 0.75
 local TABLE_SCOPE_WIDTH = 0.55
@@ -502,37 +563,60 @@ local function AddItemSettings(args, itemKey, itemConfig)
 
 	--[[
 		First, because it decides whether any of the rest applies: an item gated to
-		raids is not dispensed, announced or shown on a tooltip outside one, whatever
-		its per-class amounts say.
+		instances is not dispensed, announced or shown on a tooltip out in the world,
+		whatever its per-class amounts say.
+
+		The caption and the dropdown are two flat args rather than one inline group.
+		A group would be the natural way to pin them to a line, and it is exactly
+		what breaks the row here: the group's own content is narrower again than the
+		tree pane holding it, so the pair wraps inside it. Laid out flat they are
+		measured against the pane itself, and PANEL_ROW_WIDTH is the width that fits.
 	]]
 	local distributeChoices, distributeOrder = DistributeChoices()
+	args.labelDistribute =
+		ns.OptionsRowLabel(GetColor("TITLE") .. L["OPTIONS_ITEM_DISTRIBUTE"] .. "|r", 33, PANEL_LABEL_WIDTH)
+	args.Distribute = {
+		type = "select",
+		name = "",
+		desc = L["OPTIONS_ITEM_DISTRIBUTE_DESC"],
+		width = PANEL_CONTROL_WIDTH,
+		order = 34,
+		values = distributeChoices,
+		sorting = distributeOrder,
+		get = GetDistribute,
+		set = SetDistribute,
+	}
+	args.spaceDistribute = Spacer(35)
+
 	--[[
-		A caption beside a dropdown on one line, spending the shared grid's own two
-		widths rather than a pair of its own, so this dropdown starts in the same
-		column as every other dropdown in the add-on and the row ends where every
-		other row ends.
+		Directly under Distribute because it is the same kind of rule read from the
+		other end: that one is about where the player is, this one about who is in
+		front of them.
 	]]
-	args.rowDistribute = TableRow(33, {
-		ns.OptionsRowLabel(GetColor("TITLE") .. L["OPTIONS_ITEM_DISTRIBUTE"] .. "|r", nil, ns.OPTIONS_LABEL_WIDTH),
-		{
-			type = "select",
-			name = "",
-			desc = L["OPTIONS_ITEM_DISTRIBUTE_DESC"],
-			width = ns.OPTIONS_CONTROL_WIDTH,
-			values = distributeChoices,
-			sorting = distributeOrder,
-			get = GetDistribute,
-			set = SetDistribute,
-		},
-	})
-	args.spaceDistribute = Spacer(34)
+	args.GuildiesOnly = {
+		type = "toggle",
+		width = "full",
+		name = L["OPTIONS_ITEM_GUILDIES_ONLY"],
+		desc = L["OPTIONS_ITEM_GUILDIES_ONLY_DESC"],
+		order = 36,
+		get = GetGuildiesOnly,
+		set = SetGuildiesOnly,
+	}
+	--[[
+		Shown whether or not the toggle is on, so the player can read which guild
+		this would mean before committing to it, and so clicking the box does not
+		reflow every row beneath it -- the same reason the amount rows gray their
+		number boxes instead of hiding them.
+	]]
+	args.descGuildiesOnly = { type = "description", name = GuildiesOnlyHelp, fontSize = "medium", order = 37 }
+	args.spaceGuildiesOnly = Spacer(38)
 
 	args.FactorLevel = {
 		type = "toggle",
 		width = "full",
 		name = L["OPTIONS_ITEM_FACTOR_LEVEL"],
 		desc = L["OPTIONS_ITEM_FACTOR_LEVEL_DESC"],
-		order = 35,
+		order = 39,
 		hidden = isBuiltIn,
 		get = GetFactorLevel,
 		set = SetFactorLevel,
@@ -543,21 +627,21 @@ local function AddItemSettings(args, itemKey, itemConfig)
 		spacer is inlined: left showing on a built-in collection it would be the only
 		thing between the header and the next toggle.
 	]]
-	args.spaceFactorLevel = { type = "description", name = " ", order = 36, hidden = isBuiltIn }
+	args.spaceFactorLevel = { type = "description", name = " ", order = 40, hidden = isBuiltIn }
 
 	args.IncludeQuantity = {
 		type = "toggle",
 		width = "full",
 		name = L["OPTIONS_ITEM_INCLUDE_QUANTITY"],
 		desc = L["OPTIONS_ITEM_INCLUDE_QUANTITY_DESC"],
-		order = 37,
+		order = 41,
 		get = GetIncludeQuantity,
 		set = SetIncludeQuantity,
 	}
 
-	args.spaceClasses0 = Spacer(38)
-	args.descClasses = Desc(L["OPTIONS_ITEM_PLAYER_CLASSES_DESC"], 39)
-	args.spaceClasses1 = Spacer(40)
+	args.spaceClasses0 = Spacer(42)
+	args.descClasses = Desc(L["OPTIONS_ITEM_PLAYER_CLASSES_DESC"], 43)
+	args.spaceClasses1 = Spacer(44)
 
 	local classArgs = {}
 	for index, class in ipairs(GetSortedClasses()) do
@@ -573,17 +657,17 @@ local function AddItemSettings(args, itemKey, itemConfig)
 		type = "group",
 		name = L["OPTIONS_ITEM_PLAYER_CLASSES"],
 		inline = true,
-		order = 41,
+		order = 45,
 		args = classArgs,
 	}
 
 	-- Built-in collections can't be removed (NoRemove), so they carry no button.
 	if not itemConfig.NoRemove then
-		args.spaceRemove = Spacer(42)
+		args.spaceRemove = Spacer(46)
 		args.remove = {
 			type = "execute",
 			name = L["OPTIONS_ITEM_REMOVE"],
-			order = 43,
+			order = 47,
 			confirm = true,
 			confirmText = L["OPTIONS_ITEM_REMOVE_CONFIRM"],
 			func = function()
@@ -666,12 +750,13 @@ local function BuildAddItemPanel(order)
 		args = {
 			desc = Desc(L["OPTIONS_ADD_DESC"], 1),
 			spaceSelect = { type = "description", name = " ", order = 2, hidden = NoAddableItems },
-			selectItemLabel = ns.OptionsRowLabel(L["OPTIONS_ADD_SELECT"], 3, nil, NoAddableItems),
+			-- Same label-beside-control row as Distribute, and the same pane width.
+			selectItemLabel = ns.OptionsRowLabel(L["OPTIONS_ADD_SELECT"], 3, PANEL_LABEL_WIDTH, NoAddableItems),
 			selectItem = {
 				type = "select",
 				style = "dropdown",
 				name = "",
-				width = ns.OPTIONS_CONTROL_WIDTH,
+				width = PANEL_CONTROL_WIDTH,
 				order = 4,
 				values = BuildAddableValues,
 				sorting = BuildAddableSorting,
@@ -684,9 +769,16 @@ local function BuildAddItemPanel(order)
 				end,
 			},
 			spaceAdd = { type = "description", name = " ", order = 5, hidden = NoAddableItems },
+			--[[
+				A whole row wide. An execute with no width gets AceConfig's single
+				column, which is narrower than this button's own caption -- the label
+				truncated to "Add to Dispensed I...". At the row width it fits with room
+				over, and its right edge lands under the dropdown's.
+			]]
 			addButton = {
 				type = "execute",
 				name = L["OPTIONS_ADD_BUTTON"],
+				width = PANEL_ROW_WIDTH,
 				order = 6,
 				hidden = NoAddableItems,
 				disabled = function()
@@ -703,6 +795,7 @@ local function BuildAddItemPanel(order)
 						Name = itemName or ("Item " .. id),
 						Icon = itemIcon,
 						Distribute = "Always",
+						GuildiesOnly = false,
 						FactorLevel = false,
 						KeepAtLeastEnabled = false,
 						KeepAtLeast = 1,
