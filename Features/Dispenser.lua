@@ -17,14 +17,6 @@ local ICON_COORDS = ns.ICON_COORDS
 -- Latches the "nothing configured for your class" hint to once per session.
 local noneActiveWarned = false
 
---[[
-	Items handed to each player this session, per configured item:
-	sessionGiven[configKey][partnerKey] = items. Runtime only and deliberately never
-	saved, so a reload or a logout starts everyone's budget over. That is the whole
-	definition of "session" here.
-]]
-local sessionGiven = {}
-
 -- What we were offering the moment the player last accepted, keyed by config key.
 local acceptedOffer = nil
 
@@ -44,8 +36,8 @@ local conjureWatch = {}
 	item would re-enter the fill forever, shuffling the bags on every pass. The
 	counters are what stop that; ShapeStack is where they are spent.
 
-	Per item, eight covers a bag the restack has been keeping tidy (one merge and
-	one split at most) with room for a handful of loose scraps. Per trade,
+	Per item, eight covers one merge and one split with room for a handful of loose
+	scraps to be worked through. Per trade,
 	twenty-four is deliberately generous, so a legitimate fill can never reach it.
 	Both reset on TRADE_SHOW, because the ceilings are meant to catch one wedged
 	trade, not to ration the day.
@@ -79,9 +71,6 @@ local lastShape = {}
 ]]
 local placedThisTrade = {}
 
--- Items whose session cap has already been reported this trade, so the notice is said once and not once per bag update.
-local capNoticed = {}
-
 --------------------------------------------------------------------------------
 -- Combat Notices
 --------------------------------------------------------------------------------
@@ -101,60 +90,14 @@ local function PrintCombatBlocked()
 end
 
 --------------------------------------------------------------------------------
--- Session Ledger
---------------------------------------------------------------------------------
-
--- Name-realm for a partner from another realm, plain name otherwise.
-local function TradePartnerKey()
-	local name, realm = UnitName("NPC")
-	if not name then
-		return nil
-	end
-	if realm and realm ~= "" then
-		return name .. "-" .. realm
-	end
-	return name
-end
-
-local function GivenThisSession(configKey, partnerKey)
-	local perPlayer = sessionGiven[configKey]
-	return (perPlayer and perPlayer[partnerKey]) or 0
-end
-
---[[
-	Forgets what everyone has already been given of an item, so a limit changed
-	part-way through a session is measured from now rather than against giving that
-	happened under the old number. Without it, raising Maximum per Session from 2 to
-	10 hands over nothing until the next reload, which reads as the setting being
-	ignored. Passing nil clears every item.
-]]
-function ns.ResetSessionLedger(configKey)
-	if configKey == nil then
-		wipe(sessionGiven)
-		return
-	end
-	sessionGiven[configKey] = nil
-end
-
-local function CreditSession(configKey, partnerKey, count)
-	local perPlayer = sessionGiven[configKey]
-	if not perPlayer then
-		perPlayer = {}
-		sessionGiven[configKey] = perPlayer
-	end
-	perPlayer[partnerKey] = (perPlayer[partnerKey] or 0) + count
-end
-
---------------------------------------------------------------------------------
 -- Dispense Toggle
 --------------------------------------------------------------------------------
 
 --[[
 	The only place the master Dispense switch is written. The options toggle and
 	the mini-map button both route through here, so neither can pick up a step the
-	other forgets: telling the group what is on offer, resuming the restack that
-	hangs off this switch, and repainting an options panel that is already open on
-	the toggle the mini-map button just flipped.
+	other forgets: telling the group what is on offer, and repainting an options
+	panel that is already open on the toggle the mini-map button just flipped.
 ]]
 function ns.SetDispense(value)
 	if not ns.db then
@@ -163,10 +106,6 @@ function ns.SetDispense(value)
 	value = value and true or false
 	ns.db.profile.Dispense = value
 	ns.RefreshGiveaways()
-	-- Restacking is a sub-option of this one, so switching back on resumes it.
-	if value then
-		ns.RestackBags()
-	end
 	AceConfigRegistry:NotifyChange(ns.OPTIONS_REGISTRY.Dispenser)
 end
 
@@ -209,15 +148,6 @@ local function PickScope()
 	return "Solo"
 end
 
--- Config key for an item ID: collection key for built-ins, the ID itself for user items, nil if not configured.
-local function ConfigKeyFor(itemId)
-	local key = ns.ITEM_TO_COLLECTION[itemId]
-	if not key and ns.db.profile.Items[itemId] ~= nil then
-		key = itemId
-	end
-	return key
-end
-
 --[[
 	How many individual items the player's own trade slots hold, grouped by config
 	key (collection key for built-ins, item-ID key for user items), and how many
@@ -244,7 +174,7 @@ local function CountOffered()
 			local itemId = tonumber(link:match("item:(%d+)"))
 			if itemId then
 				slotsByItem[itemId] = (slotsByItem[itemId] or 0) + 1
-				local key = ConfigKeyFor(itemId)
+				local key = ns.GetItemConfigKey(itemId)
 				if key ~= nil then
 					items[key] = (items[key] or 0) + slotCount
 				end
@@ -276,7 +206,7 @@ local function PendingOffer()
 			local info = bag and ns.GetContainerItemInfo(tonumber(bag), tonumber(slot))
 			if info and info.isLocked and info.itemID == itemId then
 				slotsByItem[itemId] = (slotsByItem[itemId] or 0) + 1
-				local configKey = ConfigKeyFor(itemId)
+				local configKey = ns.GetItemConfigKey(itemId)
 				if configKey ~= nil then
 					items[configKey] = (items[configKey] or 0) + count
 				end
@@ -404,11 +334,10 @@ end
 	     it leaves no scrap behind.
 	  2. A slot larger than `want` has `want` split off it into an empty bag slot --
 	     the smallest such slot, so breaking a 7 to find 5 leaves a full 20 intact.
-	     One move; the scrap it leaves is the restack's to tidy after the trade.
+	     One move; the scrap it leaves stays where it falls.
 	  3. Otherwise every loose slot is smaller than `want`, so they merge pairwise,
 	     smallest onto largest, and the pass after finds one big enough for step 2
-	     or an exact match. Bags the restack keeps tidy rarely get here: they hold
-	     one partial per item, so it is step 1 or 2 or nothing.
+	     or an exact match.
 
 	Every move is retried implicitly by the bag update it causes, so each is charged
 	against the per-item and per-trade ceilings declared at the top. A refused split
@@ -502,7 +431,7 @@ local function ReportMissing(configId, itemConfig, inventoryItem, count)
 	local icon = (inventoryItem and inventoryItem.Icon) or ns.GetItemConfigIcon(configId, itemConfig)
 	local name = (inventoryItem and inventoryItem.Name) or ns.GetItemConfigName(configId, itemConfig) or "?"
 	local iconTag = icon and ("|T" .. icon .. ICON_COORDS .. "|t ") or ""
-	ns.PrintMessage(L["CHAT_MISSING_STACK"], iconTag .. name .. " x" .. count)
+	ns.PrintMessage(L["CHAT_MISSING_STACK"], iconTag .. format(L["FORMAT_ITEM_COUNT"], name, count))
 end
 
 function ns.FillTrade(forced)
@@ -514,6 +443,28 @@ function ns.FillTrade(forced)
 
 	if ns.IsInCombat() then
 		PrintCombatBlocked()
+		return
+	end
+
+	--[[
+		Something already on the cursor is the player's, and every path below reaches for
+		the cursor itself -- ClearTrade, PlaceStack's pickup, ShapeStack's merge, the
+		split. Filling now would drop what they were holding. The window is not a narrow
+		one either: picking an item up locks its slot, which is a bag update, which is
+		what re-enters this function, so this fires exactly while they are moving things
+		by hand mid-trade.
+
+		The latch is what makes standing down free. It normally means a stack was owed
+		and not met, and the only thing it drives is that bag update re-entry -- so
+		setting it here books the pass to run again, and their next drop is the update
+		that runs it. It has to be set on the way out rather than left to the scan
+		below, which never gets to run.
+	]]
+	if GetCursorInfo() then
+		if ns.diagnostics and ns.diagnostics.logging then
+			ns:LogEventNow("FILL", "skip=cursor")
+		end
+		ns.State.MissingStack = true
 		return
 	end
 
@@ -575,7 +526,7 @@ function ns.FillTrade(forced)
 		]]
 		local sessionCap = ns.GetItemSessionCap(itemConfig)
 		if sessionCap and trade.Partner then
-			local budget = sessionCap - GivenThisSession(configId, trade.Partner) - (offeredItems[configId] or 0)
+			local budget = sessionCap - ns.GivenThisSession(configId, trade.Partner) - (offeredItems[configId] or 0)
 			if budget < needed then
 				--[[
 					Say so when the cap is what empties the trade, rather than leaving the
@@ -584,8 +535,7 @@ function ns.FillTrade(forced)
 					silence makes the add-on look broken instead of obedient. Latched per item
 					per trade, since a fill re-runs on every bag update.
 				]]
-				if budget <= 0 and needed > 0 and not capNoticed[configId] then
-					capNoticed[configId] = true
+				if budget <= 0 and needed > 0 and ns.ClaimSessionCapNotice(configId) then
 					--[[
 						Not gated on MissingStackWarnings. That setting ships off, and this is the
 						one line explaining why a trade window the player expected to fill sat
@@ -818,10 +768,9 @@ end
 --------------------------------------------------------------------------------
 
 --[[
-	Conjured items arrive in small partial stacks, and neither of the things that
-	normally handle that is available with a trade already open: the restack stands
-	down, and portioning cannot invent items the player does not have yet. Casting
-	mid-trade would otherwise show nothing until enough casts had piled up. Instead
+	Conjured items arrive in small partial stacks, and portioning cannot invent
+	items the player does not have yet, so casting mid-trade would otherwise show
+	nothing until enough casts had piled up. Instead
 	the bag slots holding that spell's items are snapshotted at cast time, and
 	whatever grew by the next bag update goes into the window as-is.
 
@@ -842,8 +791,8 @@ local function WatchConjure(spellId)
 	for _, itemId in ipairs(itemIds) do
 		conjureWatch[itemId] = {}
 	end
-	for bag = BACKPACK_CONTAINER, NUM_BAG_SLOTS do
-		local slots = ns.GetContainerNumSlots(bag)
+	for bag = BACKPACK_CONTAINER, ns.LAST_BAG_INDEX do
+		local slots = ns.GetContainerNumSlots(bag) or 0
 		for slot = 1, slots do
 			local info = ns.GetContainerItemInfo(bag, slot)
 			local watched = info and conjureWatch[info.itemID]
@@ -861,8 +810,8 @@ local function PlaceConjured()
 		return
 	end
 
-	for bag = BACKPACK_CONTAINER, NUM_BAG_SLOTS do
-		local slots = ns.GetContainerNumSlots(bag)
+	for bag = BACKPACK_CONTAINER, ns.LAST_BAG_INDEX do
+		local slots = ns.GetContainerNumSlots(bag) or 0
 		for slot = 1, slots do
 			local info = ns.GetContainerItemInfo(bag, slot)
 			local watched = info and conjureWatch[info.itemID]
@@ -910,12 +859,12 @@ local function OnTradeShow()
 		trade.Level = UnitLevel("player") + 10
 	end
 	trade.Party = UnitInParty("NPC") or UnitInRaid("NPC")
-	trade.Partner = TradePartnerKey()
+	trade.Partner = ns.TradePartnerKey()
 	movesThisTrade = 0
 	wipe(movesPerItem)
 	wipe(lastShape)
 	wipe(placedThisTrade)
-	wipe(capNoticed)
+	ns.ResetSessionCapNotices()
 	--[[
 		Scoped to one trade. OnBagUpdate re-fills on this flag, so a shortfall left
 		behind by the last trade would fill this one on the next bag update, past a
@@ -964,7 +913,7 @@ local function OnTradeClosed()
 
 	if acceptedOffer and trade.Partner then
 		for configKey, count in pairs(acceptedOffer) do
-			CreditSession(configKey, trade.Partner, count)
+			ns.CreditSession(configKey, trade.Partner, count)
 		end
 	end
 	acceptedOffer = nil

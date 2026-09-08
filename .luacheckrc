@@ -20,7 +20,9 @@ read_globals = {
 	"CursorHasItem",
 	"DeleteMacro",
 	"EditMacro",
+	"Enum",
 	"GameTooltip",
+	"hooksecurefunc",
 	"GetAddOnInfo",
 	"GetBuildInfo",
 	"GetCursorInfo",
@@ -47,8 +49,14 @@ read_globals = {
 	"MAX_TRADABLE_ITEMS",
 	"NUM_BAG_SLOTS",
 	"SetCVar",
-	"SplitContainerItem",
 	"Settings",
+	--[[
+		Blizzard's table, so it is read-only apart from the one key the add-on
+		registers its slash command under. Declared as a field rather than by listing
+		the table under globals, which would sanction writing over the whole thing.
+	]]
+	SlashCmdList = { fields = { WATERDISPENSER = { read_only = false } } },
+	"TooltipDataProcessor",
 	"TradeFrame",
 	"TradeFrame_GetAvailableSlot",
 	"UIParent",
@@ -67,6 +75,5 @@ read_globals = {
 -- The closed set of globals the add-on owns: its saved variables and its slash command.
 globals = {
 	"SLASH_WATERDISPENSER1",
-	"SlashCmdList",
 	"WaterDispenserDB",
 }

@@ -143,7 +143,7 @@ end
 --------------------------------------------------------------------------------
 
 --[[
-	AceGUI's EditBox grows a small accept button once you start typing, labelled
+	AceGUI's EditBox grows a small accept button once you start typing, labeled
 	with Blizzard's OKAY. "Okay" says nothing about what it will do; every box on
 	the Dispensed Items panel writes a whole column or a whole row, so the button
 	says Apply.

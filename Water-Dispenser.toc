@@ -62,9 +62,11 @@ Features/Utilities.lua
 Features/Announcements.lua
 Features/Inventory-Scanner.lua
 Features/Bag-Moves.lua
+Features/Session-Ledger.lua
 Features/Dispenser.lua
 Features/Trade-UI.lua
 Features/Group-Spares.lua
+Features/Item-Tooltips.lua
 Features/Diagnostics.lua
 Features/Minimap-Button.lua
 Options/Options-Utilities.lua

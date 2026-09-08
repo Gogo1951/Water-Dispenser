@@ -10,12 +10,20 @@ end
 L["ADDON_TITLE"] = "Water Dispenser"
 
 --------------------------------------------------------------------------------
+-- Shared Formats
+--------------------------------------------------------------------------------
+
+-- %s is the item's name or link, %d how many of it. Used by the chat prints and the announcement macro.
+L["FORMAT_ITEM_COUNT"] = "%s x%d"
+
+--------------------------------------------------------------------------------
 -- Chat Messages
 --------------------------------------------------------------------------------
 
 --[[
 	All player-facing chat prints live here, regardless of which feature emits them.
-	%s is the add-on version; the menu path is the game client's own labels.
+	In CHAT_LOADED, %s is the add-on version and the menu path is the game client's
+	own labels.
 ]]
 L["CHAT_LOADED"] =
 	"Версия %s. Настройки (включая отключение этого сообщения) находятся в Настройки > Модификации > Water Dispenser. Нравится аддон? Расскажите друзьям! (="
@@ -27,7 +35,7 @@ L["CHAT_OPTIONS_IN_COMBAT"] =
 L["CHAT_MISSING_STACK"] = "Не хватает:"
 --[[
 	%s is the item's name, %d the Maximum per Session it has hit.
-	"Maximum per Session" must match OPTIONS_ITEM_SESSION_CAP.
+	"Maximum per Session" is the label of OPTIONS_ITEM_SESSION_CAP, minus its "Enable".
 ]]
 L["CHAT_SESSION_CAP_REACHED"] =
 	"%s не добавлено: этот игрок уже получил свои %d за сессию. Измените Максимум за сессию или перезагрузите интерфейс для сброса."
@@ -36,7 +44,7 @@ L["CHAT_SPLIT_REFUSED"] =
 	"%s не добавлено: клиент отказался отделить %d от стопки, а передать вместо этого целую стопку значило бы отдать намного больше, чем вы просили. Задайте для этого предмета количество, равное целой стопке, чтобы обменять его."
 -- %s is the player's class name. "Dispensed Items" must match TAB_DISPENSED_ITEMS.
 L["CHAT_NONE_ACTIVE_FOR_CLASS"] =
-	"Нет предметов для раздачи, пока вы играете за класс %s. Откройте Настройки > Раздаваемые предметы, чтобы включить предметы для этого класса."
+	"Нет предметов для раздачи, пока вы играете за класс %s. Откройте Настройки > Модификации > Water Dispenser > Раздаваемые предметы, чтобы включить предметы для этого класса."
 -- "- Dispenser" is the macro's literal name and is never translated.
 L["CHAT_MACRO_DELETED"] = 'Макрос анонса "- Dispenser" удален.'
 L["CHAT_MACRO_FULL"] =
@@ -49,6 +57,16 @@ L["CHAT_MACRO_FULL"] =
 L["TOOLTIP_OPEN_TRADE"] = "Кидайте обмен!"
 -- %d/%d is the warlock's Improved Healthstone rank out of its maximum.
 L["TOOLTIP_HEALTHSTONE"] = "Камень здоровья (ранг %d/%d)"
+
+--------------------------------------------------------------------------------
+-- Bag Item Tooltips
+--------------------------------------------------------------------------------
+
+-- Shown on a carried bag item the player has set up to give away.
+L["TOOLTIP_WILL_DISPENSE"] = "Этот предмет будет раздаваться."
+-- The same line for an item that stacks, which is also tidied back together once a trade ends.
+L["TOOLTIP_WILL_DISPENSE_STACKED"] =
+	"Этот предмет будет раздаваться. Его неполные стопки объединяются после закрытия обмена."
 
 --------------------------------------------------------------------------------
 -- Trade Side Panel
@@ -81,18 +99,14 @@ L["OPTIONS_WELCOME_MESSAGE_DESC"] =
 	"Выводит однострочное приветствие в чат при загрузке Water Dispenser."
 L["OPTIONS_MINIMAP"] = "Включить кнопку у миникарты"
 L["OPTIONS_MINIMAP_DESC"] = "Показывает кнопку Water Dispenser у миникарты."
-L["OPTIONS_MISSING_STACK_WARNINGS"] =
-	"Включить предупреждения, когда запасы на исходе"
-L["OPTIONS_MISSING_STACK_WARNINGS_DESC"] =
-	"Выводит заметку в чат, когда в сумках не хватает настроенного предмета, чтобы выдать заданное количество."
--- The label says what it does; the tooltip only covers why it is needed and when it stands down.
-L["OPTIONS_RESTACK"] = "Автоматически объединять неполные стопки в сумках"
-L["OPTIONS_RESTACK_DESC"] =
-	"Сотворенные вода и еда каждый раз попадают в новую ячейку сумки, и игра никогда не складывает их обратно, хотя это никогда не срабатывает в бою, при открытом обмене или пока вы держите что-то на курсоре."
 
 L["OPTIONS_COMMANDS_HEADER"] = "/Команды"
 L["OPTIONS_COMMAND"] = "/wd"
 L["OPTIONS_COMMAND_DESCRIPTION"] = "Открывает окно настроек этого аддона."
+
+--------------------------------------------------------------------------------
+-- Options — Dispense
+--------------------------------------------------------------------------------
 
 -- Names the panel, its section header, and the mini-map tooltip's feature row.
 L["TAB_DISPENSE"] = "Раздача"
@@ -110,17 +124,14 @@ L["OPTIONS_DISPENSE_GROUP_DESC"] =
 L["OPTIONS_DISPENSE_RAID"] = "Включить для рейда"
 L["OPTIONS_DISPENSE_RAID_DESC"] =
 	"Автоматически заполняет окно обмена при обмене с членом вашего рейда."
-
-L["TAB_INVENTORY_TOOLTIPS"] = "Подсказки с запасами"
-L["OPTIONS_TOOLTIPS_DESC"] =
-	"Показывает запасы для раздачи в подсказках игроков из вашей группы, у которых установлен Water Dispenser."
-L["OPTIONS_SHOW_INVENTORY"] =
-	"Показывать запасы во всплывающих подсказках игроков"
-L["OPTIONS_SHOW_INVENTORY_DESC"] =
-	"Добавляет блок Water Dispenser в подсказки игроков со списком того, что они настроили для раздачи, и их количеством, причем ваш собственный список показывается всегда, в группе или нет."
-L["OPTIONS_SHARE_INVENTORY"] = "Делиться своими запасами"
-L["OPTIONS_SHARE_INVENTORY_DESC"] =
-	"Сообщает вашей группе и рейду, что у вас с собой, чтобы ваши запасы появлялись при наведении на вас, ничего не отправляя в чат и не сообщая никому за пределами вашей группы, а если отключить, чужие списки все равно останутся доступны."
+-- The label says what it does; the tooltip only covers why it is needed and when it stands down.
+L["OPTIONS_RESTACK"] = "Объединять неполные стопки после обмена"
+L["OPTIONS_RESTACK_DESC"] =
+	"Сотворенные вода и еда каждый раз попадают в новую ячейку сумки, и игра никогда не складывает их обратно, поэтому Water Dispenser объединяет их один раз, сразу после закрытия окна обмена. В другое время он никогда не переставляет вещи в сумках, а также никогда не делает этого в бою или пока вы держите что-то на курсоре."
+L["OPTIONS_MISSING_STACK_WARNINGS"] =
+	"Включить предупреждения, когда запасы на исходе"
+L["OPTIONS_MISSING_STACK_WARNINGS_DESC"] =
+	"Выводит заметку в чат, когда в сумках не хватает настроенного предмета, чтобы выдать заданное количество."
 
 L["OPTIONS_COMBAT_HEADER"] = "Бой"
 L["OPTIONS_COMBAT_DESC"] =
@@ -129,6 +140,25 @@ L["OPTIONS_COMBAT_NOTIFY"] =
 	"Включить уведомления, когда раздача заблокирована"
 L["OPTIONS_COMBAT_NOTIFY_DESC"] =
 	"Выводит заметку в чат, когда бой мешает заполнить обмен, а если отключить, Water Dispenser промолчит о том, почему обмен остался пустым."
+
+--------------------------------------------------------------------------------
+-- Options — Inventory Tooltips
+--------------------------------------------------------------------------------
+
+L["TAB_INVENTORY_TOOLTIPS"] = "Подсказки с запасами"
+L["OPTIONS_TOOLTIPS_DESC"] =
+	"Показывает запасы для раздачи в подсказках игроков из вашей группы, у которых установлен Water Dispenser, и отмечает такие предметы в ваших собственных сумках."
+L["OPTIONS_SHOW_INVENTORY"] =
+	"Показывать запасы во всплывающих подсказках игроков"
+L["OPTIONS_SHOW_INVENTORY_DESC"] =
+	"Добавляет блок Water Dispenser в подсказки игроков со списком того, что они настроили для раздачи, и сколько они готовы отдать, причем ваш собственный список показывается всегда, в группе или нет."
+L["OPTIONS_BAG_TOOLTIPS"] =
+	"Показывать подсказки в сумках для раздаваемых предметов"
+L["OPTIONS_BAG_TOOLTIPS_DESC"] =
+	"Добавляет строку Water Dispenser в подсказку предмета в сумке, когда этот предмет настроен для раздачи, чтобы вы сразу видели, что аддон отдаст."
+L["OPTIONS_SHARE_INVENTORY"] = "Делиться своими запасами"
+L["OPTIONS_SHARE_INVENTORY_DESC"] =
+	"Сообщает вашей группе и рейду, что вы готовы отдать, чтобы ваши запасы появлялись при наведении на вас, ничего не отправляя в чат и не сообщая никому за пределами вашей группы, а если отключить, чужие списки все равно останутся доступны."
 
 --------------------------------------------------------------------------------
 -- Options — Dispensed Items
@@ -141,8 +171,8 @@ L["OPTIONS_ITEMS_DESC"] =
 L["OPTIONS_ITEMS_EMPTY"] =
 	'Нет настроенных предметов. Выберите "Добавить предмет" в списке, чтобы добавить расходуемые предметы из ваших сумок.'
 
-L["OPTIONS_ITEM_DISTRIBUTION"] = "Распределение"
-L["OPTIONS_ITEM_DISTRIBUTION_DESC"] =
+L["OPTIONS_ITEM_AMOUNTS"] = "Количество"
+L["OPTIONS_ITEM_AMOUNTS_DESC"] =
 	"Выберите, сколько получает каждый класс при обмене, в зависимости от того, незнакомец это, участник вашей группы или рейда. Считается в отдельных предметах, а не в стопках. Ноль означает, что этот предмет им никогда не достанется."
 L["OPTIONS_ITEM_EVERYONE"] = "Все"
 L["OPTIONS_ITEM_EVERYONE_DESC"] =
@@ -163,12 +193,12 @@ L["OPTIONS_ITEM_DISTRIBUTE_DESC"] =
 L["OPTIONS_ITEM_DISTRIBUTE_ALWAYS"] = "Всегда"
 L["OPTIONS_ITEM_DISTRIBUTE_GROUP"] = "В группе"
 L["OPTIONS_ITEM_DISTRIBUTE_RAID"] = "В рейде"
-L["OPTIONS_ITEM_FACTOR_LEVEL"] = "Учитывать требования к уровню"
+L["OPTIONS_ITEM_FACTOR_LEVEL"] = "Учитывать требуемый уровень предмета"
 L["OPTIONS_ITEM_FACTOR_LEVEL_DESC"] =
 	"Пропускает этот предмет, если уровень партнера по обмену ниже требуемого для предмета."
 L["OPTIONS_ITEM_RESERVE"] = "Включить резерв"
 L["OPTIONS_ITEM_RESERVE_DESC"] =
-	"Всегда оставляет в сумках хотя бы столько, а раздача и макрос анонса считают все сверх этого числа доступным для передачи."
+	"Всегда оставляет в сумках хотя бы столько, а раздача, ваша подсказка игрока и макрос анонса считают все сверх этого числа доступным для передачи."
 L["OPTIONS_ITEM_SESSION_CAP"] = "Включить максимум за сессию"
 L["OPTIONS_ITEM_SESSION_CAP_DESC"] =
 	"Перестает выдавать этот предмет игроку, как только он получил от вас столько, считая по всем обменам до выхода из игры или перезагрузки интерфейса, а изменение любого количества этого предмета обнуляет счет для всех."
@@ -181,7 +211,8 @@ L["OPTIONS_ITEM_PLAYER_CLASSES"] = "Раздавать, только играя 
 L["OPTIONS_ITEM_PLAYER_CLASSES_DESC"] =
 	"Заполняет обмен, добавляет этот предмет в макрос анонса и показывает его в вашей подсказке игрока только тогда, когда класс вашего персонажа выбран ниже."
 L["OPTIONS_ITEM_REMOVE"] = "Удалить предмет"
-L["OPTIONS_ITEM_REMOVE_CONFIRM"] = "Удалить этот предмет из настроек обмена?"
+L["OPTIONS_ITEM_REMOVE_CONFIRM"] =
+	"Убрать этот предмет из ваших раздаваемых предметов?"
 
 L["OPTIONS_SCOPE_SOLO"] = "Незнакомцы"
 L["OPTIONS_SCOPE_GROUP"] = "Группа"
@@ -189,9 +220,9 @@ L["OPTIONS_SCOPE_RAID"] = "Рейд"
 
 L["OPTIONS_ADD_ITEM"] = "Добавить предмет"
 L["OPTIONS_ADD_DESC"] =
-	"Выберите любой передаваемый предмет из ваших сумок, чтобы добавить его в настройки обмена. Уже настроенные или персональные предметы не отображаются."
+	"Выберите любой передаваемый предмет из ваших сумок, чтобы добавить его к вашим раздаваемым предметам. Уже настроенные или персональные предметы не отображаются."
 L["OPTIONS_ADD_SELECT"] = "Доступные предметы"
-L["OPTIONS_ADD_BUTTON"] = "Добавить в настройки"
+L["OPTIONS_ADD_BUTTON"] = "Добавить к раздаваемым предметам"
 L["OPTIONS_ADD_EMPTY"] = "В ваших сумках не найдено передаваемых предметов."
 
 --------------------------------------------------------------------------------
@@ -200,7 +231,7 @@ L["OPTIONS_ADD_EMPTY"] = "В ваших сумках не найдено пер�
 
 L["TAB_ANNOUNCEMENTS"] = "Анонсы"
 L["OPTIONS_ANNOUNCEMENTS_DESC"] =
-	"Water Dispenser может создать макрос, объявляющий, что у вас осталось для раздачи. Макрос сам выбирает нужный канал (Сказать вне группы, Группа в группе, Рейд в рейде) и берет самые свежие количества прямо из ваших сумок."
+	"Water Dispenser может создать макрос, объявляющий, что у вас осталось для раздачи. Макрос сам выбирает нужный канал (Сказать вне группы, Группа в группе, Рейд в рейде, Подземелье в группе подземелья или на поле боя) и берет самые свежие количества прямо из ваших сумок."
 L["OPTIONS_ANNOUNCEMENTS_ENABLE"] = "Включить макрос анонса"
 -- "- Dispenser" is the macro's literal name and is never translated.
 L["OPTIONS_ANNOUNCEMENTS_ENABLE_DESC"] =
@@ -208,6 +239,9 @@ L["OPTIONS_ANNOUNCEMENTS_ENABLE_DESC"] =
 -- "Enable Reserves" must match OPTIONS_ITEM_RESERVE.
 L["OPTIONS_ANNOUNCEMENTS_PREVIEW_EMPTY"] =
 	"Нечего анонсировать. Настройте предметы, пополните сумки или уменьшите резерв в разделе Включить резерв."
+-- "Enable Dispense" must match OPTIONS_DISPENSE_MASTER, "Dispense" must match TAB_DISPENSE.
+L["OPTIONS_ANNOUNCEMENTS_PREVIEW_DISPENSE_OFF"] =
+	"Нечего анонсировать, пока Включить раздачу отключено на вкладке Раздача."
 
 -- Macro message template (%s is the item list) and the connector before the last list entry.
 L["ANNOUNCEMENTS_BODY"] = "У меня есть %s. Кидайте обмен!"

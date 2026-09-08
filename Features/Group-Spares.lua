@@ -50,6 +50,14 @@ local broadcastTimer
 ]]
 local lastBroadcast, lastChannel
 
+--[[
+	The last offer composed, held until something that could change it schedules a
+	broadcast. The player's own tooltip is built from this, and the game rebuilds a
+	hovered unit tooltip about five times a second, so uncached it walked every bag
+	slot on each of those refreshes for an answer that had not moved.
+]]
+local cachedOffer
+
 --------------------------------------------------------------------------------
 -- Player Keys
 --------------------------------------------------------------------------------
@@ -95,17 +103,17 @@ local function HealthstoneTalentRank()
 end
 
 --[[
-	Item ID to how many of it this player is carrying, for every item on their
+	Item ID to how many of it this player has to give away, for every item on their
 	Dispensed Items list.
 
-	No distribution rules, no reserve, no class filter. Putting an item on the list
-	is the statement that it is up for grabs, so the tooltip answers the only
-	question left: how many have you got.
+	The counts are ns.BuildTooltipSnapshot's, already net of each item's reserve and
+	already filtered to what this character would actually hand over, so the number
+	the group reads is a number they can ask for.
 
 	Empty while Dispense is switched off. Someone not dispensing is not offering, so
 	their own tooltip drops the block and the group is told they have nothing.
 ]]
-local function BuildOffer()
+local function ComposeOffer()
 	local offer = { Items = {} }
 	if not ns.BuildTooltipSnapshot then
 		return offer
@@ -128,6 +136,18 @@ local function BuildOffer()
 	end
 
 	return offer
+end
+
+-- Both readers, the tooltip and the broadcast, take the same table, so the two can never disagree. Neither writes to it.
+local function BuildOffer()
+	if not cachedOffer then
+		cachedOffer = ComposeOffer()
+	end
+	return cachedOffer
+end
+
+local function InvalidateOffer()
+	cachedOffer = nil
 end
 
 --------------------------------------------------------------------------------
@@ -239,7 +259,13 @@ local function Broadcast()
 	end
 end
 
+--[[
+	Every trigger that schedules a broadcast is a trigger that could have changed the
+	offer, so this one site is where the cache is dropped. Ahead of the pending-timer
+	early-out: a second trigger inside the debounce window still has to be believed.
+]]
 local function ScheduleBroadcast()
+	InvalidateOffer()
 	if broadcastTimer then
 		return
 	end
@@ -277,16 +303,48 @@ local function OnAddonMessage(_, prefix, message, _, sender)
 	end
 end
 
--- Nothing is kept for players we are no longer grouped with.
+--[[
+	Nothing is kept for players we are no longer grouped with.
+
+	The roster is read through real unit tokens rather than by asking the client to
+	find a player by a name we spelled ourselves. That keeps the whole feature on
+	one assumption, that UnitKey's output matches CHAT_MSG_ADDON's sender spelling,
+	which the tooltip lookup already depends on. Getting the second one wrong is
+	silent: every member reads as ungrouped and their spares are dropped on any
+	roster change, then quietly reappear when everyone rebroadcasts.
+]]
 local function PruneToGroup()
 	if not ns.GetGroupChatChannel() then
 		wipe(receivedSpares)
 		wipe(incoming)
 		return
 	end
+
+	local grouped = {}
+	local prefix, count = "party", 4
+	if IsInRaid() then
+		prefix, count = "raid", 40
+	end
+	for index = 1, count do
+		local key = UnitKey(prefix .. index)
+		if key then
+			grouped[key] = true
+		end
+	end
+	-- party1..4 leaves the player out, where raid1..40 already includes them.
+	local ownKey = UnitKey("player")
+	if ownKey then
+		grouped[ownKey] = true
+	end
+
 	for playerKey in pairs(receivedSpares) do
-		if not UnitInParty(playerKey) and not UnitInRaid(playerKey) then
+		if not grouped[playerKey] then
 			receivedSpares[playerKey] = nil
+		end
+	end
+	-- Walked separately so a half-received broadcast is dropped even with no completed one beside it.
+	for playerKey in pairs(incoming) do
+		if not grouped[playerKey] then
 			incoming[playerKey] = nil
 		end
 	end

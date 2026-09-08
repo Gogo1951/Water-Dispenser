@@ -43,8 +43,8 @@ local function ScanInventory()
 	local previous = inventory
 	inventory = {}
 
-	for bag = BACKPACK_CONTAINER, NUM_BAG_SLOTS do
-		local slots = ns.GetContainerNumSlots(bag)
+	for bag = BACKPACK_CONTAINER, ns.LAST_BAG_INDEX do
+		local slots = ns.GetContainerNumSlots(bag) or 0
 		for slot = 1, slots do
 			local info = ns.GetContainerItemInfo(bag, slot)
 			if info then
@@ -197,7 +197,6 @@ local function TotalItemCount(inventoryItem)
 	end
 	return total
 end
-ns.TotalItemCount = TotalItemCount
 
 -- Total individual items across tradable (unbound) slots only, so a user-item announcement never advertises what can't be given.
 local function UnboundItemCount(inventoryItem)
@@ -322,12 +321,17 @@ end
     Each entry: {Link, Name, Count, IncludeQuantity, Collection}. Count is
     items on hand minus the item's reserve; entries with nothing left to give are
     omitted. IncludeQuantity is the per-item "show count" toggle.
+
+    Empty while the master Dispense switch is off, matching the player tooltip and
+    the group broadcast: nothing is being handed out, so nothing is announced. Each
+    item is still gated by its reserve, its Distribute rule and its player-class
+    filter, so the macro never names what the fill would refuse.
 ]]
 function ns.BuildAnnouncementSnapshot()
 	ScanInventoryForDisplay()
 
 	local entries = {}
-	if not inventory or not ns.db or not ns.db.profile.Items then
+	if not inventory or not ns.db or not ns.db.profile.Dispense or not ns.db.profile.Items then
 		return entries
 	end
 
@@ -395,14 +399,15 @@ end
 --------------------------------------------------------------------------------
 
 --[[
-    Every configured item the player is actually carrying, with the plain bag
-    count. This is the tooltip list.
+    Every configured item the player has something to give away, with the count
+    they could actually part with. This is the tooltip list.
 
-    Deliberately simpler than the announcement snapshot: no reserve subtracted, no
-    class filter, no distribution rules. Configuring an item is the statement that
-    it is up for grabs, so the only question left is how many they have. Soulbound
-    copies of a user-added item still do not count, because they cannot be traded
-    at all.
+    Counts match the announcement macro's: items on hand minus the item's reserve,
+    with entries down to nothing left out. The number beside an item's name is a
+    promise to whoever reads it, and a reserve is the player saying that part of
+    the stack is not on offer, so advertising the raw bag count would invite a
+    trade for water that was never going to leave. Soulbound copies of a
+    user-added item do not count either, because they cannot be traded at all.
 
     IncludeQuantity rides along: the same per-item switch the announcement macro
     obeys, so a unique item reads "Healthstone" rather than "Healthstone 1" on
@@ -419,23 +424,29 @@ function ns.BuildTooltipSnapshot()
 	for key, itemConfig in pairs(ns.db.profile.Items) do
 		local isCollection = ns.COLLECTION_META[key] ~= nil
 		--[[
-			The two rules this snapshot applies, both for one reason: never advertise
-			what the fill would refuse. Distribute is not a rule about who deserves the
+			The rules this snapshot applies, all for one reason: never advertise what
+			the fill would refuse. Distribute is not a rule about who deserves the
 			item, it is a statement that the item is not on offer at all right now, and
 			the player-class filter says this character never hands it over. A raid
 			consumable listed in a five-man, or mage water listed on a warlock, invites
 			a whisper the add-on would then turn down.
 
-			Everything else stays unfiltered on purpose: no per-class counts and no
-			reserve, because configuring an item is the statement that it is up for
-			grabs, leaving only the question of how many are being carried.
+			Per-class counts stay unfiltered on purpose: they shape one trade, where
+			this is the whole stash on offer, and an item whose counts are all 0 is
+			still something the player is carrying and can be asked for.
 		]]
 		local gated = not (ns.IsItemDistributableNow(itemConfig) and ns.IsItemActiveForPlayer(itemConfig))
 		-- A collection is reported as the best rank on hand, the same item the fill would reach for.
 		local id = (not gated) and (isCollection and BestRankItemId(key) or key) or nil
 		local inventoryItem = id and inventory[id] or nil
 		if inventoryItem and #inventoryItem.Bags > 0 then
-			local count = isCollection and TotalItemCount(inventoryItem) or UnboundItemCount(inventoryItem)
+			local total = isCollection and TotalItemCount(inventoryItem) or UnboundItemCount(inventoryItem)
+			--[[
+				The reserve guards the best-overall rank, which is the entry a collection
+				reports here, so subtracting it against that count is the same arithmetic
+				the fill and the macro do.
+			]]
+			local count = math.max(0, total - ns.GetItemReserve(itemConfig))
 			if count > 0 then
 				entries[#entries + 1] = {
 					Id = id,

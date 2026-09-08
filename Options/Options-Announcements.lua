@@ -36,8 +36,15 @@ end
 -- Live Preview
 --------------------------------------------------------------------------------
 
--- Current macro message colored for the preview pane, or a muted "nothing to announce" notice when empty.
+-- Current macro message colored for the preview pane, or a muted notice naming why there is nothing to announce.
 local function GetPreviewText()
+	--[[
+		Dispense off is its own notice: the generic empty one tells the player to
+		restock bags that are fine, when the cause is one toggle on another panel.
+	]]
+	if not (ns.db and ns.db.profile.Dispense) then
+		return GetColor("MUTED") .. L["OPTIONS_ANNOUNCEMENTS_PREVIEW_DISPENSE_OFF"] .. "|r"
+	end
 	if ns.BuildAnnouncementMessage then
 		local message = ns.BuildAnnouncementMessage()
 		if message then
@@ -70,8 +77,9 @@ function ns.BuildAnnouncementsOptions()
 				set = SetEnabled,
 			},
 			--[[
-				The macro's current body, unlabeled: it is plainly the macro, and the
-				section text above already says what it is.
+				The announcement as it will read, unlabeled: it is plainly the macro, and
+				the section text above already says what it is. Built without the channel
+				prefix and before any truncation, so a long list previews in full.
 			]]
 			spacePreview0 = Spacer(20),
 			previewBody = {

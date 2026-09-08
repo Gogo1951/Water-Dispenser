@@ -145,7 +145,7 @@ local function BuildAnnouncementParts()
 	for _, entry in ipairs(entries) do
 		local label = entry.Link or ("[" .. (entry.Name or "?") .. "]")
 		if entry.IncludeQuantity then
-			parts[#parts + 1] = label .. " x " .. entry.Count
+			parts[#parts + 1] = format(L["FORMAT_ITEM_COUNT"], label, entry.Count)
 		else
 			-- "Include quantity" off: name the item without a count.
 			parts[#parts + 1] = label

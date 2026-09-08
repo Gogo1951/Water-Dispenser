@@ -14,20 +14,12 @@ ns.GetContainerNumSlots = C_Container and C_Container.GetContainerNumSlots
 ns.PickupContainerItem = C_Container and C_Container.PickupContainerItem
 ns.GetContainerItemInfo = C_Container and C_Container.GetContainerItemInfo
 --[[
-	Two ways to ask for a split, because on Classic Era 1.15.9 the C_Container one
-	has been seen handing back the whole stack instead of the count it was given.
-	Some legacy container globals do survive on that client -- the diagnostics probe
-	reports which -- so the older entry point is kept as a second attempt.
-
-	Nothing verifies that either call honored the count, because nothing can. Trying
-	both is safe for a different reason: the legacy call is made only when the first
-	attempt left the cursor empty, so the two can never both land, and the portion
-	goes into a bag rather than a trade slot -- a client that hands back the whole
-	stack has only moved a stack between bag slots, and FillTrade's whole-slot rule
-	places nothing larger than what is still owed.
+	Nothing verifies that the split honored the count, because nothing can. That is
+	why the portion goes into a bag slot rather than straight into a trade slot: a
+	client that hands back the whole stack has only moved a stack between bag slots,
+	and FillTrade's whole-slot rule places nothing larger than what is still owed.
 ]]
 ns.SplitContainerItem = C_Container and C_Container.SplitContainerItem
-ns.SplitContainerItemLegacy = type(SplitContainerItem) == "function" and SplitContainerItem or nil
 
 --------------------------------------------------------------------------------
 -- Combat Guard
@@ -175,6 +167,18 @@ function ns.IsItemDistributableNow(itemConfig)
 		return IsInGroup() and true or false
 	end
 	return true
+end
+
+--[[
+	The config key an item ID answers to: its collection key for a built-in, the ID
+	itself for a user-added item, nil when the player has not configured it at all.
+]]
+function ns.GetItemConfigKey(itemId)
+	local key = ns.ITEM_TO_COLLECTION[itemId]
+	if not key and ns.db and ns.db.profile.Items[itemId] ~= nil then
+		key = itemId
+	end
+	return key
 end
 
 -- True if the item's PlayerClasses includes the player's class; missing PlayerClasses counts as all classes.

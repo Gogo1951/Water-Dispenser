@@ -8,13 +8,13 @@ Effortless consumable distribution. Auto-fill the trade window with water, food,
 
 🎯 **Right Item, Right Amount** // Water and food automatically step down to the best rank your trade partner can use. Amounts are always individual items, not stacks, so you can hand over exactly one Hourglass Sand, Resistance Potion, Flask, or Venom Sac from a full stack.
 
-👀 **Player Tooltips & Announcement Macro** // Hover a party or raid member to see everything they've configured to give, including a warlock's Healthstone rank. An optional one-click macro announces your own leftovers to party or raid chat, with shift-clickable item links.
+👀 **Player Tooltips & Announcement Macro** // Hover a party or raid member to see everything they've configured to give, including a warlock's Healthstone rank. Your own bag items say when they are set to be handed out. An optional one-click macro announces your own leftovers to party or raid chat, with shift-clickable item links.
 
 ⚙️ **Your Rules, Your Stash** // Set how much each class gets from you as a stranger, party member, or raid member. Reserves protect your personal supply so only your surplus goes out, while Maximum per Session keeps one person from draining your expensive potions trade after trade.
 
-🧹 **Tidy Bags, Always Ready** // Conjured water and food land in a new bag slot after every cast, and the game never combines them again. Water Dispenser cleans up those loose partial stacks between trades, so a full stack is ready the moment someone asks.
+🧹 **Tidy Bags After a Trade** // Conjured water and food land in a new bag slot after every cast, and the game never combines them again. Water Dispenser merges those loose partial stacks once, just after a trade window closes, so a full stack is ready next time.
 
-🦺 **Safety First** // Only moves the consumables you've configured, never anything else. It won't trade in combat or shuffle your bags during a fight, an active trade, or while you're dragging an item.
+🦺 **Safety First** // Only moves the consumables you've configured, never anything else. It never rearranges your bags while you are just playing: the only time it touches them outside a trade is the moment one closes, and even then it stands down in combat or if you are holding anything.
 
 ## Setup
 
@@ -49,7 +49,7 @@ Conjure while a trade is open and the water, food, or healthstone you just made 
 
 Hover a party or raid member and Water Dispenser adds a short block to the bottom of their tooltip: every item they have set up to give out, and how many they are carrying. Warlocks always show a `Healthstone (Rank N/2)` line stating their Improved Healthstone rank, carrying one or not, since that is what a raid coordinates around. Your own inventory always shows on your own tooltip, grouped or not.
 
-To tell people out loud instead, turn on the macro under the Announcements tab and a `- Dispenser` macro appears on your character. Click it to post your leftover giveaways to the channel that matches your group: Say when you're on your own, Party in a group, Raid in a raid. Item names are real hyperlinks, so people can shift-click them for the tooltip.
+To tell people out loud instead, turn on the macro under the Announcements tab and a `- Dispenser` macro appears on your character. Click it to post your leftover giveaways to the channel that matches your group: Say when you're on your own, Party in a party, Raid in a raid, Instance in a dungeon or battleground group. Item names are real hyperlinks, so people can shift-click them for the tooltip.
 
 ### Mini-Map Button
 
@@ -64,10 +64,10 @@ To tell people out loud instead, turn on the macro under the Announcements tab a
 <img width="800" src="https://github.com/user-attachments/assets/78e15b06-f153-4e95-81e4-f47410eefdd0" />
 
 - **Water Dispenser** // The welcome message, the mini-map button, the `/wd` command, and where to reach the author.
-- **Dispense** // The master **Enable Dispense** switch and its per-scope toggles for raid members, party members, and strangers. Under those sit the automatic combining of partial stacks, the warning when you run short, and whether Water Dispenser says anything when combat blocks a fill.
-- **Dispensed Items** // Your list of consumables and the per-class amount grid. Every item also carries **Distribute** (Always, In Group for a party or raid, or In Raid only), so raid consumables stay quiet in a five-man instead of tempting someone to ask. Below that sit the partner-level check, **Enable Reserves**, **Maximum per Session**, and which of your own classes the item applies to.
+- **Dispense** // The master **Enable Dispense** switch and its per-scope toggles for raid members, party members, and strangers. Under those sit **Combine Partial Stacks After a Trade**, the warning when you run short, and whether Water Dispenser says anything when combat blocks a fill.
+- **Dispensed Items** // Your list of consumables and the per-class amount grid. Every item also carries **Distribute** (Always, In Group for a party or raid, or In Raid only), so raid consumables stay quiet in a five-man instead of tempting someone to ask. Below that sit the partner-level check, **Enable Reserves**, **Maximum per Session**, whether the item's count rides along in your tooltip and macro, and which of your own classes the item applies to.
 - **Announcements** // The `- Dispenser` macro toggle, with a live preview of what it will say.
-- **Inventory Tooltips** // **Show Inventory in Player Tooltips** and, beneath it, **Share My Inventory** if you would rather read other people's without sending your own.
+- **Inventory Tooltips** // **Show Inventory in Player Tooltips** and, beneath it, **Share My Inventory** if you would rather read other people's without sending your own. **Show Bag Tooltips for Dispensed Items** adds a line to your own bag items saying they are set to be given out.
 - **Profiles** // Share one set of rules across every character, or give a character its own.
 - **Diagnostic Tools** // Read-only probes to paste into a bug report.
 

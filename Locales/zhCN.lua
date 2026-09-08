@@ -10,12 +10,20 @@ end
 L["ADDON_TITLE"] = "Water Dispenser"
 
 --------------------------------------------------------------------------------
+-- Shared Formats
+--------------------------------------------------------------------------------
+
+-- %s is the item's name or link, %d how many of it. Used by the chat prints and the announcement macro.
+L["FORMAT_ITEM_COUNT"] = "%s x%d"
+
+--------------------------------------------------------------------------------
 -- Chat Messages
 --------------------------------------------------------------------------------
 
 --[[
 	All player-facing chat prints live here, regardless of which feature emits them.
-	%s is the add-on version; the menu path is the game client's own labels.
+	In CHAT_LOADED, %s is the add-on version and the menu path is the game client's
+	own labels.
 ]]
 L["CHAT_LOADED"] =
 	"版本 %s。设置（包含关闭此信息的选项）可以在 选项 > 插件 > Water Dispenser 中找到。喜欢这个插件吗？分享给你的朋友吧！(="
@@ -26,7 +34,7 @@ L["CHAT_OPTIONS_IN_COMBAT"] = "出于安全考虑，战斗中无法打开选项�
 L["CHAT_MISSING_STACK"] = "缺少："
 --[[
 	%s is the item's name, %d the Maximum per Session it has hit.
-	"Maximum per Session" must match OPTIONS_ITEM_SESSION_CAP.
+	"Maximum per Session" is the label of OPTIONS_ITEM_SESSION_CAP, minus its "Enable".
 ]]
 L["CHAT_SESSION_CAP_REACHED"] =
 	"%s 未加入：本次登录他已经拿到了 %d 个。请调整每次登录上限，或重新加载以重置。"
@@ -35,7 +43,7 @@ L["CHAT_SPLIT_REFUSED"] =
 	"%s 未加入：此客户端无法从一堆中拆出 %d 个，而直接给出整堆会送出远超你设定的数量。请把此物品的数量设为一整堆才能交易。"
 -- %s is the player's class name. "Dispensed Items" must match TAB_DISPENSED_ITEMS.
 L["CHAT_NONE_ACTIVE_FOR_CLASS"] =
-	"当你使用 %s 游玩时，没有设置任何要分发的物品。请打开 选项 > 分发物品 启用适用于此职业的物品。"
+	"当你使用 %s 游玩时，没有设置任何要分发的物品。请打开 选项 > 插件 > Water Dispenser > 分发物品 启用适用于此职业的物品。"
 -- "- Dispenser" is the macro's literal name and is never translated.
 L["CHAT_MACRO_DELETED"] = '喊话宏 "- Dispenser" 已删除。'
 L["CHAT_MACRO_FULL"] = "无法创建宏：角色专属宏数量已达上限。"
@@ -47,6 +55,15 @@ L["CHAT_MACRO_FULL"] = "无法创建宏：角色专属宏数量已达上限。"
 L["TOOLTIP_OPEN_TRADE"] = "点我交易！"
 -- %d/%d is the warlock's Improved Healthstone rank out of its maximum.
 L["TOOLTIP_HEALTHSTONE"] = "治疗石（等级 %d/%d）"
+
+--------------------------------------------------------------------------------
+-- Bag Item Tooltips
+--------------------------------------------------------------------------------
+
+-- Shown on a carried bag item the player has set up to give away.
+L["TOOLTIP_WILL_DISPENSE"] = "此物品将会被分发。"
+-- The same line for an item that stacks, which is also tidied back together once a trade ends.
+L["TOOLTIP_WILL_DISPENSE_STACKED"] = "此物品将会被分发。交易结束后，它的零散堆叠会被合并。"
 
 --------------------------------------------------------------------------------
 -- Trade Side Panel
@@ -78,17 +95,14 @@ L["OPTIONS_WELCOME_MESSAGE"] = "启用欢迎信息"
 L["OPTIONS_WELCOME_MESSAGE_DESC"] = "当 Water Dispenser 加载时，在聊天框输出一行问候语。"
 L["OPTIONS_MINIMAP"] = "启用小地图按钮"
 L["OPTIONS_MINIMAP_DESC"] = "显示 Water Dispenser 小地图按钮。"
-L["OPTIONS_MISSING_STACK_WARNINGS"] = "库存不足时启用警告"
-L["OPTIONS_MISSING_STACK_WARNINGS_DESC"] =
-	"当背包中已配置物品的数量不足以给出你设定的数量时，在聊天框中输出提示。"
--- The label says what it does; the tooltip only covers why it is needed and when it stands down.
-L["OPTIONS_RESTACK"] = "自动合并背包中的零散堆叠"
-L["OPTIONS_RESTACK_DESC"] =
-	"制造的水和食物每次施放都会落在新的背包格中，游戏从不会把它们合回去，不过在战斗中、交易窗口打开时或你的光标上拿着东西时都不会执行。"
 
 L["OPTIONS_COMMANDS_HEADER"] = "/命令"
 L["OPTIONS_COMMAND"] = "/wd"
 L["OPTIONS_COMMAND_DESCRIPTION"] = "打开本插件的选项界面。"
+
+--------------------------------------------------------------------------------
+-- Options — Dispense
+--------------------------------------------------------------------------------
 
 -- Names the panel, its section header, and the mini-map tooltip's feature row.
 L["TAB_DISPENSE"] = "分发"
@@ -101,21 +115,36 @@ L["OPTIONS_DISPENSE_GROUP"] = "对小队启用"
 L["OPTIONS_DISPENSE_GROUP_DESC"] = "当与小队成员交易时，自动填充交易窗口。"
 L["OPTIONS_DISPENSE_RAID"] = "对团队启用"
 L["OPTIONS_DISPENSE_RAID_DESC"] = "当与团队成员交易时，自动填充交易窗口。"
-
-L["TAB_INVENTORY_TOOLTIPS"] = "库存提示"
-L["OPTIONS_TOOLTIPS_DESC"] = "在使用 Water Dispenser 的队友的玩家提示信息中显示可分发的库存。"
-L["OPTIONS_SHOW_INVENTORY"] = "在玩家提示中显示库存"
-L["OPTIONS_SHOW_INVENTORY_DESC"] =
-	"在玩家提示信息中添加一个 Water Dispenser 区块，列出他们设置为分发的内容以及携带的数量，而无论是否组队，你自己的库存都会始终显示。"
-L["OPTIONS_SHARE_INVENTORY"] = "分享我的库存"
-L["OPTIONS_SHARE_INVENTORY_DESC"] =
-	"告知你的小队和团队你携带了什么，这样别人把鼠标移到你身上时就能看到你的库存，同时不会向聊天频道发送任何内容，队伍之外的人也不会知道，而且关闭后你依然可以查看别人的库存。"
+-- The label says what it does; the tooltip only covers why it is needed and when it stands down.
+L["OPTIONS_RESTACK"] = "交易结束后合并零散堆叠"
+L["OPTIONS_RESTACK_DESC"] =
+	"制造的水和食物每次施放都会落在新的背包格中，游戏从不会把它们合回去，因此 Water Dispenser 会在交易窗口关闭后立即合并一次。除此之外它绝不会整理你的背包，在战斗中或你的光标上拿着东西时也绝不会执行。"
+L["OPTIONS_MISSING_STACK_WARNINGS"] = "库存不足时启用警告"
+L["OPTIONS_MISSING_STACK_WARNINGS_DESC"] =
+	"当背包中已配置物品的数量不足以给出你设定的数量时，在聊天框中输出提示。"
 
 L["OPTIONS_COMBAT_HEADER"] = "战斗"
 L["OPTIONS_COMBAT_DESC"] = "魔兽世界禁止插件在战斗中将物品放入交易窗口。"
 L["OPTIONS_COMBAT_NOTIFY"] = "分发被阻止时启用提示"
 L["OPTIONS_COMBAT_NOTIFY_DESC"] =
 	"当战斗导致交易无法填充时，在聊天框中输出提示，而关闭后 Water Dispenser 不会再说明交易为何仍是空的。"
+
+--------------------------------------------------------------------------------
+-- Options — Inventory Tooltips
+--------------------------------------------------------------------------------
+
+L["TAB_INVENTORY_TOOLTIPS"] = "库存提示"
+L["OPTIONS_TOOLTIPS_DESC"] =
+	"在使用 Water Dispenser 的队友的玩家提示信息中显示可分发的库存，并在你自己背包中的这些物品上做出标记。"
+L["OPTIONS_SHOW_INVENTORY"] = "在玩家提示中显示库存"
+L["OPTIONS_SHOW_INVENTORY_DESC"] =
+	"在玩家提示信息中添加一个 Water Dispenser 区块，列出他们设置为分发的内容以及可以送出的数量，而无论是否组队，你自己的库存都会始终显示。"
+L["OPTIONS_BAG_TOOLTIPS"] = "为分发物品显示背包提示"
+L["OPTIONS_BAG_TOOLTIPS_DESC"] =
+	"当背包中的某个物品被设置为分发时，在它的提示信息中添加一行 Water Dispenser 说明，让你一眼就能看出插件会送出什么。"
+L["OPTIONS_SHARE_INVENTORY"] = "分享我的库存"
+L["OPTIONS_SHARE_INVENTORY_DESC"] =
+	"告知你的小队和团队你有什么可以送出，这样别人把鼠标移到你身上时就能看到你的库存，同时不会向聊天频道发送任何内容，队伍之外的人也不会知道，而且关闭后你依然可以查看别人的库存。"
 
 --------------------------------------------------------------------------------
 -- Options — Dispensed Items
@@ -127,8 +156,8 @@ L["OPTIONS_ITEMS_DESC"] =
 -- "Add an Item" must match OPTIONS_ADD_ITEM.
 L["OPTIONS_ITEMS_EMPTY"] = '未配置物品。请在列表中选择 "添加物品"，从背包中添加消耗品。'
 
-L["OPTIONS_ITEM_DISTRIBUTION"] = "分发数量"
-L["OPTIONS_ITEM_DISTRIBUTION_DESC"] =
+L["OPTIONS_ITEM_AMOUNTS"] = "数量"
+L["OPTIONS_ITEM_AMOUNTS_DESC"] =
 	"按对方是陌生人、你的小队成员还是团队成员，选择每个职业各拿多少。按单个物品计算，而非按堆。填 0 表示他们永远拿不到这个物品。"
 L["OPTIONS_ITEM_EVERYONE"] = "所有人"
 L["OPTIONS_ITEM_EVERYONE_DESC"] =
@@ -147,11 +176,11 @@ L["OPTIONS_ITEM_DISTRIBUTE_DESC"] =
 L["OPTIONS_ITEM_DISTRIBUTE_ALWAYS"] = "始终"
 L["OPTIONS_ITEM_DISTRIBUTE_GROUP"] = "队伍中"
 L["OPTIONS_ITEM_DISTRIBUTE_RAID"] = "团队中"
-L["OPTIONS_ITEM_FACTOR_LEVEL"] = "考虑使用等级要求"
+L["OPTIONS_ITEM_FACTOR_LEVEL"] = "考虑物品的等级需求"
 L["OPTIONS_ITEM_FACTOR_LEVEL_DESC"] = "当交易对象未达到该物品的使用等级时，跳过该物品。"
 L["OPTIONS_ITEM_RESERVE"] = "启用保留数量"
 L["OPTIONS_ITEM_RESERVE_DESC"] =
-	"始终在背包中至少保留这么多，而分发和喊话宏会把超出这个数量的部分视为可以送出的。"
+	"始终在背包中至少保留这么多，而分发、你的玩家提示和喊话宏会把超出这个数量的部分视为可以送出的。"
 L["OPTIONS_ITEM_SESSION_CAP"] = "启用每次登录上限"
 L["OPTIONS_ITEM_SESSION_CAP_DESC"] =
 	"当某人从你这里拿到这么多之后就不再给他这个物品，跨所有交易累计，直到你登出或重新加载为止，而修改此物品的任何数量都会让所有人的计数重新开始。"
@@ -163,7 +192,7 @@ L["OPTIONS_ITEM_PLAYER_CLASSES"] = "仅在使用这些职业时分发"
 L["OPTIONS_ITEM_PLAYER_CLASSES_DESC"] =
 	"仅当你的角色职业在下方被选中时，才填充交易、把此物品写进喊话宏，并显示在你的玩家提示中。"
 L["OPTIONS_ITEM_REMOVE"] = "移除物品"
-L["OPTIONS_ITEM_REMOVE_CONFIRM"] = "是否从交易配置中移除此物品？"
+L["OPTIONS_ITEM_REMOVE_CONFIRM"] = "是否从你的分发物品中移除此物品？"
 
 L["OPTIONS_SCOPE_SOLO"] = "陌生人"
 L["OPTIONS_SCOPE_GROUP"] = "小队"
@@ -171,9 +200,9 @@ L["OPTIONS_SCOPE_RAID"] = "团队"
 
 L["OPTIONS_ADD_ITEM"] = "添加物品"
 L["OPTIONS_ADD_DESC"] =
-	"从背包中选择任意可交易物品加入交易配置。已配置或已灵魂绑定的物品不会出现在这里。"
+	"从背包中选择任意可交易物品加入你的分发物品。已配置或已灵魂绑定的物品不会出现在这里。"
 L["OPTIONS_ADD_SELECT"] = "可用物品"
-L["OPTIONS_ADD_BUTTON"] = "添加到配置"
+L["OPTIONS_ADD_BUTTON"] = "添加到分发物品"
 L["OPTIONS_ADD_EMPTY"] = "背包中没有找到可交易的物品。"
 
 --------------------------------------------------------------------------------
@@ -182,7 +211,7 @@ L["OPTIONS_ADD_EMPTY"] = "背包中没有找到可交易的物品。"
 
 L["TAB_ANNOUNCEMENTS"] = "喊话"
 L["OPTIONS_ANNOUNCEMENTS_DESC"] =
-	"Water Dispenser 可以创建一个宏，通报你还有什么可以分发。该宏会自动选择频道（未组队时说话，队伍中为小队，团队中为团队），并直接使用背包中的最新数量。"
+	"Water Dispenser 可以创建一个宏，通报你还有什么可以分发。该宏会自动选择频道（未组队时说话，队伍中为小队，团队中为团队，副本或战场队伍中为副本），并直接使用背包中的最新数量。"
 L["OPTIONS_ANNOUNCEMENTS_ENABLE"] = "启用喊话宏"
 -- "- Dispenser" is the macro's literal name and is never translated.
 L["OPTIONS_ANNOUNCEMENTS_ENABLE_DESC"] =
@@ -190,6 +219,9 @@ L["OPTIONS_ANNOUNCEMENTS_ENABLE_DESC"] =
 -- "Enable Reserves" must match OPTIONS_ITEM_RESERVE.
 L["OPTIONS_ANNOUNCEMENTS_PREVIEW_EMPTY"] =
 	"没有可喊话的内容。配置物品，补充背包，或在启用保留数量中调低保留值。"
+-- "Enable Dispense" must match OPTIONS_DISPENSE_MASTER, "Dispense" must match TAB_DISPENSE.
+L["OPTIONS_ANNOUNCEMENTS_PREVIEW_DISPENSE_OFF"] =
+	"分发标签页中的启用分发处于关闭状态时，没有可喊话的内容。"
 
 -- Macro message template (%s is the item list) and the connector before the last list entry.
 L["ANNOUNCEMENTS_BODY"] = "我有 %s。点我交易！"

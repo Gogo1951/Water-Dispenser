@@ -10,12 +10,20 @@ end
 L["ADDON_TITLE"] = "Water Dispenser"
 
 --------------------------------------------------------------------------------
+-- Shared Formats
+--------------------------------------------------------------------------------
+
+-- %s is the item's name or link, %d how many of it. Used by the chat prints and the announcement macro.
+L["FORMAT_ITEM_COUNT"] = "%s x%d"
+
+--------------------------------------------------------------------------------
 -- Chat Messages
 --------------------------------------------------------------------------------
 
 --[[
 	All player-facing chat prints live here, regardless of which feature emits them.
-	%s is the add-on version; the menu path is the game client's own labels.
+	In CHAT_LOADED, %s is the add-on version and the menu path is the game client's
+	own labels.
 ]]
 L["CHAT_LOADED"] =
 	"Versão %s. As configurações (incluindo a opção de desativar esta mensagem) podem ser encontradas em Opções > AddOns > Water Dispenser. Está gostando do add-on? Conte a um amigo! (="
@@ -26,7 +34,7 @@ L["CHAT_OPTIONS_IN_COMBAT"] = "Por precaução, a interface de opções não pod
 L["CHAT_MISSING_STACK"] = "Faltando:"
 --[[
 	%s is the item's name, %d the Maximum per Session it has hit.
-	"Maximum per Session" must match OPTIONS_ITEM_SESSION_CAP.
+	"Maximum per Session" is the label of OPTIONS_ITEM_SESSION_CAP, minus its "Enable".
 ]]
 L["CHAT_SESSION_CAP_REACHED"] =
 	"%s não adicionado: ele já recebeu os %d desta sessão. Altere Máximo por Sessão, ou recarregue para zerar."
@@ -35,7 +43,7 @@ L["CHAT_SPLIT_REFUSED"] =
 	"%s não adicionado: este cliente não quis separar %d de uma pilha, e entregar uma pilha inteira daria muito mais do que você pediu. Defina a quantidade deste item como uma pilha inteira para negociá-lo."
 -- %s is the player's class name. "Dispensed Items" must match TAB_DISPENSED_ITEMS.
 L["CHAT_NONE_ACTIVE_FOR_CLASS"] =
-	"Nenhum item está configurado para distribuição enquanto você joga de %s. Abra Opções > Itens Distribuídos para ativar itens para esta classe."
+	"Nenhum item está configurado para distribuição enquanto você joga de %s. Abra Opções > AddOns > Water Dispenser > Itens Distribuídos para ativar itens para esta classe."
 -- "- Dispenser" is the macro's literal name and is never translated.
 L["CHAT_MACRO_DELETED"] = 'Macro de anúncio "- Dispenser" deletada.'
 L["CHAT_MACRO_FULL"] = "Não foi possível criar a macro: todos os espaços de macro do personagem estão em uso."
@@ -47,6 +55,16 @@ L["CHAT_MACRO_FULL"] = "Não foi possível criar a macro: todos os espaços de m
 L["TOOLTIP_OPEN_TRADE"] = "Abra troca!"
 -- %d/%d is the warlock's Improved Healthstone rank out of its maximum.
 L["TOOLTIP_HEALTHSTONE"] = "Pedra de vida (Grau %d/%d)"
+
+--------------------------------------------------------------------------------
+-- Bag Item Tooltips
+--------------------------------------------------------------------------------
+
+-- Shown on a carried bag item the player has set up to give away.
+L["TOOLTIP_WILL_DISPENSE"] = "Este item será distribuído."
+-- The same line for an item that stacks, which is also tidied back together once a trade ends.
+L["TOOLTIP_WILL_DISPENSE_STACKED"] =
+	"Este item será distribuído. As pilhas parciais dele são juntadas quando uma troca é fechada."
 
 --------------------------------------------------------------------------------
 -- Trade Side Panel
@@ -79,17 +97,14 @@ L["OPTIONS_WELCOME_MESSAGE_DESC"] =
 	"Mostra uma saudação de uma linha na sua janela de chat quando o Water Dispenser é carregado."
 L["OPTIONS_MINIMAP"] = "Ativar Botão do Minimapa"
 L["OPTIONS_MINIMAP_DESC"] = "Mostra o botão do minimapa do Water Dispenser."
-L["OPTIONS_MISSING_STACK_WARNINGS"] = "Ativar Avisos Quando Faltar Estoque"
-L["OPTIONS_MISSING_STACK_WARNINGS_DESC"] =
-	"Mostra um aviso na sua janela de chat quando você não tem o suficiente de um item configurado nas bolsas para dar a quantidade definida."
--- The label says what it does; the tooltip only covers why it is needed and when it stands down.
-L["OPTIONS_RESTACK"] = "Juntar Automaticamente Pilhas Parciais nas Bolsas"
-L["OPTIONS_RESTACK_DESC"] =
-	"Água e comida conjuradas caem em um novo espaço da bolsa a cada conjuração e o jogo nunca as junta de volta, embora isto nunca seja executado em combate, com uma troca aberta ou enquanto você segura algo no cursor."
 
 L["OPTIONS_COMMANDS_HEADER"] = "/Comandos"
 L["OPTIONS_COMMAND"] = "/wd"
 L["OPTIONS_COMMAND_DESCRIPTION"] = "Abre a interface de opções deste add-on."
+
+--------------------------------------------------------------------------------
+-- Options — Dispense
+--------------------------------------------------------------------------------
 
 -- Names the panel, its section header, and the mini-map tooltip's feature row.
 L["TAB_DISPENSE"] = "Distribuir"
@@ -103,22 +118,36 @@ L["OPTIONS_DISPENSE_GROUP"] = "Ativar para Grupo"
 L["OPTIONS_DISPENSE_GROUP_DESC"] = "Preenche a janela de troca automaticamente ao negociar com um membro do grupo."
 L["OPTIONS_DISPENSE_RAID"] = "Ativar para Raide"
 L["OPTIONS_DISPENSE_RAID_DESC"] = "Preenche a janela de troca automaticamente ao negociar com um membro da raide."
-
-L["TAB_INVENTORY_TOOLTIPS"] = "Dicas de Inventário"
-L["OPTIONS_TOOLTIPS_DESC"] =
-	"Mostra o inventário disponível para doação nas dicas de jogador dos membros do grupo que usam o Water Dispenser."
-L["OPTIONS_SHOW_INVENTORY"] = "Mostrar Inventário nas Dicas de Jogador"
-L["OPTIONS_SHOW_INVENTORY_DESC"] =
-	"Adiciona um bloco do Water Dispenser às dicas de jogador listando o que eles configuraram para doar e quantos estão carregando, com o seu sempre aparecendo, em grupo ou não."
-L["OPTIONS_SHARE_INVENTORY"] = "Compartilhar Meu Inventário"
-L["OPTIONS_SHARE_INVENTORY_DESC"] =
-	"Informa ao seu grupo e à sua raide o que você está carregando para que o seu inventário apareça quando passarem o mouse sobre você, sem publicar nada no chat nem avisar ninguém fora do seu grupo, e desativar isto ainda deixa você ver o dos outros."
+-- The label says what it does; the tooltip only covers why it is needed and when it stands down.
+L["OPTIONS_RESTACK"] = "Juntar Pilhas Parciais Depois de uma Troca"
+L["OPTIONS_RESTACK_DESC"] =
+	"Água e comida conjuradas caem em um novo espaço da bolsa a cada conjuração e o jogo nunca as junta de volta, então o Water Dispenser as junta uma vez, logo depois que uma janela de troca é fechada. Ele nunca reorganiza suas bolsas em nenhum outro momento, nem em combate, nem enquanto você segura algo no cursor."
+L["OPTIONS_MISSING_STACK_WARNINGS"] = "Ativar Avisos Quando Faltar Estoque"
+L["OPTIONS_MISSING_STACK_WARNINGS_DESC"] =
+	"Mostra um aviso na sua janela de chat quando você não tem o suficiente de um item configurado nas bolsas para dar a quantidade definida."
 
 L["OPTIONS_COMBAT_HEADER"] = "Combate"
 L["OPTIONS_COMBAT_DESC"] = "O WoW impede que add-ons movam itens para uma troca durante o combate."
 L["OPTIONS_COMBAT_NOTIFY"] = "Ativar Notificações Quando a Distribuição Estiver Bloqueada"
 L["OPTIONS_COMBAT_NOTIFY_DESC"] =
 	"Mostra um aviso na sua janela de chat quando o combate impede o preenchimento de uma troca, e com isto desativado o Water Dispenser fica calado sobre por que a troca continuou vazia."
+
+--------------------------------------------------------------------------------
+-- Options — Inventory Tooltips
+--------------------------------------------------------------------------------
+
+L["TAB_INVENTORY_TOOLTIPS"] = "Dicas de Inventário"
+L["OPTIONS_TOOLTIPS_DESC"] =
+	"Mostra o inventário disponível para doação nas dicas de jogador dos membros do grupo que usam o Water Dispenser, e marca os itens nas suas próprias bolsas."
+L["OPTIONS_SHOW_INVENTORY"] = "Mostrar Inventário nas Dicas de Jogador"
+L["OPTIONS_SHOW_INVENTORY_DESC"] =
+	"Adiciona um bloco do Water Dispenser às dicas de jogador listando o que eles configuraram para doar e quantos têm para doar, com o seu sempre aparecendo, em grupo ou não."
+L["OPTIONS_BAG_TOOLTIPS"] = "Mostrar Dicas de Bolsa para os Itens Distribuídos"
+L["OPTIONS_BAG_TOOLTIPS_DESC"] =
+	"Adiciona uma linha do Water Dispenser à dica de um item da bolsa quando esse item está configurado para ser doado, para você saber de relance o que o add-on vai entregar."
+L["OPTIONS_SHARE_INVENTORY"] = "Compartilhar Meu Inventário"
+L["OPTIONS_SHARE_INVENTORY_DESC"] =
+	"Informa ao seu grupo e à sua raide o que você tem para doar para que o seu inventário apareça quando passarem o mouse sobre você, sem publicar nada no chat nem avisar ninguém fora do seu grupo, e desativar isto ainda deixa você ver o dos outros."
 
 --------------------------------------------------------------------------------
 -- Options — Dispensed Items
@@ -131,8 +160,8 @@ L["OPTIONS_ITEMS_DESC"] =
 L["OPTIONS_ITEMS_EMPTY"] =
 	'Nenhum item configurado. Selecione "Adicionar Item" na lista para inserir consumíveis das suas bolsas.'
 
-L["OPTIONS_ITEM_DISTRIBUTION"] = "Distribuição"
-L["OPTIONS_ITEM_DISTRIBUTION_DESC"] =
+L["OPTIONS_ITEM_AMOUNTS"] = "Quantidades"
+L["OPTIONS_ITEM_AMOUNTS_DESC"] =
 	"Escolha quantos cada classe recebe ao negociar com ela, conforme seja um desconhecido, esteja no seu grupo ou na sua raide. Contados em itens individuais, não em pilhas. Zero significa que nunca receberá este item."
 L["OPTIONS_ITEM_EVERYONE"] = "Todos"
 L["OPTIONS_ITEM_EVERYONE_DESC"] =
@@ -151,12 +180,12 @@ L["OPTIONS_ITEM_DISTRIBUTE_DESC"] =
 L["OPTIONS_ITEM_DISTRIBUTE_ALWAYS"] = "Sempre"
 L["OPTIONS_ITEM_DISTRIBUTE_GROUP"] = "Em Grupo"
 L["OPTIONS_ITEM_DISTRIBUTE_RAID"] = "Em Raide"
-L["OPTIONS_ITEM_FACTOR_LEVEL"] = "Considerar Requisitos de Nível"
+L["OPTIONS_ITEM_FACTOR_LEVEL"] = "Considerar o Nível Exigido pelo Item"
 L["OPTIONS_ITEM_FACTOR_LEVEL_DESC"] =
 	"Ignora este item quando o parceiro de troca está abaixo do nível exigido pelo item."
 L["OPTIONS_ITEM_RESERVE"] = "Ativar Reservas"
 L["OPTIONS_ITEM_RESERVE_DESC"] =
-	"Mantém sempre pelo menos esta quantidade nas suas bolsas, com a distribuição e a macro de anúncio tratando tudo além desse número como disponível para doar."
+	"Mantém sempre pelo menos esta quantidade nas suas bolsas, com a distribuição, a sua dica de jogador e a macro de anúncio tratando tudo além desse número como disponível para doar."
 L["OPTIONS_ITEM_SESSION_CAP"] = "Ativar Máximo por Sessão"
 L["OPTIONS_ITEM_SESSION_CAP_DESC"] =
 	"Para de dar este item a alguém assim que ele tiver recebido esta quantidade de você, contando todas as trocas até você sair ou recarregar, e mudar qualquer quantidade deste item zera a contagem de todos."
@@ -168,7 +197,7 @@ L["OPTIONS_ITEM_PLAYER_CLASSES"] = "Apenas Distribuir ao Jogar com Estas Classes
 L["OPTIONS_ITEM_PLAYER_CLASSES_DESC"] =
 	"Preenche as trocas, lista este item na macro de anúncio e o mostra na sua dica de jogador somente quando a classe do seu personagem estiver selecionada abaixo."
 L["OPTIONS_ITEM_REMOVE"] = "Remover Item"
-L["OPTIONS_ITEM_REMOVE_CONFIRM"] = "Remover este item da configuração de troca?"
+L["OPTIONS_ITEM_REMOVE_CONFIRM"] = "Remover este item dos seus itens distribuídos?"
 
 L["OPTIONS_SCOPE_SOLO"] = "Desconhecidos"
 L["OPTIONS_SCOPE_GROUP"] = "Grupo"
@@ -176,9 +205,9 @@ L["OPTIONS_SCOPE_RAID"] = "Raide"
 
 L["OPTIONS_ADD_ITEM"] = "Adicionar Item"
 L["OPTIONS_ADD_DESC"] =
-	"Selecione qualquer item negociável das suas bolsas para adicionar à configuração de troca. Itens já configurados ou vinculados à alma não aparecerão."
+	"Selecione qualquer item negociável das suas bolsas para adicionar aos seus itens distribuídos. Itens já configurados ou vinculados à alma não aparecerão."
 L["OPTIONS_ADD_SELECT"] = "Itens Disponíveis"
-L["OPTIONS_ADD_BUTTON"] = "Adicionar à Configuração"
+L["OPTIONS_ADD_BUTTON"] = "Adicionar aos Itens Distribuídos"
 L["OPTIONS_ADD_EMPTY"] = "Nenhum item negociável encontrado nas suas bolsas."
 
 --------------------------------------------------------------------------------
@@ -187,7 +216,7 @@ L["OPTIONS_ADD_EMPTY"] = "Nenhum item negociável encontrado nas suas bolsas."
 
 L["TAB_ANNOUNCEMENTS"] = "Anúncios"
 L["OPTIONS_ANNOUNCEMENTS_DESC"] =
-	"O Water Dispenser pode criar uma macro que anuncia o que você ainda tem para distribuir. A macro escolhe o canal automaticamente (Dizer sem grupo, Grupo em um grupo, Raide em uma raide) e usa as quantidades mais recentes direto das suas bolsas."
+	"O Water Dispenser pode criar uma macro que anuncia o que você ainda tem para distribuir. A macro escolhe o canal automaticamente (Dizer sem grupo, Grupo em um grupo, Raide em uma raide, Instância em um grupo de masmorra ou campo de batalha) e usa as quantidades mais recentes direto das suas bolsas."
 L["OPTIONS_ANNOUNCEMENTS_ENABLE"] = "Ativar Macro de Anúncio"
 -- "- Dispenser" is the macro's literal name and is never translated.
 L["OPTIONS_ANNOUNCEMENTS_ENABLE_DESC"] =
@@ -195,6 +224,9 @@ L["OPTIONS_ANNOUNCEMENTS_ENABLE_DESC"] =
 -- "Enable Reserves" must match OPTIONS_ITEM_RESERVE.
 L["OPTIONS_ANNOUNCEMENTS_PREVIEW_EMPTY"] =
 	"Nada a anunciar. Configure os itens, reabasteça as bolsas ou baixe uma reserva em Ativar Reservas."
+-- "Enable Dispense" must match OPTIONS_DISPENSE_MASTER, "Dispense" must match TAB_DISPENSE.
+L["OPTIONS_ANNOUNCEMENTS_PREVIEW_DISPENSE_OFF"] =
+	"Nada a anunciar enquanto Ativar Distribuição estiver desligado, na aba Distribuir."
 
 -- Macro message template (%s is the item list) and the connector before the last list entry.
 L["ANNOUNCEMENTS_BODY"] = "Eu tenho %s. Abra troca!"
