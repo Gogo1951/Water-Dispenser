@@ -2,6 +2,9 @@
 ## Notes: Effortless consumable distribution. Auto-fill the trade window with water, food, and healthstones. Add any item you want, like Hourglass Sand or Resistance Potions, to be given out to your raid.
 ## Author: Gogo1951
 
+## IconTexture: Interface/AddOns/Water-Dispenser/Includes/Images/Water-Dispenser.tga
+## X-License: MIT
+
 ## Category-enUS: Other
 ## Category-deDE: Anderes
 ## Category-esES: Otros
@@ -13,9 +16,6 @@
 ## Category-ruRU: Другое
 ## Category-zhCN: 其它
 ## Category-zhTW: 其他
-
-## IconTexture: Interface/AddOns/Water-Dispenser/Includes/Images/Water-Dispenser.tga
-## X-License: MIT
 
 ## Interface: 11509, 20506
 ## Version: @project-version@
@@ -62,9 +62,11 @@ Features/Utilities.lua
 Features/Announcements.lua
 Features/Inventory-Scanner.lua
 Features/Bag-Moves.lua
+Features/Session-Ledger.lua
 Features/Dispenser.lua
 Features/Trade-UI.lua
 Features/Group-Spares.lua
+Features/Item-Tooltips.lua
 Features/Diagnostics.lua
 Features/Minimap-Button.lua
 Options/Options-Utilities.lua
