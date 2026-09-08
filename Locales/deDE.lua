@@ -10,12 +10,20 @@ end
 L["ADDON_TITLE"] = "Water Dispenser"
 
 --------------------------------------------------------------------------------
+-- Shared Formats
+--------------------------------------------------------------------------------
+
+-- %s is the item's name or link, %d how many of it. Used by the chat prints and the announcement macro.
+L["FORMAT_ITEM_COUNT"] = "%s x%d"
+
+--------------------------------------------------------------------------------
 -- Chat Messages
 --------------------------------------------------------------------------------
 
 --[[
 	All player-facing chat prints live here, regardless of which feature emits them.
-	%s is the add-on version; the menu path is the game client's own labels.
+	In CHAT_LOADED, %s is the add-on version and the menu path is the game client's
+	own labels.
 ]]
 L["CHAT_LOADED"] =
 	"Version %s. Die Einstellungen (inklusive der Option, diese Nachricht zu deaktivieren) sind unter Optionen > AddOns > Water Dispenser zu finden. Gefällt dir das Add-on? Empfiehl es weiter! (="
@@ -27,7 +35,7 @@ L["CHAT_OPTIONS_IN_COMBAT"] =
 L["CHAT_MISSING_STACK"] = "Fehlt:"
 --[[
 	%s is the item's name, %d the Maximum per Session it has hit.
-	"Maximum per Session" must match OPTIONS_ITEM_SESSION_CAP.
+	"Maximum per Session" is the label of OPTIONS_ITEM_SESSION_CAP, minus its "Enable".
 ]]
 L["CHAT_SESSION_CAP_REACHED"] =
 	"%s nicht hinzugefügt: Diese Person hat ihre %d in dieser Sitzung bereits bekommen. Ändere Maximum pro Sitzung oder lade neu, um zurückzusetzen."
@@ -36,7 +44,7 @@ L["CHAT_SPLIT_REFUSED"] =
 	"%s nicht hinzugefügt: Dieser Client wollte %d nicht von einem Stapel abteilen, und stattdessen einen ganzen Stapel zu übergeben würde weit mehr verschenken, als du wolltest. Setze die Menge dieses Gegenstands auf einen ganzen Stapel, um ihn zu handeln."
 -- %s is the player's class name. "Dispensed Items" must match TAB_DISPENSED_ITEMS.
 L["CHAT_NONE_ACTIVE_FOR_CLASS"] =
-	"Es sind keine Gegenstände zur Ausgabe eingestellt, während du einen %s spielst. Öffne Optionen > Ausgegebene Gegenstände, um Gegenstände für diese Klasse zu aktivieren."
+	"Es sind keine Gegenstände zur Ausgabe eingestellt, während du einen %s spielst. Öffne Optionen > AddOns > Water Dispenser > Ausgegebene Gegenstände, um Gegenstände für diese Klasse zu aktivieren."
 -- "- Dispenser" is the macro's literal name and is never translated.
 L["CHAT_MACRO_DELETED"] = 'Ankündigungs-Makro "- Dispenser" gelöscht.'
 L["CHAT_MACRO_FULL"] = "Makro konnte nicht erstellt werden: Alle Charakter-Makroplätze sind belegt."
@@ -48,6 +56,16 @@ L["CHAT_MACRO_FULL"] = "Makro konnte nicht erstellt werden: Alle Charakter-Makro
 L["TOOLTIP_OPEN_TRADE"] = "Handel öffnen!"
 -- %d/%d is the warlock's Improved Healthstone rank out of its maximum.
 L["TOOLTIP_HEALTHSTONE"] = "Gesundheitsstein (Rang %d/%d)"
+
+--------------------------------------------------------------------------------
+-- Bag Item Tooltips
+--------------------------------------------------------------------------------
+
+-- Shown on a carried bag item the player has set up to give away.
+L["TOOLTIP_WILL_DISPENSE"] = "Dieser Gegenstand wird ausgegeben."
+-- The same line for an item that stacks, which is also tidied back together once a trade ends.
+L["TOOLTIP_WILL_DISPENSE_STACKED"] =
+	"Dieser Gegenstand wird ausgegeben. Teilstapel davon werden zusammengelegt, sobald ein Handel endet."
 
 --------------------------------------------------------------------------------
 -- Trade Side Panel
@@ -80,17 +98,14 @@ L["OPTIONS_WELCOME_MESSAGE_DESC"] =
 	"Gibt beim Laden von Water Dispenser eine einzeilige Begrüßung in deinem Chatfenster aus."
 L["OPTIONS_MINIMAP"] = "Minikarten-Schaltfläche aktivieren"
 L["OPTIONS_MINIMAP_DESC"] = "Zeigt die Water Dispenser-Minikarten-Schaltfläche an."
-L["OPTIONS_MISSING_STACK_WARNINGS"] = "Warnungen aktivieren, wenn dir etwas ausgeht"
-L["OPTIONS_MISSING_STACK_WARNINGS_DESC"] =
-	"Gibt einen Hinweis in deinem Chatfenster aus, wenn du nicht genug von einem eingerichteten Gegenstand in deinen Taschen hast, um die eingestellte Menge zu geben."
--- The label says what it does; the tooltip only covers why it is needed and when it stands down.
-L["OPTIONS_RESTACK"] = "Teilstapel in den Taschen automatisch zusammenlegen"
-L["OPTIONS_RESTACK_DESC"] =
-	"Herbeigezaubertes Wasser und Essen landen bei jedem Zauber in einem neuen Taschenplatz und das Spiel legt sie nie wieder zusammen, wobei dies jedoch nie im Kampf, bei geöffnetem Handel oder während du etwas auf dem Mauszeiger hältst läuft."
 
 L["OPTIONS_COMMANDS_HEADER"] = "/Befehle"
 L["OPTIONS_COMMAND"] = "/wd"
 L["OPTIONS_COMMAND_DESCRIPTION"] = "Öffnet das Optionsfenster dieses Add-ons."
+
+--------------------------------------------------------------------------------
+-- Options — Dispense
+--------------------------------------------------------------------------------
 
 -- Names the panel, its section header, and the mini-map tooltip's feature row.
 L["TAB_DISPENSE"] = "Ausgabe"
@@ -105,22 +120,36 @@ L["OPTIONS_DISPENSE_GROUP_DESC"] = "Füllt das Handelsfenster automatisch, wenn 
 L["OPTIONS_DISPENSE_RAID"] = "Für Schlachtzug aktivieren"
 L["OPTIONS_DISPENSE_RAID_DESC"] =
 	"Füllt das Handelsfenster automatisch, wenn du mit einem Schlachtzugsmitglied handelst."
-
-L["TAB_INVENTORY_TOOLTIPS"] = "Inventar-Tooltips"
-L["OPTIONS_TOOLTIPS_DESC"] =
-	"Zeigt das Verschenk-Inventar in den Spieler-Tooltips von Gruppenmitgliedern, die Water Dispenser verwenden."
-L["OPTIONS_SHOW_INVENTORY"] = "Inventar in Spieler-Tooltips anzeigen"
-L["OPTIONS_SHOW_INVENTORY_DESC"] =
-	"Fügt Spieler-Tooltips einen Water Dispenser-Block hinzu, der auflistet, was sie zum Verschenken eingerichtet haben und wie viele sie davon tragen, wobei dein eigener immer angezeigt wird, ob in einer Gruppe oder nicht."
-L["OPTIONS_SHARE_INVENTORY"] = "Mein Inventar teilen"
-L["OPTIONS_SHARE_INVENTORY_DESC"] =
-	"Teilt deiner Gruppe und deinem Schlachtzug mit, was du bei dir trägst, sodass dein Inventar erscheint, wenn sie mit der Maus über dich fahren, schreibt dabei nichts in den Chat und informiert niemanden außerhalb deiner Gruppe, und deaktiviert kannst du die Inventare anderer weiterhin lesen."
+-- The label says what it does; the tooltip only covers why it is needed and when it stands down.
+L["OPTIONS_RESTACK"] = "Teilstapel nach einem Handel zusammenlegen"
+L["OPTIONS_RESTACK_DESC"] =
+	"Herbeigezaubertes Wasser und Essen landen bei jedem Zauber in einem neuen Taschenplatz und das Spiel legt sie nie wieder zusammen, also führt Water Dispenser sie einmal zusammen, direkt nachdem sich ein Handelsfenster geschlossen hat. Zu keinem anderen Zeitpunkt werden deine Taschen umsortiert, und nie im Kampf oder während du etwas auf dem Mauszeiger hältst."
+L["OPTIONS_MISSING_STACK_WARNINGS"] = "Warnungen aktivieren, wenn dir etwas ausgeht"
+L["OPTIONS_MISSING_STACK_WARNINGS_DESC"] =
+	"Gibt einen Hinweis in deinem Chatfenster aus, wenn du nicht genug von einem eingerichteten Gegenstand in deinen Taschen hast, um die eingestellte Menge zu geben."
 
 L["OPTIONS_COMBAT_HEADER"] = "Kampf"
 L["OPTIONS_COMBAT_DESC"] = "WoW hindert Add-ons daran, im Kampf Gegenstände in einen Handel zu legen."
 L["OPTIONS_COMBAT_NOTIFY"] = "Benachrichtigungen aktivieren, wenn die Ausgabe blockiert ist"
 L["OPTIONS_COMBAT_NOTIFY_DESC"] =
 	"Gibt einen Hinweis in deinem Chatfenster aus, wenn der Kampf das Füllen eines Handels verhindert, und deaktiviert schweigt Water Dispenser dazu, warum der Handel leer geblieben ist."
+
+--------------------------------------------------------------------------------
+-- Options — Inventory Tooltips
+--------------------------------------------------------------------------------
+
+L["TAB_INVENTORY_TOOLTIPS"] = "Inventar-Tooltips"
+L["OPTIONS_TOOLTIPS_DESC"] =
+	"Zeigt das Verschenk-Inventar in den Spieler-Tooltips von Gruppenmitgliedern, die Water Dispenser verwenden, und markiert die Gegenstände in deinen eigenen Taschen."
+L["OPTIONS_SHOW_INVENTORY"] = "Inventar in Spieler-Tooltips anzeigen"
+L["OPTIONS_SHOW_INVENTORY_DESC"] =
+	"Fügt Spieler-Tooltips einen Water Dispenser-Block hinzu, der auflistet, was sie zum Verschenken eingerichtet haben und wie viele sie davon abgeben können, wobei dein eigener immer angezeigt wird, ob in einer Gruppe oder nicht."
+L["OPTIONS_BAG_TOOLTIPS"] = "Taschen-Tooltips für ausgegebene Gegenstände anzeigen"
+L["OPTIONS_BAG_TOOLTIPS_DESC"] =
+	"Fügt dem Tooltip eines Taschengegenstands eine Water Dispenser-Zeile hinzu, wenn dieser Gegenstand zum Verschenken eingestellt ist, damit du auf einen Blick siehst, was das Add-on herausgeben wird."
+L["OPTIONS_SHARE_INVENTORY"] = "Mein Inventar teilen"
+L["OPTIONS_SHARE_INVENTORY_DESC"] =
+	"Teilt deiner Gruppe und deinem Schlachtzug mit, was du abzugeben hast, sodass dein Inventar erscheint, wenn sie mit der Maus über dich fahren, schreibt dabei nichts in den Chat und informiert niemanden außerhalb deiner Gruppe, und deaktiviert kannst du die Inventare anderer weiterhin lesen."
 
 --------------------------------------------------------------------------------
 -- Options — Dispensed Items
@@ -133,8 +162,8 @@ L["OPTIONS_ITEMS_DESC"] =
 L["OPTIONS_ITEMS_EMPTY"] =
 	'Keine Gegenstände konfiguriert. Wähle "Gegenstand hinzufügen" in der Liste, um Verbrauchsgegenstände aus deinen Taschen hinzuzufügen.'
 
-L["OPTIONS_ITEM_DISTRIBUTION"] = "Verteilung"
-L["OPTIONS_ITEM_DISTRIBUTION_DESC"] =
+L["OPTIONS_ITEM_AMOUNTS"] = "Mengen"
+L["OPTIONS_ITEM_AMOUNTS_DESC"] =
 	"Wähle, wie viele jede Klasse beim Handel erhält, je nachdem, ob sie fremd, in deiner Gruppe oder in deinem Schlachtzug ist. Gezählt werden einzelne Gegenstände, keine Stapel. Null bedeutet, dass sie diesen Gegenstand nie erhalten."
 L["OPTIONS_ITEM_EVERYONE"] = "Alle"
 L["OPTIONS_ITEM_EVERYONE_DESC"] =
@@ -153,12 +182,12 @@ L["OPTIONS_ITEM_DISTRIBUTE_DESC"] =
 L["OPTIONS_ITEM_DISTRIBUTE_ALWAYS"] = "Immer"
 L["OPTIONS_ITEM_DISTRIBUTE_GROUP"] = "In Gruppe"
 L["OPTIONS_ITEM_DISTRIBUTE_RAID"] = "In Schlachtzug"
-L["OPTIONS_ITEM_FACTOR_LEVEL"] = "Stufenanforderungen berücksichtigen"
+L["OPTIONS_ITEM_FACTOR_LEVEL"] = "Stufenanforderung des Gegenstands berücksichtigen"
 L["OPTIONS_ITEM_FACTOR_LEVEL_DESC"] =
 	"Überspringt diesen Gegenstand, wenn der Handelspartner unter der benötigten Stufe des Gegenstands liegt."
 L["OPTIONS_ITEM_RESERVE"] = "Reserven aktivieren"
 L["OPTIONS_ITEM_RESERVE_DESC"] =
-	"Behält immer mindestens diese Menge in deinen Taschen, wobei die Ausgabe und das Ankündigungs-Makro alles darüber hinaus als verschenkbar behandeln."
+	"Behält immer mindestens diese Menge in deinen Taschen, wobei die Ausgabe, dein Spieler-Tooltip und das Ankündigungs-Makro alles darüber hinaus als verschenkbar behandeln."
 L["OPTIONS_ITEM_SESSION_CAP"] = "Maximum pro Sitzung aktivieren"
 L["OPTIONS_ITEM_SESSION_CAP_DESC"] =
 	"Gibt diesen Gegenstand nicht mehr an jemanden aus, sobald er so viele von dir erhalten hat, gezählt über alle Handel hinweg, bis du dich ausloggst oder neu lädst, und das Ändern einer Menge dieses Gegenstands setzt die Zählung für alle zurück."
@@ -170,7 +199,7 @@ L["OPTIONS_ITEM_PLAYER_CLASSES"] = "Nur ausgeben, wenn diese Klassen gespielt we
 L["OPTIONS_ITEM_PLAYER_CLASSES_DESC"] =
 	"Füllt Handel, nimmt diesen Gegenstand in das Ankündigungs-Makro auf und zeigt ihn in deinem Spieler-Tooltip nur dann, wenn die Klasse deines Charakters unten ausgewählt ist."
 L["OPTIONS_ITEM_REMOVE"] = "Gegenstand entfernen"
-L["OPTIONS_ITEM_REMOVE_CONFIRM"] = "Diesen Gegenstand aus der Handelskonfiguration entfernen?"
+L["OPTIONS_ITEM_REMOVE_CONFIRM"] = "Diesen Gegenstand aus deinen ausgegebenen Gegenständen entfernen?"
 
 L["OPTIONS_SCOPE_SOLO"] = "Fremde"
 L["OPTIONS_SCOPE_GROUP"] = "Gruppe"
@@ -178,9 +207,9 @@ L["OPTIONS_SCOPE_RAID"] = "Schlachtzug"
 
 L["OPTIONS_ADD_ITEM"] = "Gegenstand hinzufügen"
 L["OPTIONS_ADD_DESC"] =
-	"Wähle einen beliebigen handelbaren Gegenstand aus deinen Taschen, um ihn zur Handelskonfiguration hinzuzufügen. Bereits konfigurierte oder seelengebundene Gegenstände erscheinen nicht."
+	"Wähle einen beliebigen handelbaren Gegenstand aus deinen Taschen, um ihn zu deinen ausgegebenen Gegenständen hinzuzufügen. Bereits konfigurierte oder seelengebundene Gegenstände erscheinen nicht."
 L["OPTIONS_ADD_SELECT"] = "Verfügbare Gegenstände"
-L["OPTIONS_ADD_BUTTON"] = "Zur Konfiguration hinzufügen"
+L["OPTIONS_ADD_BUTTON"] = "Zu ausgegebenen Gegenständen hinzufügen"
 L["OPTIONS_ADD_EMPTY"] = "Keine handelbaren Gegenstände in deinen Taschen gefunden."
 
 --------------------------------------------------------------------------------
@@ -189,7 +218,7 @@ L["OPTIONS_ADD_EMPTY"] = "Keine handelbaren Gegenstände in deinen Taschen gefun
 
 L["TAB_ANNOUNCEMENTS"] = "Ankündigungen"
 L["OPTIONS_ANNOUNCEMENTS_DESC"] =
-	"Water Dispenser kann ein Makro erstellen, das ansagt, was du noch zu verschenken hast. Das Makro wählt automatisch den richtigen Kanal (Sagen ohne Gruppe, Gruppe in einer Gruppe, Schlachtzug in einem Schlachtzug) und nutzt die aktuellen Zahlen direkt aus deinen Taschen."
+	"Water Dispenser kann ein Makro erstellen, das ansagt, was du noch zu verschenken hast. Das Makro wählt automatisch den richtigen Kanal (Sagen ohne Gruppe, Gruppe in einer Gruppe, Schlachtzug in einem Schlachtzug, Instanz in einer Instanz- oder Schlachtfeldgruppe) und nutzt die aktuellen Zahlen direkt aus deinen Taschen."
 L["OPTIONS_ANNOUNCEMENTS_ENABLE"] = "Ankündigungs-Makro aktivieren"
 -- "- Dispenser" is the macro's literal name and is never translated.
 L["OPTIONS_ANNOUNCEMENTS_ENABLE_DESC"] =
@@ -197,6 +226,9 @@ L["OPTIONS_ANNOUNCEMENTS_ENABLE_DESC"] =
 -- "Enable Reserves" must match OPTIONS_ITEM_RESERVE.
 L["OPTIONS_ANNOUNCEMENTS_PREVIEW_EMPTY"] =
 	"Nichts anzukündigen. Konfiguriere Gegenstände, fülle deine Taschen auf oder senke eine Reserve unter Reserven aktivieren."
+-- "Enable Dispense" must match OPTIONS_DISPENSE_MASTER, "Dispense" must match TAB_DISPENSE.
+L["OPTIONS_ANNOUNCEMENTS_PREVIEW_DISPENSE_OFF"] =
+	"Nichts anzukündigen, solange Ausgabe aktivieren im Reiter Ausgabe ausgeschaltet ist."
 
 -- Macro message template (%s is the item list) and the connector before the last list entry.
 L["ANNOUNCEMENTS_BODY"] = "Ich habe %s. Handel öffnen!"

@@ -5,22 +5,21 @@ local _, ns = ...
 --------------------------------------------------------------------------------
 
 --[[
-	The two bag operations the dispenser is built on, and the only places this
-	add-on writes to a bag. Both exist because a trade slot takes a whole bag slot:
-	the fill hands over slots, so the bags have to already hold slots of the right
-	size.
+	The two bag primitives the fill is built on, and the only places this add-on
+	writes to a bag. Both exist because a trade slot takes a whole bag slot: the
+	fill hands over slots, so the bags have to already hold slots of the right size.
 
-	  Restack  merges loose partials back together, between trades.
+	  Merge    combines loose partials of one item, so the partner receives one
+	           stack rather than a slot per scrap.
 	  Portion  splits an exact count onto the cursor, for the caller to drop into a
 	           trade slot.
 
-	The merge primitive is also exported for the fill, which combines loose partials
-	of one item *during* a trade so the partner receives one stack rather than a
-	slot per scrap. That is not the merge step README-Technical bans: that one made
-	a mid-trade conjure wait for a full stack, where the fill's merge builds exactly
-	the amount owed, never touches an offered (locked) slot, and stands down while a
-	conjure is waiting to be placed. The restack itself still never runs with a
-	trade open.
+	The fill drives both. The merge also runs once more, on its own, the moment a
+	trade window closes -- see Post-Trade Restack below. That is the only bag write
+	that happens outside a fill, and there is deliberately nothing listening to bag
+	updates: a pass that ran on every settle also merged the separate stacks a
+	player had built by hand to hand over, and took splits off the cursor as they
+	were made.
 
 	Both follow the same rules, learned the hard way in Consumable-Connoisseur's
 	Restocker: never move against a locked slot, and never leave an item stranded on
@@ -58,14 +57,14 @@ end
 	Every unlocked partial stack of a tracked item, grouped by item ID.
 
 	A locked slot is mid-move server-side; a second move issued against one is
-	dropped with no error, so it waits for the bag update that follows. Full stacks
-	and items that don't stack are left out -- neither can absorb anything. An
-	uncached max stack is skipped rather than guessed: unlike the scanner, which has
-	to take a view this pass, a restack loses nothing by waiting for a warm cache.
+	dropped with no error, so it waits for the pass after. Full stacks and items that
+	do not stack are left out -- neither can absorb anything. An uncached max stack is
+	skipped rather than guessed: unlike the scanner, which has to take a view this
+	pass, a restack loses nothing by waiting for a warm cache.
 ]]
 local function CollectPartials()
 	local partials = {}
-	for bag = BACKPACK_CONTAINER, NUM_BAG_SLOTS do
+	for bag = BACKPACK_CONTAINER, ns.LAST_BAG_INDEX do
 		local slots = ns.GetContainerNumSlots(bag) or 0
 		for slot = 1, slots do
 			local info = ns.GetContainerItemInfo(bag, slot)
@@ -120,16 +119,13 @@ local function Merge(src, dst)
 	ClearCursor()
 end
 
---[[
-	Merges (src) onto (dst), both {Bag, Slot}. Exported for the fill; see the file
-	header for why a merge is allowed there and the restack is not.
-]]
+-- Merges (src) onto (dst), both {Bag, Slot}. Exported for the fill's stack shaping.
 ns.MergeSlots = Merge
 
 --[[
 	Every merge one item's partials allow in a single pass without reusing a slot,
-	returning how many were issued. The restack runs it over every tracked item; the
-	fill runs it over the loose slots of the one item it is shaping a stack for.
+	returning how many were issued. The fill runs it over the loose slots of the one
+	item it is shaping a stack for, and nothing else calls it.
 
 	The "one move per pass" rule exists because a slot locks for its server round
 	trip and a second move against a locked slot is dropped with no error. That
@@ -152,66 +148,16 @@ function ns.MergePartials(list)
 	table.sort(list, ByCountDescending)
 	local low, high, moves = #list, 1, 0
 	while high < low do
+		-- Re-read per move rather than once per pass: the cursor does not reliably report as occupied in the frame a split is issued.
+		if GetCursorInfo() or CursorHasItem() then
+			break
+		end
 		Merge(list[low], list[high])
 		moves = moves + 1
 		low, high = low - 1, high + 1
 	end
 	return moves
 end
-
--- Every tracked item's partials, one pass each, then hand back to the event loop.
-local function MergeDisjoint()
-	for _, list in pairs(CollectPartials()) do
-		ns.MergePartials(list)
-	end
-end
-
---------------------------------------------------------------------------------
--- Pass Guard
---------------------------------------------------------------------------------
-
-local function Restack()
-	--[[
-		Combine Partial Stacks is a sub-option of Dispense in the panel, so it hides
-		when the master is off; reading both here is what keeps it from carrying on
-		invisibly once its control is out of sight.
-	]]
-	if not (ns.db and ns.db.profile.Dispense and ns.db.profile.RestackBags) then
-		return
-	end
-	if not (ns.GetContainerNumSlots and ns.GetContainerItemInfo and ns.PickupContainerItem) then
-		return
-	end
-	--[[
-		Bags are left alone in combat, matching every other bag path here. A reshuffle
-		mid-fight is the last thing the player wants, and nothing is lost by waiting --
-		PLAYER_REGEN_ENABLED picks the pass back up.
-	]]
-	if ns.IsInCombat() then
-		return
-	end
-	--[[
-		Something already on the cursor means the player is mid-drag -- and picking an
-		item up locks its slot, which is itself a bag update, so this fires exactly when
-		they are moving things by hand. Merging now would clear the cursor out from
-		under them and drop what they were holding. Their next drop is another bag
-		update, so the pass loses nothing by standing down.
-	]]
-	if GetCursorInfo() then
-		return
-	end
-	--[[
-		Never during a trade. Offered slots are locked, the conjure watch compares raw
-		slot counts and would read a merge as a cast, and partials are already being
-		offered as they land. TRADE_CLOSED runs the pass that was skipped.
-	]]
-	if ns.State.Trade.Active then
-		return
-	end
-	MergeDisjoint()
-end
-
-ns.RestackBags = Restack
 
 --------------------------------------------------------------------------------
 -- Portioning
@@ -274,44 +220,16 @@ function ns.SplitToCursor(bag, slot, count)
 	ClearCursor()
 
 	--[[
-		Two entry points, and the second runs only when the first demonstrably did
-		nothing at all.
-
-		Retrying on an empty cursor alone is what put a red "Couldn't split those
-		items" on the screen every so often: the cursor does not reliably read as
-		occupied in the same frame the split was issued, so a split that had worked
-		looked like a no-op, the retry fired at a slot the first call had already
-		locked, and the client refused it out loud while the trade went on to fill
-		correctly. The source slot is the honest witness -- locked, emptied, or
-		holding a different count all mean the first call was heard -- and only a slot
-		still reading exactly what it read before is worth a second attempt.
+		One entry point, and no check that it worked. The cursor does not reliably read
+		as occupied in the same frame the split was issued, so an empty cursor here
+		proves nothing -- reading it as a no-op and asking again is what put a red
+		"Couldn't split those items" on the screen, the second call landing on a slot
+		the first had already locked while the trade filled correctly regardless.
 	]]
 	ns.SplitContainerItem(bag, slot, count)
-	local modernTook = CursorHasItem() and true or false
-
-	local mid = ns.GetContainerItemInfo(bag, slot)
-	local midState
-	if not mid then
-		midState = "empty"
-	elseif mid.isLocked then
-		midState = "locked"
-	else
-		midState = tostring(mid.stackCount or 0)
-	end
-
-	local retried = false
-	if not modernTook and midState == tostring(before) and ns.SplitContainerItemLegacy then
-		retried = true
-		ns.SplitContainerItemLegacy(bag, slot, count)
-	end
 	local took = CursorHasItem() and true or false
 
 	--[[
-		Logged on both paths, and it names which entry point answered. The client's
-		red "Couldn't split those items" comes from whichever call it refused, and a
-		refusal is silent to us, so a report that does not say whether the retry ran
-		cannot say which call to stop making.
-
 		Recorded, not acted on. What the source slot reads this instant is the best
 		clue available about whether the count was honored -- left=18 on a 20 asked
 		for 2 means yes, left=20 or an empty slot means the client did something else
@@ -325,9 +243,6 @@ function ns.SplitToCursor(bag, slot, count)
 			bag .. ":" .. slot,
 			"asked=" .. count,
 			"before=" .. before,
-			"mid=" .. midState,
-			"modern=" .. tostring(modernTook),
-			"retry=" .. (ns.SplitContainerItemLegacy and tostring(retried) or "absent"),
 			"took=" .. tostring(took),
 			"left=" .. tostring(after and after.stackCount or 0)
 		)
@@ -352,7 +267,7 @@ function ns.StowCursorItem()
 		slots that will not take a potion, and a refused drop is silent -- the item
 		simply stays on the cursor -- so the only way to know is to look afterwards.
 	]]
-	for bag = BACKPACK_CONTAINER, NUM_BAG_SLOTS do
+	for bag = BACKPACK_CONTAINER, ns.LAST_BAG_INDEX do
 		local slots = ns.GetContainerNumSlots(bag) or 0
 		for slot = 1, slots do
 			if not ns.GetContainerItemInfo(bag, slot) then
@@ -369,21 +284,90 @@ function ns.StowCursorItem()
 end
 
 --------------------------------------------------------------------------------
+-- Post-Trade Restack
+--------------------------------------------------------------------------------
+
+--[[
+	The one bag write that happens outside a fill, and it happens in exactly one
+	place: just after a trade window closes. It earns that because the fill
+	fragments its own stacks -- breaking a 7 to find 5 leaves a 2 behind -- and
+	because conjured items land in a fresh slot on every cast and the game never
+	merges them.
+
+	Nothing here listens to bag updates, and that is the whole design. Driving this
+	off BAG_UPDATE_DELAYED fires it every time the player touches their own bags: it
+	merged the separate stacks they had just built by hand to hand someone, and it
+	took manual splits off the cursor, because the cursor does not reliably read as
+	occupied in the frame a split is issued.
+
+	One pass can only halve the loose slots -- MergePartials pairs them off, so four
+	become two -- and with no bag update to re-enter on, convergence comes from a
+	self-ending chain instead: a pass schedules the next one only if it actually
+	issued a merge, so the chain stops on its own as soon as there is nothing left
+	to do. The pass ceiling is a backstop, not the usual exit.
+]]
+
+-- Long enough for a pass's merges to land server-side before the next pass reads the slots.
+local RESTACK_SETTLE = 0.5
+
+-- Backstop only: a converging chain ends itself well inside this.
+local RESTACK_MAX_PASSES = 5
+
+local restackTimer
+local restackPassesLeft = 0
+
+--[[
+	Every reason to abandon the chain rather than pause it. Each one means the bags
+	are no longer the add-on's to tidy: the feature is off, the player is fighting,
+	another trade has opened, or something is on the cursor and moving anything now
+	would drop it.
+]]
+local function CanRestack()
+	if not (ns.db and ns.db.profile.Dispense and ns.db.profile.RestackBags) then
+		return false
+	end
+	if not (ns.GetContainerNumSlots and ns.GetContainerItemInfo and ns.PickupContainerItem) then
+		return false
+	end
+	if ns.IsInCombat() or ns.State.Trade.Active then
+		return false
+	end
+	return not GetCursorInfo()
+end
+
+local function RestackPass()
+	restackTimer = nil
+	if not CanRestack() then
+		return
+	end
+
+	local moves = 0
+	for _, list in pairs(CollectPartials()) do
+		moves = moves + ns.MergePartials(list)
+	end
+
+	if moves > 0 and restackPassesLeft > 0 then
+		restackPassesLeft = restackPassesLeft - 1
+		restackTimer = C_Timer.NewTimer(RESTACK_SETTLE, RestackPass)
+	end
+end
+
+--------------------------------------------------------------------------------
 -- Initialization
 --------------------------------------------------------------------------------
 
 function ns.InitRestacker()
 	--[[
-		BAG_UPDATE_DELAYED, not BAG_UPDATE: the client already coalesces a conjure's
-		several slot events into one settle, and each merge's own settle drives the
-		next pass.
+		TRADE_CLOSED and nothing else. Registered after InitDispenser, so the
+		dispenser's own handler has already cleared State.Trade.Active by the time a
+		pass reads it. The first pass waits out the same settle as the rest, so the
+		closing trade's own bag changes have landed before anything is measured.
 	]]
-	ns.RegisterEvent("BAG_UPDATE_DELAYED", Restack)
-	--[[
-		The two states a pass bails on. Registered after InitDispenser, so the
-		dispenser's own TRADE_CLOSED handler has already cleared State.Trade.Active by
-		the time this one reads it.
-	]]
-	ns.RegisterEvent("PLAYER_REGEN_ENABLED", Restack)
-	ns.RegisterEvent("TRADE_CLOSED", Restack)
+	ns.RegisterEvent("TRADE_CLOSED", function()
+		if restackTimer then
+			restackTimer:Cancel()
+		end
+		restackPassesLeft = RESTACK_MAX_PASSES
+		restackTimer = C_Timer.NewTimer(RESTACK_SETTLE, RestackPass)
+	end)
 end

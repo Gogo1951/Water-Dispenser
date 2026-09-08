@@ -39,6 +39,7 @@ ns.DATABASE_DEFAULTS = {
 		CombatNotifications = true,
 		RestackBags = true,
 		ShowInventoryTooltips = true,
+		ShowBagTooltips = true,
 		ShareInventory = true,
 		Announcements = {
 			Enabled = true,

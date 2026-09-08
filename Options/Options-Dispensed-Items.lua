@@ -273,7 +273,7 @@ end
 	drift apart, and the amount survives being switched off and comes back as the
 	player left it.
 
-	The number box is greyed rather than hidden when its toggle is off: hiding it
+	The number box is grayed rather than hidden when its toggle is off: hiding it
 	would reflow every row below it each time a toggle is clicked.
 ]]
 local AMOUNT_TOGGLE_WIDTH = 1.8
@@ -343,14 +343,6 @@ local function AmountRow(order, enabledField, amountField, nameKey, descKey)
 	})
 end
 
---[[
-	The table's args, for the item group's own page. maxCount caps every box
-	(1 for unique items, uncapped otherwise).
-
-	The grid reads as numbers with no units until something says what they are, so
-	it opens with its own header and a sentence naming both axes, matching the Item
-	Settings header further down the page.
-]]
 --[[
 	The Everyone row writes straight through to every class, never staging values for
 	a button to pick up later. AceConfigDialog commits an input on OnEnterPressed and
@@ -423,11 +415,19 @@ local function EveryoneCell(itemKey, scopeKey, maxCount)
 	}
 end
 
+--[[
+	The table's args, for the item group's own page. maxCount caps every box
+	(1 for unique items, uncapped otherwise).
+
+	The grid reads as numbers with no units until something says what they are, so
+	it opens with its own header and a sentence naming both axes, matching the Item
+	Settings header further down the page.
+]]
 local function BuildScopeTable(itemKey, maxCount)
 	local args = {
-		headerDistribution = Header(L["OPTIONS_ITEM_DISTRIBUTION"], 1),
+		headerDistribution = Header(L["OPTIONS_ITEM_AMOUNTS"], 1),
 		spaceDistribution0 = Spacer(2),
-		descDistribution = Desc(L["OPTIONS_ITEM_DISTRIBUTION_DESC"], 3),
+		descDistribution = Desc(L["OPTIONS_ITEM_AMOUNTS_DESC"], 3),
 		spaceDistribution1 = Spacer(4),
 	}
 
@@ -775,7 +775,7 @@ end
 --[[
 	A blank row between items in the sidebar. AceGUI stacks tree lines at a fixed
 	height with no spacing property and clamps each line's text to one row, so an
-	entry of its own is the only way to put air between them. `disabled` greys the
+	entry of its own is the only way to put air between them. `disabled` grays the
 	line and turns its mouse off, so it can never be hovered, clicked or selected,
 	and with no args it draws no expand toggle.
 ]]

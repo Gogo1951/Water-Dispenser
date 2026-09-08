@@ -269,12 +269,6 @@ ns.DIAGNOSTIC_API_CHECKS = {
 		end,
 	},
 	{
-		"SplitContainerItem (legacy)",
-		function()
-			return type(SplitContainerItem) == "function"
-		end,
-	},
-	{
 		"GetCursorInfo",
 		function()
 			return type(GetCursorInfo) == "function"
@@ -422,6 +416,25 @@ ns.DIAGNOSTIC_API_CHECKS = {
 		"C_ChatInfo.SendAddonMessage",
 		function()
 			return type(C_ChatInfo) == "table" and type(C_ChatInfo.SendAddonMessage) == "function"
+		end,
+	},
+	{
+		-- The two tooltip paths. Neither target client has TooltipDataProcessor today, so SetBagItem is the live one.
+		"TooltipDataProcessor.AddTooltipPostCall",
+		function()
+			return type(TooltipDataProcessor) == "table" and type(TooltipDataProcessor.AddTooltipPostCall) == "function"
+		end,
+	},
+	{
+		"GameTooltip:SetBagItem",
+		function()
+			return type(GameTooltip) == "table" and type(GameTooltip.SetBagItem) == "function"
+		end,
+	},
+	{
+		"hooksecurefunc",
+		function()
+			return type(hooksecurefunc) == "function"
 		end,
 	},
 	{

@@ -139,9 +139,17 @@ ns.RegisterEvent("PLAYER_LOGIN", function()
 	if ns.InitMinimap then
 		ns.InitMinimap()
 	end
-	-- After InitDispenser: both claim TRADE_CLOSED, and the restacker's pass reads the Active flag the dispenser's handler clears.
+	-- After InitDispenser: both claim TRADE_CLOSED, and the restack pass reads the Active flag the dispenser's handler clears.
 	if ns.InitRestacker then
 		ns.InitRestacker()
+	end
+	--[[
+		Tooltip hooks last, and a frame later still. PLAYER_LOGIN means every add-on is
+		loaded; the extra tick lets their own login setup finish, so our secure hook
+		wraps the outermost layer they installed and our line is added after theirs.
+	]]
+	if ns.SetupItemTooltips then
+		C_Timer.After(0, ns.SetupItemTooltips)
 	end
 	if ns.db.profile.showWelcome then
 		ns.PrintMessage(format(L["CHAT_LOADED"], ns.Version))

@@ -51,10 +51,23 @@ ns.OPTIONS_SUB_INDENT_WIDTH = 0.115 -- the blank cell a sub-option row leads wit
 ns.DISTRIBUTE_MODES = { "Always", "Group", "Raid" }
 
 --------------------------------------------------------------------------------
+-- Bags
+--------------------------------------------------------------------------------
+
+-- Highest carried bag index. Bank bags start above it, so a bag argument in this range is one the player is carrying.
+ns.LAST_BAG_INDEX = NUM_BAG_SLOTS or 4
+
+--------------------------------------------------------------------------------
 -- Message Length
 --------------------------------------------------------------------------------
 
--- Bytes, not characters: the chat and macro-body ceilings both count bytes.
+--[[
+	SendChatMessage rejects anything past 255 bytes. The macro edit box caps at 255
+	too but may be counting characters, so the two units are not known to match.
+	Measure both with #body regardless: a byte count is never smaller than a
+	character count, so it cannot overflow either unit. Never convert one of those
+	checks to a character count.
+]]
 ns.CHAT_MESSAGE_MAX_LENGTH = 255
 
 --------------------------------------------------------------------------------

@@ -41,7 +41,10 @@ end
 
 --[[
 	Show or hide the mini-map button. No argument flips; a boolean sets directly.
-	State persists in ns.db.profile.minimap.hide, the field LibDBIcon reads.
+	State persists in ns.db.profile.minimap.hide, the field LibDBIcon reads, and
+	Refresh is what applies it: it takes hide off the table it is handed and
+	re-points position and lock with it, so this and the profile switch in
+	Features/Core.lua reach LibDBIcon through the one call.
 ]]
 function ns.ToggleMinimapButton(value)
 	local minimap = ns.db.profile.minimap
@@ -56,11 +59,7 @@ function ns.ToggleMinimapButton(value)
 	if not LDBIcon then
 		return
 	end
-	if show then
-		LDBIcon:Show(ns.LOCALE_NAME)
-	else
-		LDBIcon:Hide(ns.LOCALE_NAME)
-	end
+	LDBIcon:Refresh(ns.LOCALE_NAME, minimap)
 end
 
 --------------------------------------------------------------------------------

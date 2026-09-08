@@ -38,6 +38,17 @@ function ns.BuildGroupSparesOptions()
 					ns.RefreshGiveaways()
 				end,
 			},
+			-- Its own control rather than a sub-option of the player tooltips above, so it needs the gap to read as separate.
+			spaceBagTooltips = Spacer(5),
+			ShowBagTooltips = {
+				type = "toggle",
+				width = "full",
+				name = L["OPTIONS_BAG_TOOLTIPS"],
+				desc = L["OPTIONS_BAG_TOOLTIPS_DESC"],
+				order = 6,
+				get = GetDB,
+				set = SetDB,
+			},
 			rowShareInventory = SubRow(4, TooltipsOff, {
 				SubToggle("ShareInventory", L["OPTIONS_SHARE_INVENTORY"], L["OPTIONS_SHARE_INVENTORY_DESC"], function()
 					ns.RefreshGiveaways()

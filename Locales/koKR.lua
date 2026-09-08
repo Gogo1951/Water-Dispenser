@@ -10,12 +10,20 @@ end
 L["ADDON_TITLE"] = "Water Dispenser"
 
 --------------------------------------------------------------------------------
+-- Shared Formats
+--------------------------------------------------------------------------------
+
+-- %s is the item's name or link, %d how many of it. Used by the chat prints and the announcement macro.
+L["FORMAT_ITEM_COUNT"] = "%s x%d"
+
+--------------------------------------------------------------------------------
 -- Chat Messages
 --------------------------------------------------------------------------------
 
 --[[
 	All player-facing chat prints live here, regardless of which feature emits them.
-	%s is the add-on version; the menu path is the game client's own labels.
+	In CHAT_LOADED, %s is the add-on version and the menu path is the game client's
+	own labels.
 ]]
 L["CHAT_LOADED"] =
 	"버전 %s. 설정(이 메시지를 끄는 옵션 포함)은 옵션 > 애드온 > Water Dispenser에서 찾을 수 있습니다. 이 애드온이 마음에 드시나요? 친구에게 알려주세요! (="
@@ -26,7 +34,7 @@ L["CHAT_OPTIONS_IN_COMBAT"] = "안전을 위해 전투 중에는 설정 창을 �
 L["CHAT_MISSING_STACK"] = "부족:"
 --[[
 	%s is the item's name, %d the Maximum per Session it has hit.
-	"Maximum per Session" must match OPTIONS_ITEM_SESSION_CAP.
+	"Maximum per Session" is the label of OPTIONS_ITEM_SESSION_CAP, minus its "Enable".
 ]]
 L["CHAT_SESSION_CAP_REACHED"] =
 	"%s은(는) 추가되지 않았습니다: 이번 세션에 이미 %d개를 받았습니다. 세션당 최대량을 변경하거나, 다시 불러와 초기화하세요."
@@ -35,7 +43,7 @@ L["CHAT_SPLIT_REFUSED"] =
 	"%s은(는) 추가되지 않았습니다: 이 클라이언트가 묶음에서 %d개를 나누지 못했고, 대신 묶음 전체를 건네면 요청한 것보다 훨씬 많이 주게 됩니다. 이 아이템의 수량을 묶음 전체로 설정하면 거래할 수 있습니다."
 -- %s is the player's class name. "Dispensed Items" must match TAB_DISPENSED_ITEMS.
 L["CHAT_NONE_ACTIVE_FOR_CLASS"] =
-	"%s(으)로 플레이하는 동안 분배하도록 설정된 아이템이 없습니다. 옵션 > 분배 아이템을 열어 이 직업에 대한 아이템을 활성화하세요."
+	"%s(으)로 플레이하는 동안 분배하도록 설정된 아이템이 없습니다. 옵션 > 애드온 > Water Dispenser > 분배 아이템을 열어 이 직업에 대한 아이템을 활성화하세요."
 -- "- Dispenser" is the macro's literal name and is never translated.
 L["CHAT_MACRO_DELETED"] = '"- Dispenser" 알림 매크로가 삭제되었습니다.'
 L["CHAT_MACRO_FULL"] = "캐릭터 전용 매크로 슬롯이 꽉 차서 매크로를 만들 수 없습니다."
@@ -47,6 +55,16 @@ L["CHAT_MACRO_FULL"] = "캐릭터 전용 매크로 슬롯이 꽉 차서 매크�
 L["TOOLTIP_OPEN_TRADE"] = "거래를 거세요!"
 -- %d/%d is the warlock's Improved Healthstone rank out of its maximum.
 L["TOOLTIP_HEALTHSTONE"] = "생명석 (등급 %d/%d)"
+
+--------------------------------------------------------------------------------
+-- Bag Item Tooltips
+--------------------------------------------------------------------------------
+
+-- Shown on a carried bag item the player has set up to give away.
+L["TOOLTIP_WILL_DISPENSE"] = "이 아이템은 분배됩니다."
+-- The same line for an item that stacks, which is also tidied back together once a trade ends.
+L["TOOLTIP_WILL_DISPENSE_STACKED"] =
+	"이 아이템은 분배됩니다. 남은 묶음은 거래가 끝나면 합쳐집니다."
 
 --------------------------------------------------------------------------------
 -- Trade Side Panel
@@ -79,17 +97,14 @@ L["OPTIONS_WELCOME_MESSAGE_DESC"] =
 	"Water Dispenser를 불러올 때 대화창에 한 줄짜리 인사말을 출력합니다."
 L["OPTIONS_MINIMAP"] = "미니맵 버튼 사용"
 L["OPTIONS_MINIMAP_DESC"] = "Water Dispenser 미니맵 버튼을 표시합니다."
-L["OPTIONS_MISSING_STACK_WARNINGS"] = "수량이 부족할 때 경고 사용"
-L["OPTIONS_MISSING_STACK_WARNINGS_DESC"] =
-	"설정한 수량을 줄 만큼 해당 아이템이 가방에 없을 때 대화창에 알림을 출력합니다."
--- The label says what it does; the tooltip only covers why it is needed and when it stands down.
-L["OPTIONS_RESTACK"] = "가방의 남은 묶음 자동 합치기"
-L["OPTIONS_RESTACK_DESC"] =
-	"창조된 물과 음식은 시전할 때마다 새 가방 칸에 들어가고 게임은 이를 다시 합쳐 주지 않지만, 전투 중이거나 거래 창이 열려 있거나 커서에 무언가를 들고 있을 때는 절대 실행되지 않습니다."
 
 L["OPTIONS_COMMANDS_HEADER"] = "/명령어"
 L["OPTIONS_COMMAND"] = "/wd"
 L["OPTIONS_COMMAND_DESCRIPTION"] = "이 애드온의 설정 창을 엽니다."
+
+--------------------------------------------------------------------------------
+-- Options — Dispense
+--------------------------------------------------------------------------------
 
 -- Names the panel, its section header, and the mini-map tooltip's feature row.
 L["TAB_DISPENSE"] = "분배"
@@ -103,16 +118,13 @@ L["OPTIONS_DISPENSE_GROUP"] = "파티에 사용"
 L["OPTIONS_DISPENSE_GROUP_DESC"] = "파티원과 거래할 때 거래 창을 자동으로 채웁니다."
 L["OPTIONS_DISPENSE_RAID"] = "공격대에 사용"
 L["OPTIONS_DISPENSE_RAID_DESC"] = "공격대원과 거래할 때 거래 창을 자동으로 채웁니다."
-
-L["TAB_INVENTORY_TOOLTIPS"] = "보유 목록 툴팁"
-L["OPTIONS_TOOLTIPS_DESC"] =
-	"Water Dispenser를 사용하는 파티원의 플레이어 툴팁에 나눠 줄 수 있는 보유 목록을 표시합니다."
-L["OPTIONS_SHOW_INVENTORY"] = "플레이어 툴팁에 보유 목록 표시"
-L["OPTIONS_SHOW_INVENTORY_DESC"] =
-	"플레이어 툴팁에 Water Dispenser 항목을 추가해 그들이 나눠 주도록 설정한 것과 보유 수량을 보여 주며, 본인의 목록은 파티 여부와 관계없이 항상 표시됩니다."
-L["OPTIONS_SHARE_INVENTORY"] = "내 보유 목록 공유"
-L["OPTIONS_SHARE_INVENTORY_DESC"] =
-	"파티와 공격대에 자신이 무엇을 가지고 있는지 알려 상대가 마우스를 올렸을 때 보유 목록이 나타나게 하되, 대화창에는 아무것도 게시하지 않고 파티 밖의 누구에게도 전달하지 않으며, 이 옵션을 꺼도 다른 사람의 목록은 계속 볼 수 있습니다."
+-- The label says what it does; the tooltip only covers why it is needed and when it stands down.
+L["OPTIONS_RESTACK"] = "거래 후 남은 묶음 합치기"
+L["OPTIONS_RESTACK_DESC"] =
+	"창조된 물과 음식은 시전할 때마다 새 가방 칸에 들어가고 게임은 이를 다시 합쳐 주지 않으므로, Water Dispenser가 거래 창이 닫힌 직후 한 번만 합쳐 줍니다. 그 외의 어떤 때에도 가방을 정리하지 않으며, 전투 중이거나 커서에 무언가를 들고 있을 때도 절대 실행되지 않습니다."
+L["OPTIONS_MISSING_STACK_WARNINGS"] = "수량이 부족할 때 경고 사용"
+L["OPTIONS_MISSING_STACK_WARNINGS_DESC"] =
+	"설정한 수량을 줄 만큼 해당 아이템이 가방에 없을 때 대화창에 알림을 출력합니다."
 
 L["OPTIONS_COMBAT_HEADER"] = "전투"
 L["OPTIONS_COMBAT_DESC"] =
@@ -120,6 +132,23 @@ L["OPTIONS_COMBAT_DESC"] =
 L["OPTIONS_COMBAT_NOTIFY"] = "분배가 차단되었을 때 알림 사용"
 L["OPTIONS_COMBAT_NOTIFY_DESC"] =
 	"전투로 인해 거래를 채우지 못했을 때 대화창에 알림을 출력하며, 이 옵션을 끄면 Water Dispenser는 거래가 비어 있는 이유를 알려 주지 않습니다."
+
+--------------------------------------------------------------------------------
+-- Options — Inventory Tooltips
+--------------------------------------------------------------------------------
+
+L["TAB_INVENTORY_TOOLTIPS"] = "보유 목록 툴팁"
+L["OPTIONS_TOOLTIPS_DESC"] =
+	"Water Dispenser를 사용하는 파티원의 플레이어 툴팁에 나눠 줄 수 있는 보유 목록을 표시하고, 자신의 가방 속 해당 아이템에도 표시를 남깁니다."
+L["OPTIONS_SHOW_INVENTORY"] = "플레이어 툴팁에 보유 목록 표시"
+L["OPTIONS_SHOW_INVENTORY_DESC"] =
+	"플레이어 툴팁에 Water Dispenser 항목을 추가해 그들이 나눠 주도록 설정한 것과 나눠 줄 수 있는 수량을 보여 주며, 본인의 목록은 파티 여부와 관계없이 항상 표시됩니다."
+L["OPTIONS_BAG_TOOLTIPS"] = "분배 아이템에 가방 툴팁 표시"
+L["OPTIONS_BAG_TOOLTIPS_DESC"] =
+	"가방 속 아이템이 나눠 주도록 설정되어 있으면 그 아이템 툴팁에 Water Dispenser 줄을 추가해, 애드온이 무엇을 건네줄지 한눈에 알 수 있게 합니다."
+L["OPTIONS_SHARE_INVENTORY"] = "내 보유 목록 공유"
+L["OPTIONS_SHARE_INVENTORY_DESC"] =
+	"파티와 공격대에 자신이 무엇을 나눠 줄 수 있는지 알려 상대가 마우스를 올렸을 때 보유 목록이 나타나게 하되, 대화창에는 아무것도 게시하지 않고 파티 밖의 누구에게도 전달하지 않으며, 이 옵션을 꺼도 다른 사람의 목록은 계속 볼 수 있습니다."
 
 --------------------------------------------------------------------------------
 -- Options — Dispensed Items
@@ -132,8 +161,8 @@ L["OPTIONS_ITEMS_DESC"] =
 L["OPTIONS_ITEMS_EMPTY"] =
 	'설정된 아이템이 없습니다. 목록에서 "아이템 추가"를 선택하여 가방에 있는 소비 아이템을 추가하세요.'
 
-L["OPTIONS_ITEM_DISTRIBUTION"] = "분배량"
-L["OPTIONS_ITEM_DISTRIBUTION_DESC"] =
+L["OPTIONS_ITEM_AMOUNTS"] = "수량"
+L["OPTIONS_ITEM_AMOUNTS_DESC"] =
 	"거래 상대가 모르는 사람인지, 파티원인지, 공격대원인지에 따라 각 직업이 얼마나 받을지 정하세요. 묶음이 아니라 개수로 셉니다. 0이면 이 아이템을 절대 주지 않습니다."
 L["OPTIONS_ITEM_EVERYONE"] = "전체"
 L["OPTIONS_ITEM_EVERYONE_DESC"] =
@@ -154,12 +183,12 @@ L["OPTIONS_ITEM_DISTRIBUTE_DESC"] =
 L["OPTIONS_ITEM_DISTRIBUTE_ALWAYS"] = "항상"
 L["OPTIONS_ITEM_DISTRIBUTE_GROUP"] = "파티에서"
 L["OPTIONS_ITEM_DISTRIBUTE_RAID"] = "공격대에서"
-L["OPTIONS_ITEM_FACTOR_LEVEL"] = "사용 레벨 조건 확인"
+L["OPTIONS_ITEM_FACTOR_LEVEL"] = "아이템의 요구 레벨 고려"
 L["OPTIONS_ITEM_FACTOR_LEVEL_DESC"] =
 	"거래 대상의 레벨이 아이템의 요구 레벨보다 낮으면 이 아이템을 건너뜁니다."
 L["OPTIONS_ITEM_RESERVE"] = "예비 수량 사용"
 L["OPTIONS_ITEM_RESERVE_DESC"] =
-	"가방에 항상 최소 이만큼은 남겨 두며, 분배와 알림 매크로는 그 수를 넘는 수량만 나눠 줄 수 있는 것으로 취급합니다."
+	"가방에 항상 최소 이만큼은 남겨 두며, 분배와 플레이어 툴팁, 알림 매크로는 그 수를 넘는 수량만 나눠 줄 수 있는 것으로 취급합니다."
 L["OPTIONS_ITEM_SESSION_CAP"] = "세션당 최대량 사용"
 L["OPTIONS_ITEM_SESSION_CAP_DESC"] =
 	"상대가 이만큼을 받고 나면 접속을 종료하거나 다시 불러올 때까지 모든 거래를 통틀어 이 아이템을 더 주지 않으며, 이 아이템의 수량을 하나라도 바꾸면 모두의 누적이 초기화됩니다."
@@ -171,7 +200,7 @@ L["OPTIONS_ITEM_PLAYER_CLASSES"] = "특정 직업일 때만 분배"
 L["OPTIONS_ITEM_PLAYER_CLASSES_DESC"] =
 	"본인 캐릭터의 직업이 아래에서 선택되어 있을 때만 거래를 채우고, 알림 매크로에 넣고, 플레이어 툴팁에 표시합니다."
 L["OPTIONS_ITEM_REMOVE"] = "아이템 제거"
-L["OPTIONS_ITEM_REMOVE_CONFIRM"] = "거래 설정에서 이 아이템을 제거하시겠습니까?"
+L["OPTIONS_ITEM_REMOVE_CONFIRM"] = "분배 아이템에서 이 아이템을 제거하시겠습니까?"
 
 L["OPTIONS_SCOPE_SOLO"] = "모르는 사람"
 L["OPTIONS_SCOPE_GROUP"] = "파티"
@@ -179,9 +208,9 @@ L["OPTIONS_SCOPE_RAID"] = "공격대"
 
 L["OPTIONS_ADD_ITEM"] = "아이템 추가"
 L["OPTIONS_ADD_DESC"] =
-	"거래 설정에 추가할 거래 가능한 아이템을 가방에서 선택하세요. 이미 설정되었거나 귀속된 아이템은 표시되지 않습니다."
+	"분배 아이템에 추가할 거래 가능한 아이템을 가방에서 선택하세요. 이미 설정되었거나 귀속된 아이템은 표시되지 않습니다."
 L["OPTIONS_ADD_SELECT"] = "사용 가능 아이템"
-L["OPTIONS_ADD_BUTTON"] = "설정에 추가"
+L["OPTIONS_ADD_BUTTON"] = "분배 아이템에 추가"
 L["OPTIONS_ADD_EMPTY"] = "가방에서 거래 가능한 아이템을 찾을 수 없습니다."
 
 --------------------------------------------------------------------------------
@@ -190,7 +219,7 @@ L["OPTIONS_ADD_EMPTY"] = "가방에서 거래 가능한 아이템을 찾을 수 
 
 L["TAB_ANNOUNCEMENTS"] = "알림"
 L["OPTIONS_ANNOUNCEMENTS_DESC"] =
-	"Water Dispenser는 나눠 줄 수 있는 물품을 알리는 매크로를 만들 수 있습니다. 매크로는 알맞은 채널을 자동으로 고르고(파티가 없으면 일반, 파티에서는 파티, 공격대에서는 공격대) 가방의 최신 수량을 그대로 사용합니다."
+	"Water Dispenser는 나눠 줄 수 있는 물품을 알리는 매크로를 만들 수 있습니다. 매크로는 알맞은 채널을 자동으로 고르고(파티가 없으면 일반, 파티에서는 파티, 공격대에서는 공격대, 인스턴스 던전이나 전장 파티에서는 인스턴스) 가방의 최신 수량을 그대로 사용합니다."
 L["OPTIONS_ANNOUNCEMENTS_ENABLE"] = "알림 매크로 사용"
 -- "- Dispenser" is the macro's literal name and is never translated.
 L["OPTIONS_ANNOUNCEMENTS_ENABLE_DESC"] =
@@ -198,6 +227,9 @@ L["OPTIONS_ANNOUNCEMENTS_ENABLE_DESC"] =
 -- "Enable Reserves" must match OPTIONS_ITEM_RESERVE.
 L["OPTIONS_ANNOUNCEMENTS_PREVIEW_EMPTY"] =
 	"알릴 내용이 없습니다. 아이템을 설정하거나, 가방을 채우거나, 예비 수량 사용에서 값을 낮추세요."
+-- "Enable Dispense" must match OPTIONS_DISPENSE_MASTER, "Dispense" must match TAB_DISPENSE.
+L["OPTIONS_ANNOUNCEMENTS_PREVIEW_DISPENSE_OFF"] =
+	"분배 탭에서 분배 활성화가 꺼져 있는 동안에는 알릴 내용이 없습니다."
 
 -- Macro message template (%s is the item list) and the connector before the last list entry.
 L["ANNOUNCEMENTS_BODY"] = "%s 보유 중입니다. 거래를 거세요!"
