@@ -5,6 +5,7 @@ local GetColor = ns.GetColor
 local CLASS_COLORS = ns.CLASS_COLORS
 
 local AceConfig = LibStub("AceConfig-3.0")
+local AceConfigDialog = LibStub("AceConfigDialog-3.0")
 local AceConfigRegistry = LibStub("AceConfigRegistry-3.0")
 
 local Header = ns.OptionsHeader
@@ -65,7 +66,7 @@ local function ItemDisplayName(itemId, itemConfig)
 	local icon = ns.GetItemConfigIcon(itemId, itemConfig)
 	local name = ns.GetItemConfigName(itemId, itemConfig)
 	if not name then
-		local itemName, _, _, _, _, _, _, _, _, itemIcon = ns.GetItemInfo(itemId)
+		local itemName, _, _, _, _, _, _, _, _, itemIcon = C_Item.GetItemInfo(itemId)
 		name = itemName or tostring(itemId)
 		icon = icon or itemIcon
 	end
@@ -671,10 +672,15 @@ local function AddItemSettings(args, itemKey, itemConfig)
 			confirm = true,
 			confirmText = L["OPTIONS_ITEM_REMOVE_CONFIRM"],
 			func = function()
-				-- No print: the item vanishing from the sidebar is the confirmation.
+				--[[
+					No print: the item vanishing from the sidebar is the confirmation. The page
+					it stood on is gone, so open Add an Item, the mirror of Add opening the new
+					item's page; left alone, the tree falls back to its first entry.
+				]]
 				ns.db.profile.Items[itemKey] = nil
 				ns.RebuildDispensedItemsOptions()
 				ns.RefreshGiveaways()
+				AceConfigDialog:SelectGroup(ns.OPTIONS_REGISTRY.DispensedItems, "addItem")
 			end,
 		}
 	end
@@ -790,7 +796,7 @@ local function BuildAddItemPanel(order)
 						return
 					end
 
-					local itemName, _, _, _, _, _, _, _, _, itemIcon = ns.GetItemInfo(id)
+					local itemName, _, _, _, _, _, _, _, _, itemIcon = C_Item.GetItemInfo(id)
 					ns.db.profile.Items[id] = {
 						Name = itemName or ("Item " .. id),
 						Icon = itemIcon,
@@ -807,10 +813,15 @@ local function BuildAddItemPanel(order)
 						Group = ZeroCounts(),
 						Raid = ZeroCounts(),
 					}
-					-- No print: the item appearing in the sidebar is the confirmation, as with remove.
+					--[[
+						No print: the item's own page opening is the confirmation. Selected after
+						the rebuild, which is what puts the page in the tree; every amount starts
+						at 0, so that page is where the player goes next anyway.
+					]]
 					selectedItemToAdd = nil
 					ns.RebuildDispensedItemsOptions()
 					ns.RefreshGiveaways()
+					AceConfigDialog:SelectGroup(ns.OPTIONS_REGISTRY.DispensedItems, EncodeItemKey(id))
 				end,
 			},
 			spaceEmpty = { type = "description", name = " ", order = 7, hidden = HasAddableItems },

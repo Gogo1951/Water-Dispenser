@@ -28,10 +28,9 @@ ns.OPTIONS_REGISTRY = {
 	that overflows does not clip, it wraps the control onto its own line and
 	strands the label above it.
 
-	3.4 is the shared grid across the add-ons. At the old 2.6 the Feedback &
-	Support rows could not show a full address, the CurseForge link truncating
-	mid-slug, because the URL box only ever gets the row less the short service
-	label beside it.
+	3.4 is the shared grid across the add-ons: the Feedback & Support URL box only
+	ever gets the row less the short service label beside it, and a narrower row
+	truncates the CurseForge address mid-slug.
 ]]
 ns.OPTIONS_ROW_WIDTH = 3.4
 ns.OPTIONS_LABEL_WIDTH = 2.1
@@ -48,16 +47,15 @@ ns.OPTIONS_SUB_INDENT_WIDTH = 0.115 -- the blank cell a sub-option row leads wit
 	verbatim in the profile, so these strings are part of the saved format; the
 	dropdown's labels are separate locale keys. Order is the order they list in.
 
-	Group and Raid used to sit here and were dropped as saying nothing the amounts
-	did not already say: the Party and Raid columns hold a zero for "none of this
-	to a party", which is what those two modes were for. What no column can say is
-	*where* -- a five-man out in the world and a five-man in a dungeon are both the
-	Party column -- so Instance is the one gate that earns its place, for an item
-	worth handing out inside a dungeon or raid and nowhere else.
+	There is no Group or Raid mode: the Party and Raid columns already say "none of
+	this to a party" with a zero. What no column can say is *where* -- a five-man
+	out in the world and a five-man in a dungeon are both the Party column -- so
+	Instance is the one gate that earns its place, for an item worth handing out
+	inside a dungeon or raid and nowhere else.
 
-	A profile written before this still carries "Group" or "Raid". Nothing migrates
-	the file; ns.NormalizeDistribute folds an unrecognized value back to Always on
-	read, so the same profile still opens on an older client.
+	A stored profile may still carry "Group" or "Raid". Nothing migrates the file;
+	ns.NormalizeDistribute folds an unrecognized value back to Always on read, so
+	the same profile still opens on an older client.
 ]]
 ns.DISTRIBUTE_MODES = { "Always", "Instance" }
 
@@ -80,6 +78,13 @@ ns.LAST_BAG_INDEX = NUM_BAG_SLOTS or 4
 	checks to a character count.
 ]]
 ns.CHAT_MESSAGE_MAX_LENGTH = 255
+
+--------------------------------------------------------------------------------
+-- Addon Messages
+--------------------------------------------------------------------------------
+
+-- The group-spares channel's prefix, read by its handler and the event log's filter alike. The client caps these at 16 characters.
+ns.ADDON_MESSAGE_PREFIX = "WaterDispenser"
 
 --------------------------------------------------------------------------------
 -- Target Marker
@@ -152,7 +157,7 @@ ns.URLS = {
 -- Classes
 --------------------------------------------------------------------------------
 
--- Ordered class list. No Death Knight: targets Classic Era and TBC.
+-- Ordered class list. No Death Knight: no supported flavor has the class.
 ns.CLASSES = {
 	"DRUID",
 	"HUNTER",
@@ -163,6 +168,35 @@ ns.CLASSES = {
 	"SHAMAN",
 	"WARLOCK",
 	"WARRIOR",
+}
+
+--------------------------------------------------------------------------------
+-- Built-in Collection Metadata
+--------------------------------------------------------------------------------
+
+-- Shared display order (trade fill, announcement, options sidebar).
+ns.BUILTIN_ORDER = { "MageWater", "MageFood", "WarlockHealthstone" }
+
+--[[
+	Virtual items the user configures in options; they resolve to a real item ID
+	at trade time from the partner's level. Keys match ns.COLLECTIONS, which each
+	flavor's Data/<Flavor>/Collections.lua declares.
+]]
+ns.COLLECTION_META = {
+	MageWater = {
+		NameKey = "ITEM_MAGE_WATER",
+		Icon = "Interface\\ICONS\\INV_Drink_18",
+	},
+	MageFood = {
+		NameKey = "ITEM_MAGE_FOOD",
+		Icon = "Interface\\ICONS\\INV_Misc_Food_09",
+	},
+	WarlockHealthstone = {
+		NameKey = "ITEM_WARLOCK_HEALTHSTONE",
+		Icon = "Interface\\ICONS\\INV_Stone_04",
+		-- Healthstones are unique, so a trade can only ever carry 0 or 1.
+		Unique = true,
+	},
 }
 
 --------------------------------------------------------------------------------

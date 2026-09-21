@@ -174,11 +174,8 @@ end
 
 --[[
 	Every amount on the Dispensed Items panel is a free-typed count of individual
-	items. Dropdowns
-	were fine while a number meant a stack and six was a lot; counting items pushes
-	the useful range past a hundred, and no ladder short enough to pick from covers
-	both "1 potion" and "120 water" without leaving out whatever the player actually
-	wanted.
+	items, from "1 potion" to "120 water", a range no dropdown short enough to pick
+	from covers.
 
 	Blank reads as zero so clearing a field is a way to say "never", and anything
 	that is not a number at all is rejected by Validate rather than silently

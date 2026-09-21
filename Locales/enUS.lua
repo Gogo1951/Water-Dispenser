@@ -46,7 +46,7 @@ L["CHAT_NONE_ACTIVE_FOR_CLASS"] =
 	"No items are set to dispense while you're playing a %s. Open Options > AddOns > Water Dispenser > Dispensed Items to enable items for this class."
 -- "- Dispenser" is the macro's literal name and is never translated.
 L["CHAT_MACRO_DELETED"] = 'Announcement macro "- Dispenser" deleted.'
-L["CHAT_MACRO_FULL"] = "Could not create the macro: all character macro slots are in use."
+L["CHAT_MACRO_FULL"] = "Could not create the announcement macro: all character macro slots are in use."
 
 --------------------------------------------------------------------------------
 -- Player Tooltips
@@ -62,7 +62,7 @@ L["TOOLTIP_HEALTHSTONE"] = "Healthstone (Rank %d/%d)"
 
 -- Shown on a carried bag item the player has set up to give away.
 L["TOOLTIP_WILL_DISPENSE"] = "This item will be dispensed."
--- The same line for an item that stacks, which is also tidied back together once a trade ends.
+-- The same line for a stacking item while OPTIONS_RESTACK is on, which tidies it back together once a trade ends.
 L["TOOLTIP_WILL_DISPENSE_STACKED"] =
 	"This item will be dispensed. Partial stacks of it are combined when a trade closes."
 
@@ -77,7 +77,10 @@ L["BUTTON_FILL"] = "Fill Trade Window"
 -- Minimap Button
 --------------------------------------------------------------------------------
 
--- The tooltip's feature row reuses TAB_DISPENSE for its name; these are its state and click words.
+--[[
+	The tooltip's feature row reuses TAB_DISPENSE for its name and
+	OPTIONS_DISPENSE_MASTER_DESC for its description; these are its state and click words.
+]]
 L["UI_ENABLED"] = "Enabled"
 L["UI_DISABLED"] = "Disabled"
 L["UI_LEFT_CLICK"] = "Left-Click"
@@ -90,7 +93,7 @@ L["MINIMAP_OPTIONS_KEYBIND"] = "Shift + Middle-Click"
 --------------------------------------------------------------------------------
 
 L["OPTIONS_DESCRIPTION"] =
-	"Effortless consumable distribution. Auto-fill the trade window with water, food, and healthstones. Add any item you want, like Hourglass Sand or Resistance Potions, to be given out to your raid."
+	"Effortless consumable distribution for mages and warlocks. Auto-fill the trade window with conjured water, food, and healthstones, the right rank and amount for every player, plus any item you add, like Hourglass Sand. Hand out a raid's worth in seconds."
 
 L["OPTIONS_WELCOME_MESSAGE"] = "Enable Welcome Message"
 L["OPTIONS_WELCOME_MESSAGE_DESC"] = "Prints a one-line greeting in your chat frame when Water Dispenser loads."
@@ -105,11 +108,11 @@ L["OPTIONS_COMMAND_DESCRIPTION"] = "Opens the Options Interface for this add-on.
 -- Options — Dispense
 --------------------------------------------------------------------------------
 
--- Names the panel, its section header, and the mini-map tooltip's feature row.
+-- Names the panel and the mini-map tooltip's feature row.
 L["TAB_DISPENSE"] = "Dispense"
-L["OPTIONS_DISPENSE_DESC"] = "Automatically fill the trade window when a trade opens."
 L["OPTIONS_DISPENSE_MASTER"] = "Enable Dispense"
-L["OPTIONS_DISPENSE_MASTER_DESC"] = "Automatically fills the trade window based on your settings."
+-- Also the panel's intro line and the mini-map tooltip's feature description.
+L["OPTIONS_DISPENSE_MASTER_DESC"] = "Automatically fills the trade window when a trade opens, based on your settings."
 L["OPTIONS_DISPENSE_SOLO"] = "Enable for Strangers"
 L["OPTIONS_DISPENSE_SOLO_DESC"] =
 	"Fills the trade window automatically when trading with someone who is not in your party or raid."
@@ -120,7 +123,7 @@ L["OPTIONS_DISPENSE_RAID_DESC"] = "Fills the trade window automatically when tra
 -- The label says what it does; the tooltip only covers why it is needed and when it stands down.
 L["OPTIONS_RESTACK"] = "Combine Partial Stacks After a Trade"
 L["OPTIONS_RESTACK_DESC"] =
-	"Conjured water and food land in a new bag slot every cast and the game never puts them back together, so Water Dispenser merges them once, just after a trade window closes. It never rearranges your bags at any other time, and never in combat or while you are holding something on your cursor."
+	"Conjured water and food land in a new bag slot every cast and the game never puts them back together, so Water Dispenser merges them once, just after a trade window closes, and never at any other time, in combat, or while you are holding something on your cursor."
 L["OPTIONS_MISSING_STACK_WARNINGS"] = "Enable Warnings When You Run Short"
 L["OPTIONS_MISSING_STACK_WARNINGS_DESC"] =
 	"Prints a note in your chat frame when you don't have enough of a configured item in your bags to give the amount you set."
@@ -137,7 +140,7 @@ L["OPTIONS_COMBAT_NOTIFY_DESC"] =
 
 L["TAB_INVENTORY_TOOLTIPS"] = "Inventory Tooltips"
 L["OPTIONS_TOOLTIPS_DESC"] =
-	"Shows what group members running Water Dispenser have set up to give out on their player tooltips, and marks those items in your own bags."
+	"Shows on player tooltips what group members running Water Dispenser have set up to give out, and marks the items you give out in your own bags."
 L["OPTIONS_SHOW_INVENTORY"] = "Show Inventory in Player Tooltips"
 L["OPTIONS_SHOW_INVENTORY_DESC"] =
 	"Adds a Water Dispenser block to player tooltips listing what they have set up to give out and how many they have to give, with your own always showing whether you are grouped or not."
@@ -163,28 +166,32 @@ L["OPTIONS_ITEM_AMOUNTS"] = "Amounts"
 L["OPTIONS_ITEM_AMOUNTS_DESC"] =
 	"Pick how many each class gets when you trade them, depending on whether they're a stranger, in your party, or in your raid. Counted in individual items, not stacks. Zero means they never get this item."
 L["OPTIONS_ITEM_EVERYONE"] = "Everyone"
+-- "Apply" must match OPTIONS_ITEM_APPLY.
 L["OPTIONS_ITEM_EVERYONE_DESC"] =
-	"Sets this amount for every class at once when you press Enter, and shows blank when the classes below don't all agree."
+	"Sets this amount for every class at once when you press Enter or click Apply, and shows blank when the classes below don't all agree."
 -- The accept button inside every number box in this panel.
 L["OPTIONS_ITEM_APPLY"] = "Apply"
 -- %d is the highest amount this item accepts, which is 1 for anything unique.
 L["OPTIONS_ITEM_COUNT_TOO_HIGH"] = "That's more than this item can dispense. The most it takes is %d."
-L["OPTIONS_ITEM_COUNT_INVALID"] = "Enter a number of items, or 0 to never dispense this."
+L["OPTIONS_ITEM_COUNT_INVALID"] = "Enter a number of items."
 L["OPTIONS_ITEM_SETTINGS"] = "Item Settings"
 L["OPTIONS_ITEM_DISTRIBUTE"] = "Distribute"
 -- "In Instance" must match the dropdown entry below.
 L["OPTIONS_ITEM_DISTRIBUTE_DESC"] =
-	"Sets where this item is handed out at all: anywhere else it is never traded, announced, or shown on your tooltip. In Instance covers dungeons, raids, battlegrounds, and arenas. To hold an item back from a party or a raid instead, set that column's amounts to 0."
--- Dropdown entries. The stored values are "Always" and "Instance"; these are only their labels.
+	"Sets where this item is handed out at all, with In Instance covering dungeons, raids, battlegrounds, and arenas, and anywhere else it is never traded, announced, or shown on your tooltip."
+--[[
+	Dropdown entries, looked up as OPTIONS_ITEM_DISTRIBUTE_ plus the stored value in
+	capitals ("Always", "Instance"), so no code names these keys in full.
+]]
 L["OPTIONS_ITEM_DISTRIBUTE_ALWAYS"] = "Always"
 L["OPTIONS_ITEM_DISTRIBUTE_INSTANCE"] = "In Instance"
 L["OPTIONS_ITEM_GUILDIES_ONLY"] = "Guildies Only"
-L["OPTIONS_ITEM_GUILDIES_ONLY_DESC"] = "Skips this item when the person you are trading with is not in your guild."
+L["OPTIONS_ITEM_GUILDIES_ONLY_DESC"] = "Skips this item when your trade partner is not in your guild."
 -- Panel line under the toggle, not a tooltip: it names the guild, which no fixed string can. %s is the player's guild.
 L["OPTIONS_ITEM_GUILDIES_ONLY_HELP"] = "Only give to <%s> members."
 L["OPTIONS_ITEM_GUILDIES_ONLY_NO_GUILD"] = "You are not in a guild, so this gives the item to no one."
 L["OPTIONS_ITEM_FACTOR_LEVEL"] = "Factor in the Item's Required Level"
-L["OPTIONS_ITEM_FACTOR_LEVEL_DESC"] = "Skips this item when the trade partner is below the item's required level."
+L["OPTIONS_ITEM_FACTOR_LEVEL_DESC"] = "Skips this item when your trade partner is below the item's required level."
 L["OPTIONS_ITEM_RESERVE"] = "Enable Reserves"
 L["OPTIONS_ITEM_RESERVE_DESC"] =
 	"Keeps at least this many in your bags, with dispensing, your player tooltip, and the announcement macro treating anything beyond that number as available to give away."

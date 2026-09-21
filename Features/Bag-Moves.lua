@@ -11,8 +11,8 @@ local _, ns = ...
 
 	  Merge    combines loose partials of one item, so the partner receives one
 	           stack rather than a slot per scrap.
-	  Portion  splits an exact count onto the cursor, for the caller to drop into a
-	           trade slot.
+	  Portion  splits an exact count onto the cursor, for the caller to stow in a
+	           free bag slot that the next pass trades whole.
 
 	The fill drives both. The merge also runs once more, on its own, the moment a
 	trade window closes -- see Post-Trade Restack below. That is the only bag write
@@ -21,11 +21,11 @@ local _, ns = ...
 	player had built by hand to hand over, and took splits off the cursor as they
 	were made.
 
-	Both follow the same rules, learned the hard way in Consumable-Connoisseur's
-	Restocker: never move against a locked slot, and never leave an item stranded on
-	the cursor -- a stranded cursor is what makes the *next* split fail with
-	"Couldn't split those items". Neither reports that a move *landed*: the server
-	has the last word, so the caller re-scans on the bag update that follows.
+	Both follow the same two rules: never move against a locked slot, and never
+	leave an item stranded on the cursor -- a stranded cursor is what makes the
+	*next* split fail with "Couldn't split those items". Neither reports that a move
+	*landed*: the server has the last word, so the caller re-scans on the bag update
+	that follows.
 
 	Empty slots are always found with GetContainerItemInfo, which is nil only when a
 	slot is truly empty. A container's free-slot *count* can disagree with its
@@ -65,12 +65,12 @@ end
 local function CollectPartials()
 	local partials = {}
 	for bag = BACKPACK_CONTAINER, ns.LAST_BAG_INDEX do
-		local slots = ns.GetContainerNumSlots(bag) or 0
+		local slots = C_Container.GetContainerNumSlots(bag) or 0
 		for slot = 1, slots do
-			local info = ns.GetContainerItemInfo(bag, slot)
+			local info = C_Container.GetContainerItemInfo(bag, slot)
 			local itemId = info and info.itemID
 			if itemId and not info.isLocked and IsTracked(itemId) then
-				local _, _, _, _, _, _, _, maxStack = ns.GetItemInfo(itemId)
+				local _, _, _, _, _, _, _, maxStack = C_Item.GetItemInfo(itemId)
 				local count = info.stackCount or 0
 				if maxStack and maxStack > 1 and count > 0 and count < maxStack then
 					local list = partials[itemId]
@@ -107,15 +107,15 @@ end
 ]]
 local function Merge(src, dst)
 	ClearCursor()
-	ns.PickupContainerItem(src.Bag, src.Slot)
-	ns.PickupContainerItem(dst.Bag, dst.Slot)
+	C_Container.PickupContainerItem(src.Bag, src.Slot)
+	C_Container.PickupContainerItem(dst.Bag, dst.Slot)
 	--[[
 		A source bigger than the room left in the destination merges what fits and
 		keeps the rest on the cursor. Put that back into the source slot, empty by now,
 		so a leftover never rides the cursor into whatever the player clicks next. Both
 		calls no-op when the merge was clean and the cursor is already empty.
 	]]
-	ns.PickupContainerItem(src.Bag, src.Slot)
+	C_Container.PickupContainerItem(src.Bag, src.Slot)
 	ClearCursor()
 end
 
@@ -130,10 +130,9 @@ ns.MergeSlots = Merge
 	The "one move per pass" rule exists because a slot locks for its server round
 	trip and a second move against a locked slot is dropped with no error. That
 	only forbids reusing a *slot*, not batching: merges over disjoint pairs cannot
-	race each other, so pairing the whole list off at once collapses what used to
-	be one round trip per merge into one per pass. Four loose stacks settle in two
-	passes rather than three, and the player watches their bags shuffle for a
-	fraction as long.
+	race each other, so the whole list is paired off at once, one round trip per
+	pass rather than per merge. Four loose stacks settle in two passes rather than
+	three, and the player watches their bags shuffle for a fraction as long.
 
 	Pairing is smallest onto largest, working inwards: the stack most likely to
 	vanish completely, onto the one closest to being a full stack the fill can use.
@@ -195,9 +194,6 @@ end
 	the caller stows this in a bag rather than handing it to anyone.
 ]]
 function ns.SplitToCursor(bag, slot, count)
-	if not (ns.SplitContainerItem and ns.GetContainerItemInfo) then
-		return false
-	end
 	if not count or count <= 0 then
 		return false
 	end
@@ -207,7 +203,7 @@ function ns.SplitToCursor(bag, slot, count)
 		belt-and-braces: splitting a slot's entire contents is refused, and the caller
 		should have placed that slot whole anyway.
 	]]
-	local info = ns.GetContainerItemInfo(bag, slot)
+	local info = C_Container.GetContainerItemInfo(bag, slot)
 	if not info or info.isLocked or (info.stackCount or 0) <= count then
 		return false
 	end
@@ -226,7 +222,7 @@ function ns.SplitToCursor(bag, slot, count)
 		"Couldn't split those items" on the screen, the second call landing on a slot
 		the first had already locked while the trade filled correctly regardless.
 	]]
-	ns.SplitContainerItem(bag, slot, count)
+	C_Container.SplitContainerItem(bag, slot, count)
 	local took = CursorHasItem() and true or false
 
 	--[[
@@ -237,7 +233,7 @@ function ns.SplitToCursor(bag, slot, count)
 		either way and lets the next scan tell the truth.
 	]]
 	if ns.diagnostics and ns.diagnostics.logging then
-		local after = ns.GetContainerItemInfo(bag, slot)
+		local after = C_Container.GetContainerItemInfo(bag, slot)
 		ns:LogEventNow(
 			"SPLIT",
 			bag .. ":" .. slot,
@@ -258,6 +254,14 @@ end
 	fail with "Couldn't split those items", and it leaves an item stuck to the
 	player's pointer.
 ]]
+--[[
+	Slots a stow has just dropped into, as recentStows["bag:slot"] = GetTime(). On
+	Forever a dropped item reads as an empty slot until the server confirms it, and
+	a second stow into that slot merges two portions into one stack.
+]]
+local STOW_SETTLE = 1
+local recentStows = {}
+
 function ns.StowCursorItem()
 	if not CursorHasItem() then
 		return false
@@ -267,11 +271,15 @@ function ns.StowCursorItem()
 		slots that will not take a potion, and a refused drop is silent -- the item
 		simply stays on the cursor -- so the only way to know is to look afterwards.
 	]]
+	local now = GetTime()
 	for bag = BACKPACK_CONTAINER, ns.LAST_BAG_INDEX do
-		local slots = ns.GetContainerNumSlots(bag) or 0
+		local slots = C_Container.GetContainerNumSlots(bag) or 0
 		for slot = 1, slots do
-			if not ns.GetContainerItemInfo(bag, slot) then
-				ns.PickupContainerItem(bag, slot)
+			local key = bag .. ":" .. slot
+			local stowedAt = recentStows[key]
+			if not C_Container.GetContainerItemInfo(bag, slot) and not (stowedAt and now - stowedAt < STOW_SETTLE) then
+				C_Container.PickupContainerItem(bag, slot)
+				recentStows[key] = now
 				if not CursorHasItem() then
 					return true
 				end
@@ -324,9 +332,6 @@ local restackPassesLeft = 0
 ]]
 local function CanRestack()
 	if not (ns.db and ns.db.profile.Dispense and ns.db.profile.RestackBags) then
-		return false
-	end
-	if not (ns.GetContainerNumSlots and ns.GetContainerItemInfo and ns.PickupContainerItem) then
 		return false
 	end
 	if ns.IsInCombat() or ns.State.Trade.Active then

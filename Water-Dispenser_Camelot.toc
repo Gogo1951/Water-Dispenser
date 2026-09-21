@@ -1,5 +1,5 @@
 ## Title: Water Dispenser
-## Notes: Effortless consumable distribution. Auto-fill the trade window with water, food, and healthstones. Add any item you want, like Hourglass Sand or Resistance Potions, to be given out to your raid.
+## Notes: Effortless consumable distribution for mages and warlocks. Auto-fill the trade window with conjured water, food, and healthstones, the right rank and amount for every player, plus any item you add, like Hourglass Sand. Hand out a raid's worth in seconds.
 ## Author: Gogo1951
 
 ## IconTexture: Interface/AddOns/Water-Dispenser/Includes/Images/Water-Dispenser.tga
@@ -17,7 +17,8 @@
 ## Category-zhCN: 其它
 ## Category-zhTW: 其他
 
-## Interface: 11509, 20506
+## Interface: 16001
+## X-Flavor: Forever
 ## Version: @project-version@
 ## X-Curse-Project-ID: 1531217
 ## X-Wago-ID: vNAgAgKo
@@ -52,8 +53,9 @@ Locales/zhCN.lua
 Locales/zhTW.lua
 
 # Data
+Data/Flavor.lua
 Data/Data.lua
-Data/Collections.lua
+Data/Forever/Collections.lua
 Data/Default-Settings.lua
 
 # Water Dispenser

@@ -46,7 +46,7 @@ L["CHAT_NONE_ACTIVE_FOR_CLASS"] =
 	"%s(으)로 플레이하는 동안 분배하도록 설정된 아이템이 없습니다. 옵션 > 애드온 > Water Dispenser > 분배 아이템을 열어 이 직업에 대한 아이템을 활성화하세요."
 -- "- Dispenser" is the macro's literal name and is never translated.
 L["CHAT_MACRO_DELETED"] = '"- Dispenser" 알림 매크로가 삭제되었습니다.'
-L["CHAT_MACRO_FULL"] = "캐릭터 전용 매크로 슬롯이 꽉 차서 매크로를 만들 수 없습니다."
+L["CHAT_MACRO_FULL"] = "캐릭터 전용 매크로 슬롯이 꽉 차서 알림 매크로를 만들 수 없습니다."
 
 --------------------------------------------------------------------------------
 -- Player Tooltips
@@ -62,7 +62,7 @@ L["TOOLTIP_HEALTHSTONE"] = "생명석 (등급 %d/%d)"
 
 -- Shown on a carried bag item the player has set up to give away.
 L["TOOLTIP_WILL_DISPENSE"] = "이 아이템은 분배됩니다."
--- The same line for an item that stacks, which is also tidied back together once a trade ends.
+-- The same line for a stacking item while OPTIONS_RESTACK is on, which tidies it back together once a trade ends.
 L["TOOLTIP_WILL_DISPENSE_STACKED"] =
 	"이 아이템은 분배됩니다. 남은 묶음은 거래가 끝나면 합쳐집니다."
 
@@ -77,7 +77,10 @@ L["BUTTON_FILL"] = "거래 창 채우기"
 -- Minimap Button
 --------------------------------------------------------------------------------
 
--- The tooltip's feature row reuses TAB_DISPENSE for its name; these are its state and click words.
+--[[
+	The tooltip's feature row reuses TAB_DISPENSE for its name and
+	OPTIONS_DISPENSE_MASTER_DESC for its description; these are its state and click words.
+]]
 L["UI_ENABLED"] = "활성화됨"
 L["UI_DISABLED"] = "비활성화됨"
 L["UI_LEFT_CLICK"] = "좌클릭"
@@ -106,11 +109,11 @@ L["OPTIONS_COMMAND_DESCRIPTION"] = "이 애드온의 설정 창을 엽니다."
 -- Options — Dispense
 --------------------------------------------------------------------------------
 
--- Names the panel, its section header, and the mini-map tooltip's feature row.
+-- Names the panel and the mini-map tooltip's feature row.
 L["TAB_DISPENSE"] = "분배"
-L["OPTIONS_DISPENSE_DESC"] = "거래가 열리면 거래 창을 자동으로 채웁니다."
 L["OPTIONS_DISPENSE_MASTER"] = "분배 활성화"
-L["OPTIONS_DISPENSE_MASTER_DESC"] = "설정에 따라 거래 창을 자동으로 채웁니다."
+-- Also the panel's intro line and the mini-map tooltip's feature description.
+L["OPTIONS_DISPENSE_MASTER_DESC"] = "거래가 열리면 설정에 따라 거래 창을 자동으로 채웁니다."
 L["OPTIONS_DISPENSE_SOLO"] = "모르는 사람에게 사용"
 L["OPTIONS_DISPENSE_SOLO_DESC"] =
 	"파티나 공격대에 속하지 않은 사람과 거래할 때 거래 창을 자동으로 채웁니다."
@@ -121,7 +124,7 @@ L["OPTIONS_DISPENSE_RAID_DESC"] = "공격대원과 거래할 때 거래 창을 �
 -- The label says what it does; the tooltip only covers why it is needed and when it stands down.
 L["OPTIONS_RESTACK"] = "거래 후 남은 묶음 합치기"
 L["OPTIONS_RESTACK_DESC"] =
-	"창조된 물과 음식은 시전할 때마다 새 가방 칸에 들어가고 게임은 이를 다시 합쳐 주지 않으므로, Water Dispenser가 거래 창이 닫힌 직후 한 번만 합쳐 줍니다. 그 외의 어떤 때에도 가방을 정리하지 않으며, 전투 중이거나 커서에 무언가를 들고 있을 때도 절대 실행되지 않습니다."
+	"창조된 물과 음식은 시전할 때마다 새 가방 칸에 들어가고 게임은 이를 다시 합쳐 주지 않으므로, Water Dispenser가 거래 창이 닫힌 직후 한 번만 합쳐 주며, 그 외의 때나 전투 중, 커서에 무언가를 들고 있을 때는 절대 합치지 않습니다."
 L["OPTIONS_MISSING_STACK_WARNINGS"] = "수량이 부족할 때 경고 사용"
 L["OPTIONS_MISSING_STACK_WARNINGS_DESC"] =
 	"설정한 수량을 줄 만큼 해당 아이템이 가방에 없을 때 대화창에 알림을 출력합니다."
@@ -139,7 +142,7 @@ L["OPTIONS_COMBAT_NOTIFY_DESC"] =
 
 L["TAB_INVENTORY_TOOLTIPS"] = "보유 목록 툴팁"
 L["OPTIONS_TOOLTIPS_DESC"] =
-	"Water Dispenser를 사용하는 파티원이 나눠 주도록 설정한 것을 그들의 플레이어 툴팁에 표시하고, 자신의 가방 속 해당 아이템에도 표시를 남깁니다."
+	"Water Dispenser를 사용하는 파티원이 나눠 주도록 설정한 것을 플레이어 툴팁에 표시하고, 내 가방에서 내가 나눠 주는 아이템에 표시를 남깁니다."
 L["OPTIONS_SHOW_INVENTORY"] = "플레이어 툴팁에 보유 목록 표시"
 L["OPTIONS_SHOW_INVENTORY_DESC"] =
 	"플레이어 툴팁에 Water Dispenser 항목을 추가해 그들이 나눠 주도록 설정한 것과 나눠 줄 수 있는 수량을 보여 주며, 본인의 목록은 파티 여부와 관계없이 항상 표시됩니다."
@@ -165,21 +168,24 @@ L["OPTIONS_ITEM_AMOUNTS"] = "수량"
 L["OPTIONS_ITEM_AMOUNTS_DESC"] =
 	"거래 상대가 모르는 사람인지, 파티원인지, 공격대원인지에 따라 각 직업이 얼마나 받을지 정하세요. 묶음이 아니라 개수로 셉니다. 0이면 이 아이템을 절대 주지 않습니다."
 L["OPTIONS_ITEM_EVERYONE"] = "전체"
+-- "Apply" must match OPTIONS_ITEM_APPLY.
 L["OPTIONS_ITEM_EVERYONE_DESC"] =
-	"Enter를 누르면 이 수량을 모든 직업에 한 번에 적용하며, 아래 직업들의 값이 서로 다르면 빈칸으로 표시됩니다."
+	"Enter를 누르거나 적용을 클릭하면 이 수량을 모든 직업에 한 번에 적용하며, 아래 직업들의 값이 서로 다르면 빈칸으로 표시됩니다."
 -- The accept button inside every number box in this panel.
 L["OPTIONS_ITEM_APPLY"] = "적용"
 -- %d is the highest amount this item accepts, which is 1 for anything unique.
 L["OPTIONS_ITEM_COUNT_TOO_HIGH"] =
 	"이 아이템이 분배할 수 있는 양보다 많습니다. 최대 %d개까지 가능합니다."
-L["OPTIONS_ITEM_COUNT_INVALID"] =
-	"아이템 개수를 입력하거나, 절대 분배하지 않으려면 0을 입력하세요."
+L["OPTIONS_ITEM_COUNT_INVALID"] = "아이템 개수를 입력하세요."
 L["OPTIONS_ITEM_SETTINGS"] = "아이템 설정"
 L["OPTIONS_ITEM_DISTRIBUTE"] = "분배 범위"
 -- "In Instance" must match the dropdown entry below.
 L["OPTIONS_ITEM_DISTRIBUTE_DESC"] =
-	"이 아이템을 어디에서 나눠 줄지 정합니다. 그 밖의 장소에서는 거래되지도, 알림에 오르지도, 툴팁에 표시되지도 않습니다. 인스턴스에서만 옵션은 던전, 공격대, 전장, 투기장을 포함합니다. 대신 파티나 공격대에만 주지 않으려면 해당 열의 수량을 0으로 설정하세요."
--- Dropdown entries. The stored values are "Always" and "Instance"; these are only their labels.
+	"이 아이템을 어디에서 나눠 줄지 정하며, 인스턴스에서만 옵션은 던전, 공격대, 전장, 투기장을 포함하고, 그 밖의 장소에서는 거래되지도, 알림에 오르지도, 툴팁에 표시되지도 않습니다."
+--[[
+	Dropdown entries, looked up as OPTIONS_ITEM_DISTRIBUTE_ plus the stored value in
+	capitals ("Always", "Instance"), so no code names these keys in full.
+]]
 L["OPTIONS_ITEM_DISTRIBUTE_ALWAYS"] = "항상"
 L["OPTIONS_ITEM_DISTRIBUTE_INSTANCE"] = "인스턴스에서만"
 L["OPTIONS_ITEM_GUILDIES_ONLY"] = "길드원에게만"
@@ -190,7 +196,7 @@ L["OPTIONS_ITEM_GUILDIES_ONLY_NO_GUILD"] =
 	"길드에 가입되어 있지 않아, 이 설정으로는 아무에게도 아이템이 나가지 않습니다."
 L["OPTIONS_ITEM_FACTOR_LEVEL"] = "아이템의 요구 레벨 고려"
 L["OPTIONS_ITEM_FACTOR_LEVEL_DESC"] =
-	"거래 대상의 레벨이 아이템의 요구 레벨보다 낮으면 이 아이템을 건너뜁니다."
+	"거래 상대의 레벨이 아이템의 요구 레벨보다 낮으면 이 아이템을 건너뜁니다."
 L["OPTIONS_ITEM_RESERVE"] = "예비 수량 사용"
 L["OPTIONS_ITEM_RESERVE_DESC"] =
 	"가방에 항상 최소 이만큼은 남겨 두며, 분배와 플레이어 툴팁, 알림 매크로는 그 수를 넘는 수량만 나눠 줄 수 있는 것으로 취급합니다."

@@ -47,7 +47,8 @@ L["CHAT_NONE_ACTIVE_FOR_CLASS"] =
 	"Aucun objet n'est configuré pour être distribué pendant que vous jouez un %s. Ouvrez Options > AddOns > Water Dispenser > Objets distribués pour activer des objets pour cette classe."
 -- "- Dispenser" is the macro's literal name and is never translated.
 L["CHAT_MACRO_DELETED"] = 'Macro d\'annonce "- Dispenser" supprimée.'
-L["CHAT_MACRO_FULL"] = "Impossible de créer la macro : tous les emplacements de macro du personnage sont utilisés."
+L["CHAT_MACRO_FULL"] =
+	"Impossible de créer la macro d'annonce : tous les emplacements de macro du personnage sont utilisés."
 
 --------------------------------------------------------------------------------
 -- Player Tooltips
@@ -63,7 +64,7 @@ L["TOOLTIP_HEALTHSTONE"] = "Pierre de soins (Rang %d/%d)"
 
 -- Shown on a carried bag item the player has set up to give away.
 L["TOOLTIP_WILL_DISPENSE"] = "Cet objet sera distribué."
--- The same line for an item that stacks, which is also tidied back together once a trade ends.
+-- The same line for a stacking item while OPTIONS_RESTACK is on, which tidies it back together once a trade ends.
 L["TOOLTIP_WILL_DISPENSE_STACKED"] =
 	"Cet objet sera distribué. Ses piles partielles sont regroupées à la fermeture d'un échange."
 
@@ -78,7 +79,10 @@ L["BUTTON_FILL"] = "Remplir la fenêtre d'échange"
 -- Minimap Button
 --------------------------------------------------------------------------------
 
--- The tooltip's feature row reuses TAB_DISPENSE for its name; these are its state and click words.
+--[[
+	The tooltip's feature row reuses TAB_DISPENSE for its name and
+	OPTIONS_DISPENSE_MASTER_DESC for its description; these are its state and click words.
+]]
 L["UI_ENABLED"] = "Activé"
 L["UI_DISABLED"] = "Désactivé"
 L["UI_LEFT_CLICK"] = "Clic gauche"
@@ -107,11 +111,12 @@ L["OPTIONS_COMMAND_DESCRIPTION"] = "Ouvre l'interface des options de cet add-on.
 -- Options — Dispense
 --------------------------------------------------------------------------------
 
--- Names the panel, its section header, and the mini-map tooltip's feature row.
+-- Names the panel and the mini-map tooltip's feature row.
 L["TAB_DISPENSE"] = "Distribuer"
-L["OPTIONS_DISPENSE_DESC"] = "Remplit automatiquement la fenêtre d'échange à son ouverture."
 L["OPTIONS_DISPENSE_MASTER"] = "Activer la distribution"
-L["OPTIONS_DISPENSE_MASTER_DESC"] = "Remplit automatiquement la fenêtre d'échange selon vos paramètres."
+-- Also the panel's intro line and the mini-map tooltip's feature description.
+L["OPTIONS_DISPENSE_MASTER_DESC"] =
+	"Remplit automatiquement la fenêtre d'échange à son ouverture, selon vos paramètres."
 L["OPTIONS_DISPENSE_SOLO"] = "Activer pour les inconnus"
 L["OPTIONS_DISPENSE_SOLO_DESC"] =
 	"Remplit automatiquement la fenêtre d'échange lors d'un échange avec quelqu'un qui n'est ni dans votre groupe ni dans votre raid."
@@ -124,7 +129,7 @@ L["OPTIONS_DISPENSE_RAID_DESC"] =
 -- The label says what it does; the tooltip only covers why it is needed and when it stands down.
 L["OPTIONS_RESTACK"] = "Regrouper les piles partielles après un échange"
 L["OPTIONS_RESTACK_DESC"] =
-	"L'eau et la nourriture invoquées se posent dans un nouvel emplacement de sac à chaque incantation et le jeu ne les regroupe jamais, alors Water Dispenser les réunit une fois, juste après la fermeture d'une fenêtre d'échange. Il ne réorganise jamais vos sacs à un autre moment, ni en combat, ni tant que vous tenez quelque chose sur votre curseur."
+	"L'eau et la nourriture invoquées se posent dans un nouvel emplacement de sac à chaque incantation et le jeu ne les regroupe jamais, alors Water Dispenser les réunit une fois, juste après la fermeture d'une fenêtre d'échange, et jamais à un autre moment, ni en combat, ni tant que vous tenez quelque chose sur votre curseur."
 L["OPTIONS_MISSING_STACK_WARNINGS"] = "Activer les avertissements quand vous êtes à court"
 L["OPTIONS_MISSING_STACK_WARNINGS_DESC"] =
 	"Affiche une note dans votre fenêtre de discussion quand vous n'avez pas assez d'un objet configuré dans vos sacs pour donner la quantité définie."
@@ -141,7 +146,7 @@ L["OPTIONS_COMBAT_NOTIFY_DESC"] =
 
 L["TAB_INVENTORY_TOOLTIPS"] = "Infobulles d'inventaire"
 L["OPTIONS_TOOLTIPS_DESC"] =
-	"Affiche dans les infobulles de joueur des membres du groupe qui utilisent Water Dispenser ce qu'ils ont configuré à distribuer, et signale ces objets dans vos propres sacs."
+	"Affiche dans les infobulles de joueur ce que les membres du groupe qui utilisent Water Dispenser ont configuré à distribuer, et signale dans vos propres sacs les objets que vous distribuez."
 L["OPTIONS_SHOW_INVENTORY"] = "Afficher l'inventaire dans les infobulles de joueur"
 L["OPTIONS_SHOW_INVENTORY_DESC"] =
 	"Ajoute un bloc Water Dispenser aux infobulles de joueur listant ce qu'ils ont configuré à distribuer et combien ils peuvent en donner, le vôtre s'affichant toujours, en groupe ou non."
@@ -167,30 +172,33 @@ L["OPTIONS_ITEM_AMOUNTS"] = "Quantités"
 L["OPTIONS_ITEM_AMOUNTS_DESC"] =
 	"Choisissez combien chaque classe reçoit lors d'un échange, selon qu'elle est inconnue, dans votre groupe ou dans votre raid. Comptés en objets individuels, pas en piles. Zéro signifie qu'elle ne recevra jamais cet objet."
 L["OPTIONS_ITEM_EVERYONE"] = "Tous"
+-- "Apply" must match OPTIONS_ITEM_APPLY.
 L["OPTIONS_ITEM_EVERYONE_DESC"] =
-	"Définit cette quantité pour toutes les classes d'un coup quand vous appuyez sur Entrée, et reste vide quand les classes ci-dessous ne sont pas toutes d'accord."
+	"Définit cette quantité pour toutes les classes d'un coup quand vous appuyez sur Entrée ou cliquez sur Appliquer, et reste vide quand les classes ci-dessous ne sont pas toutes d'accord."
 -- The accept button inside every number box in this panel.
 L["OPTIONS_ITEM_APPLY"] = "Appliquer"
 -- %d is the highest amount this item accepts, which is 1 for anything unique.
 L["OPTIONS_ITEM_COUNT_TOO_HIGH"] = "C'est plus que ce que cet objet peut distribuer. Le maximum est %d."
-L["OPTIONS_ITEM_COUNT_INVALID"] = "Saisissez un nombre d'objets, ou 0 pour ne jamais distribuer celui-ci."
+L["OPTIONS_ITEM_COUNT_INVALID"] = "Saisissez un nombre d'objets."
 L["OPTIONS_ITEM_SETTINGS"] = "Paramètres de l'objet"
 L["OPTIONS_ITEM_DISTRIBUTE"] = "Attribuer"
 -- "In Instance" must match the dropdown entry below.
 L["OPTIONS_ITEM_DISTRIBUTE_DESC"] =
-	"Définit où cet objet est distribué : partout ailleurs il n'est jamais échangé, ni annoncé, ni affiché dans votre infobulle. En instance couvre les donjons, les raids, les champs de bataille et les arènes. Pour retenir un objet face à un groupe ou à un raid, mettez plutôt à 0 les quantités de cette colonne."
--- Dropdown entries. The stored values are "Always" and "Instance"; these are only their labels.
+	"Définit où cet objet est distribué, En instance couvrant les donjons, les raids, les champs de bataille et les arènes, et partout ailleurs il n'est jamais échangé, ni annoncé, ni affiché dans votre infobulle."
+--[[
+	Dropdown entries, looked up as OPTIONS_ITEM_DISTRIBUTE_ plus the stored value in
+	capitals ("Always", "Instance"), so no code names these keys in full.
+]]
 L["OPTIONS_ITEM_DISTRIBUTE_ALWAYS"] = "Toujours"
 L["OPTIONS_ITEM_DISTRIBUTE_INSTANCE"] = "En instance"
 L["OPTIONS_ITEM_GUILDIES_ONLY"] = "Guilde uniquement"
-L["OPTIONS_ITEM_GUILDIES_ONLY_DESC"] =
-	"Ignore cet objet quand la personne avec qui vous échangez n'est pas dans votre guilde."
+L["OPTIONS_ITEM_GUILDIES_ONLY_DESC"] = "Ignore cet objet quand votre partenaire d'échange n'est pas dans votre guilde."
 -- Panel line under the toggle, not a tooltip: it names the guild, which no fixed string can. %s is the player's guild.
 L["OPTIONS_ITEM_GUILDIES_ONLY_HELP"] = "Donner uniquement aux membres de <%s>."
 L["OPTIONS_ITEM_GUILDIES_ONLY_NO_GUILD"] = "Vous n'êtes dans aucune guilde, donc ceci ne donne l'objet à personne."
 L["OPTIONS_ITEM_FACTOR_LEVEL"] = "Prendre en compte le niveau requis de l'objet"
 L["OPTIONS_ITEM_FACTOR_LEVEL_DESC"] =
-	"Ignore cet objet quand le partenaire d'échange est en dessous du niveau requis par l'objet."
+	"Ignore cet objet quand votre partenaire d'échange est en dessous du niveau requis par l'objet."
 L["OPTIONS_ITEM_RESERVE"] = "Activer les réserves"
 L["OPTIONS_ITEM_RESERVE_DESC"] =
 	"Garde toujours au moins cette quantité dans vos sacs, la distribution, votre infobulle de joueur et la macro d'annonce considérant tout ce qui dépasse ce nombre comme disponible à donner."

@@ -46,7 +46,8 @@ L["CHAT_NONE_ACTIVE_FOR_CLASS"] =
 	"Nenhum item está configurado para distribuição enquanto você joga de %s. Abra Opções > AddOns > Water Dispenser > Itens Distribuídos para ativar itens para esta classe."
 -- "- Dispenser" is the macro's literal name and is never translated.
 L["CHAT_MACRO_DELETED"] = 'Macro de anúncio "- Dispenser" deletada.'
-L["CHAT_MACRO_FULL"] = "Não foi possível criar a macro: todos os espaços de macro do personagem estão em uso."
+L["CHAT_MACRO_FULL"] =
+	"Não foi possível criar a macro de anúncio: todos os espaços de macro do personagem estão em uso."
 
 --------------------------------------------------------------------------------
 -- Player Tooltips
@@ -62,7 +63,7 @@ L["TOOLTIP_HEALTHSTONE"] = "Pedra de vida (Grau %d/%d)"
 
 -- Shown on a carried bag item the player has set up to give away.
 L["TOOLTIP_WILL_DISPENSE"] = "Este item será distribuído."
--- The same line for an item that stacks, which is also tidied back together once a trade ends.
+-- The same line for a stacking item while OPTIONS_RESTACK is on, which tidies it back together once a trade ends.
 L["TOOLTIP_WILL_DISPENSE_STACKED"] =
 	"Este item será distribuído. As pilhas parciais dele são juntadas quando uma troca é fechada."
 
@@ -77,7 +78,10 @@ L["BUTTON_FILL"] = "Preencher Janela de Troca"
 -- Minimap Button
 --------------------------------------------------------------------------------
 
--- The tooltip's feature row reuses TAB_DISPENSE for its name; these are its state and click words.
+--[[
+	The tooltip's feature row reuses TAB_DISPENSE for its name and
+	OPTIONS_DISPENSE_MASTER_DESC for its description; these are its state and click words.
+]]
 L["UI_ENABLED"] = "Ativado"
 L["UI_DISABLED"] = "Desativado"
 L["UI_LEFT_CLICK"] = "Botão Esquerdo"
@@ -106,11 +110,12 @@ L["OPTIONS_COMMAND_DESCRIPTION"] = "Abre a interface de opções deste add-on."
 -- Options — Dispense
 --------------------------------------------------------------------------------
 
--- Names the panel, its section header, and the mini-map tooltip's feature row.
+-- Names the panel and the mini-map tooltip's feature row.
 L["TAB_DISPENSE"] = "Distribuir"
-L["OPTIONS_DISPENSE_DESC"] = "Preenche automaticamente a janela de troca quando uma troca é aberta."
 L["OPTIONS_DISPENSE_MASTER"] = "Ativar Distribuição"
-L["OPTIONS_DISPENSE_MASTER_DESC"] = "Preenche automaticamente a janela de troca com base nas suas configurações."
+-- Also the panel's intro line and the mini-map tooltip's feature description.
+L["OPTIONS_DISPENSE_MASTER_DESC"] =
+	"Preenche automaticamente a janela de troca quando uma troca é aberta, com base nas suas configurações."
 L["OPTIONS_DISPENSE_SOLO"] = "Ativar para Desconhecidos"
 L["OPTIONS_DISPENSE_SOLO_DESC"] =
 	"Preenche a janela de troca automaticamente ao negociar com alguém que não está no seu grupo nem na sua raide."
@@ -121,7 +126,7 @@ L["OPTIONS_DISPENSE_RAID_DESC"] = "Preenche a janela de troca automaticamente ao
 -- The label says what it does; the tooltip only covers why it is needed and when it stands down.
 L["OPTIONS_RESTACK"] = "Juntar Pilhas Parciais Depois de uma Troca"
 L["OPTIONS_RESTACK_DESC"] =
-	"Água e comida conjuradas caem em um novo espaço da bolsa a cada conjuração e o jogo nunca as junta de volta, então o Water Dispenser as junta uma vez, logo depois que uma janela de troca é fechada. Ele nunca reorganiza suas bolsas em nenhum outro momento, nem em combate, nem enquanto você segura algo no cursor."
+	"Água e comida conjuradas caem em um novo espaço da bolsa a cada conjuração e o jogo nunca as junta de volta, então o Water Dispenser as junta uma vez, logo depois que uma janela de troca é fechada, e nunca em nenhum outro momento, nem em combate, nem enquanto você segura algo no cursor."
 L["OPTIONS_MISSING_STACK_WARNINGS"] = "Ativar Avisos Quando Faltar Estoque"
 L["OPTIONS_MISSING_STACK_WARNINGS_DESC"] =
 	"Mostra um aviso na sua janela de chat quando você não tem o suficiente de um item configurado nas bolsas para dar a quantidade definida."
@@ -138,7 +143,7 @@ L["OPTIONS_COMBAT_NOTIFY_DESC"] =
 
 L["TAB_INVENTORY_TOOLTIPS"] = "Dicas de Inventário"
 L["OPTIONS_TOOLTIPS_DESC"] =
-	"Mostra nas dicas de jogador dos membros do grupo que usam o Water Dispenser o que eles configuraram para doar, e marca esses itens nas suas próprias bolsas."
+	"Mostra nas dicas de jogador o que os membros do grupo que usam o Water Dispenser configuraram para doar, e marca nas suas próprias bolsas os itens que você doa."
 L["OPTIONS_SHOW_INVENTORY"] = "Mostrar Inventário nas Dicas de Jogador"
 L["OPTIONS_SHOW_INVENTORY_DESC"] =
 	"Adiciona um bloco do Water Dispenser às dicas de jogador listando o que eles configuraram para doar e quantos têm para doar, com o seu sempre aparecendo, em grupo ou não."
@@ -164,30 +169,33 @@ L["OPTIONS_ITEM_AMOUNTS"] = "Quantidades"
 L["OPTIONS_ITEM_AMOUNTS_DESC"] =
 	"Escolha quantos cada classe recebe ao negociar com ela, conforme seja um desconhecido, esteja no seu grupo ou na sua raide. Contados em itens individuais, não em pilhas. Zero significa que nunca receberá este item."
 L["OPTIONS_ITEM_EVERYONE"] = "Todos"
+-- "Apply" must match OPTIONS_ITEM_APPLY.
 L["OPTIONS_ITEM_EVERYONE_DESC"] =
-	"Define esta quantidade para todas as classes de uma vez quando você pressiona Enter, e fica em branco quando as classes abaixo não coincidem."
+	"Define esta quantidade para todas as classes de uma vez quando você pressiona Enter ou clica em Aplicar, e fica em branco quando as classes abaixo não coincidem."
 -- The accept button inside every number box in this panel.
 L["OPTIONS_ITEM_APPLY"] = "Aplicar"
 -- %d is the highest amount this item accepts, which is 1 for anything unique.
 L["OPTIONS_ITEM_COUNT_TOO_HIGH"] = "Isso é mais do que este item pode distribuir. O máximo é %d."
-L["OPTIONS_ITEM_COUNT_INVALID"] = "Digite um número de itens, ou 0 para nunca distribuir este."
+L["OPTIONS_ITEM_COUNT_INVALID"] = "Digite um número de itens."
 L["OPTIONS_ITEM_SETTINGS"] = "Configurações do Item"
 L["OPTIONS_ITEM_DISTRIBUTE"] = "Entregar"
 -- "In Instance" must match the dropdown entry below.
 L["OPTIONS_ITEM_DISTRIBUTE_DESC"] =
-	"Define onde este item é distribuído: em qualquer outro lugar ele nunca é negociado, anunciado nem mostrado na sua dica. Em Instância cobre masmorras, raides, campos de batalha e arenas. Para segurar um item diante de um grupo ou de uma raide, defina como 0 as quantidades daquela coluna."
--- Dropdown entries. The stored values are "Always" and "Instance"; these are only their labels.
+	"Define onde este item é distribuído, com Em Instância cobrindo masmorras, raides, campos de batalha e arenas, e em qualquer outro lugar ele nunca é negociado, anunciado nem mostrado na sua dica."
+--[[
+	Dropdown entries, looked up as OPTIONS_ITEM_DISTRIBUTE_ plus the stored value in
+	capitals ("Always", "Instance"), so no code names these keys in full.
+]]
 L["OPTIONS_ITEM_DISTRIBUTE_ALWAYS"] = "Sempre"
 L["OPTIONS_ITEM_DISTRIBUTE_INSTANCE"] = "Em Instância"
 L["OPTIONS_ITEM_GUILDIES_ONLY"] = "Somente Guilda"
-L["OPTIONS_ITEM_GUILDIES_ONLY_DESC"] =
-	"Ignora este item quando a pessoa com quem você está negociando não está na sua guilda."
+L["OPTIONS_ITEM_GUILDIES_ONLY_DESC"] = "Ignora este item quando o seu parceiro de troca não está na sua guilda."
 -- Panel line under the toggle, not a tooltip: it names the guild, which no fixed string can. %s is the player's guild.
 L["OPTIONS_ITEM_GUILDIES_ONLY_HELP"] = "Dar somente a membros de <%s>."
 L["OPTIONS_ITEM_GUILDIES_ONLY_NO_GUILD"] = "Você não está em nenhuma guilda, então isto não dá o item a ninguém."
 L["OPTIONS_ITEM_FACTOR_LEVEL"] = "Considerar o Nível Exigido pelo Item"
 L["OPTIONS_ITEM_FACTOR_LEVEL_DESC"] =
-	"Ignora este item quando o parceiro de troca está abaixo do nível exigido pelo item."
+	"Ignora este item quando o seu parceiro de troca está abaixo do nível exigido pelo item."
 L["OPTIONS_ITEM_RESERVE"] = "Ativar Reservas"
 L["OPTIONS_ITEM_RESERVE_DESC"] =
 	"Mantém sempre pelo menos esta quantidade nas suas bolsas, com a distribuição, a sua dica de jogador e a macro de anúncio tratando tudo além desse número como disponível para doar."

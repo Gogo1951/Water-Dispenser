@@ -48,6 +48,7 @@ ns.DiagnosticsStrings = {
 	VALIDATE_HINT = "Exports every ID this data file ships with whatever the client knows about it, tab-separated so it pastes straight into a spreadsheet. The rows worth reading are the ones flagged NOT ON CLIENT.",
 	VALIDATE_SUMMARY = "%d of %d IDs are not on this client.",
 	VALIDATE_SUMMARY_CLEAN = "All %d IDs resolved on this client.",
+	VALIDATE_TABLES_MISSING = "%d table(s) this file should declare are missing from this client's data folder.",
 	LIBS_TITLE = "Library Versions",
 	LIBS_BUTTON = "List Library Versions",
 	TAINT_TITLE = "Taint Log",
@@ -91,15 +92,36 @@ end
 local function GetClientHeader()
 	local version, build, _, tocVersion = GetBuildInfo()
 	return string.format(
-		"%s %s // Client %s // Build %s // TOC %s // Locale %s // Project %s",
+		"%s %s // Client %s // Build %s // TOC %s // Locale %s // Flavor %s // Data %s",
 		L["ADDON_TITLE"],
 		ns.Version,
 		version,
 		build,
 		tocVersion,
 		GetLocale(),
-		tostring(WOW_PROJECT_ID)
+		tostring(ns.FLAVOR),
+		tostring(ns.DATA_FOLDER)
 	)
+end
+
+--------------------------------------------------------------------------------
+-- Manifest Lookups
+--------------------------------------------------------------------------------
+
+--[[
+	Manifests name data tables by their dotted path on ns ("COLLECTIONS.MageWater.Items")
+	rather than holding them, so a table this client's data folder never built
+	resolves to nil and can be reported instead of erroring.
+]]
+local function ResolveTable(path)
+	local value = ns
+	for key in path:gmatch("[^.]+") do
+		if type(value) ~= "table" then
+			return nil
+		end
+		value = value[key]
+	end
+	return type(value) == "table" and value or nil
 end
 
 --------------------------------------------------------------------------------
@@ -121,8 +143,44 @@ ns.DIAGNOSTIC_EVENT_EXCLUDE = {
 	BAG_UPDATE = true,
 }
 
+--[[
+	Events whose firings carry an id the add-on acts on, and the argument it arrives
+	in. CHAT_MSG_ADDON carries every add-on's traffic in the group, and in a raid the
+	boss mods and meters alone would push everything else out of the buffer, so only
+	a firing on our own prefix is logged; the rest is counted.
+]]
+ns.MESSAGE_ID_FILTERED_EVENTS = {
+	CHAT_MSG_ADDON = 1,
+}
+
+-- The ids the live handlers act on, read from the same constant they use: the allowlist, never a list of noise.
+local CORRELATED_IDS = {
+	CHAT_MSG_ADDON = { [ns.ADDON_MESSAGE_PREFIX] = true },
+}
+
+--[[
+	True when a firing is uncorrelated traffic, folded into a per-id count instead of
+	entering the buffer. A firing with no id, or one Forever hides in combat, is
+	signal and logs verbatim.
+]]
+function ns:SuppressUncorrelatedMessage(event, ...)
+	local position = ns.MESSAGE_ID_FILTERED_EVENTS[event]
+	if not position then
+		return false
+	end
+	local id = (select(position, ...))
+	if id == nil or ns.IsSecretValue(id) or CORRELATED_IDS[event][id] then
+		return false
+	end
+	local suppressed = ns.diagnostics.suppressed
+	local key = event .. "(" .. tostring(id) .. ")"
+	suppressed[key] = (suppressed[key] or 0) + 1
+	return true
+end
+
 function ns:StartEventLog()
 	ns.diagnostics.log = {}
+	ns.diagnostics.suppressed = {}
 	ns.diagnostics.logging = true
 end
 
@@ -139,7 +197,8 @@ end
 --[[
 	Appends one entry. Snapshots args to strings immediately (never retains frames
 	or tables) and caps arg count and length. Pipes are escaped after the cut so
-	args render verbatim and a cut can't leave a dangling pipe.
+	args render verbatim and a cut can't leave a dangling pipe. A value Forever
+	hides in combat is written as <secret>, never stringified.
 ]]
 local function AppendLogEntry(event, ...)
 	local parts = {}
@@ -147,8 +206,13 @@ local function AppendLogEntry(event, ...)
 		if index > EVENT_LOG_MAX_ARGS then
 			break
 		end
-		local raw = string.sub(tostring((select(index, ...))), 1, EVENT_LOG_MAX_ARG_LENGTH)
-		parts[index] = (raw:gsub("|", "||"))
+		local value = (select(index, ...))
+		if ns.IsSecretValue(value) then
+			parts[index] = "<secret>"
+		else
+			local raw = string.sub(tostring(value), 1, EVENT_LOG_MAX_ARG_LENGTH)
+			parts[index] = (raw:gsub("|", "||"))
+		end
 	end
 	local log = ns.diagnostics.log
 	log[#log + 1] = string.format("%.3f %s(%s)", GetTime(), event, table.concat(parts, ", "))
@@ -157,9 +221,12 @@ local function AppendLogEntry(event, ...)
 	end
 end
 
--- The dispatcher's tap: everything except the firehoses above.
+-- The dispatcher's tap: everything except the excluded firehoses and uncorrelated filtered traffic.
 function ns:LogEvent(event, ...)
 	if ns.DIAGNOSTIC_EVENT_EXCLUDE[event] then
+		return
+	end
+	if ns:SuppressUncorrelatedMessage(event, ...) then
 		return
 	end
 	AppendLogEntry(event, ...)
@@ -182,6 +249,26 @@ function ns:BuildEventLogReport()
 	else
 		for _, entry in ipairs(log) do
 			lines[#lines + 1] = entry
+		end
+	end
+
+	-- Suppressed traffic as one compact block, biggest offender first.
+	local suppressed = ns.diagnostics.suppressed
+	if suppressed and next(suppressed) then
+		local keys = {}
+		for key in pairs(suppressed) do
+			keys[#keys + 1] = key
+		end
+		table.sort(keys, function(a, b)
+			if suppressed[a] ~= suppressed[b] then
+				return suppressed[a] > suppressed[b]
+			end
+			return a < b
+		end)
+		lines[#lines + 1] = ""
+		lines[#lines + 1] = "Suppressed (counted, not logged):"
+		for _, key in ipairs(keys) do
+			lines[#lines + 1] = key:gsub("|", "||") .. " x" .. suppressed[key]
 		end
 	end
 	return table.concat(lines, "\n")
@@ -238,8 +325,10 @@ end
 --------------------------------------------------------------------------------
 
 --[[
-	Existence/shape checks for every API the add-on calls or guards. Modern and
-	legacy fallbacks are listed separately so the report shows what each client has.
+	Existence/shape checks for every API the add-on calls or guards. The tooltip
+	hooks take the modern path wherever TooltipDataProcessor exists and the fallback
+	path elsewhere, so one of the two failing is expected; the context report names
+	the path each hook took.
 ]]
 ns.DIAGNOSTIC_API_CHECKS = {
 	-- { label, testFunction }
@@ -299,12 +388,6 @@ ns.DIAGNOSTIC_API_CHECKS = {
 		end,
 	},
 	{
-		"GetItemInfo (legacy)",
-		function()
-			return type(GetItemInfo) == "function"
-		end,
-	},
-	{
 		"C_Item.DoesItemExistByID",
 		function()
 			return type(C_Item) == "table" and type(C_Item.DoesItemExistByID) == "function"
@@ -317,12 +400,6 @@ ns.DIAGNOSTIC_API_CHECKS = {
 		end,
 	},
 	{
-		"GetItemInfoInstant (legacy)",
-		function()
-			return type(GetItemInfoInstant) == "function"
-		end,
-	},
-	{
 		"C_Spell.GetSpellInfo",
 		function()
 			return type(C_Spell) == "table" and type(C_Spell.GetSpellInfo) == "function"
@@ -332,12 +409,6 @@ ns.DIAGNOSTIC_API_CHECKS = {
 		"C_Spell.GetSpellSubtext",
 		function()
 			return type(C_Spell) == "table" and type(C_Spell.GetSpellSubtext) == "function"
-		end,
-	},
-	{
-		"GetSpellInfo (legacy)",
-		function()
-			return type(GetSpellInfo) == "function"
 		end,
 	},
 	{
@@ -425,16 +496,30 @@ ns.DIAGNOSTIC_API_CHECKS = {
 		end,
 	},
 	{
-		-- The two tooltip paths. Neither target client has TooltipDataProcessor today, so SetBagItem is the live one.
-		"TooltipDataProcessor.AddTooltipPostCall",
+		"TooltipDataProcessor.AddTooltipPostCall (modern tooltip path)",
 		function()
 			return type(TooltipDataProcessor) == "table" and type(TooltipDataProcessor.AddTooltipPostCall) == "function"
 		end,
 	},
 	{
-		"GameTooltip:SetBagItem",
+		"GameTooltip:SetBagItem (fallback bag tooltip path)",
 		function()
 			return type(GameTooltip) == "table" and type(GameTooltip.SetBagItem) == "function"
+		end,
+	},
+	{
+		"GameTooltip OnTooltipSetUnit script (fallback unit tooltip path)",
+		function()
+			return GameTooltip:HasScript("OnTooltipSetUnit") and true or false
+		end,
+	},
+	{
+		"Enum.TooltipDataType.Unit / .Item (modern tooltip path)",
+		function()
+			return type(Enum) == "table"
+				and type(Enum.TooltipDataType) == "table"
+				and Enum.TooltipDataType.Unit ~= nil
+				and Enum.TooltipDataType.Item ~= nil
 		end,
 	},
 	{
@@ -462,6 +547,12 @@ ns.DIAGNOSTIC_API_CHECKS = {
 		end,
 	},
 	{
+		"C_Timer.After",
+		function()
+			return type(C_Timer) == "table" and type(C_Timer.After) == "function"
+		end,
+	},
+	{
 		"C_AddOns.GetAddOnMetadata",
 		function()
 			return type(C_AddOns) == "table" and type(C_AddOns.GetAddOnMetadata) == "function"
@@ -474,9 +565,21 @@ ns.DIAGNOSTIC_API_CHECKS = {
 		end,
 	},
 	{
+		"C_AddOns.IsAddOnLoaded",
+		function()
+			return type(C_AddOns) == "table" and type(C_AddOns.IsAddOnLoaded) == "function"
+		end,
+	},
+	{
 		"C_AddOns.GetNumAddOns",
 		function()
 			return type(C_AddOns) == "table" and type(C_AddOns.GetNumAddOns) == "function"
+		end,
+	},
+	{
+		"issecretvalue",
+		function()
+			return type(issecretvalue) == "function"
 		end,
 	},
 	{
@@ -514,28 +617,35 @@ end
 
 --[[
 	Probes the state behind a "nothing fills" report: player class, trade partner
-	class/level, resolved scope, and per-item active/count. Read-only.
+	class/level, resolved scope, per-item active/count, the highest spell rank known
+	per table, and which tooltip path each hook took. Read-only.
 ]]
 
--- { spellId, label } — representative gated spells, existence checks only.
-ns.DIAGNOSTIC_SPELLS = {
-	{ 5504, "Conjure Water (Rank 1)" },
-	{ 27090, "Conjure Water (Rank 9)" },
-	{ 587, "Conjure Food (Rank 1)" },
-	{ 33717, "Conjure Food (Rank 8)" },
-	{ 6201, "Create Healthstone (Rank 1)" },
-	{ 47878, "Create Healthstone (Rank 8)" },
-}
+--[[
+	The spell tables the add-on reads, named by their path on ns so no spell ID
+	lives in this file: each built-in collection's Spells ([spellId] = rank), then
+	the Improved Healthstone talent, an array ranked by position (IdFrom = "value").
+]]
+ns.DIAGNOSTIC_SPELLS = {}
+for _, key in ipairs(ns.BUILTIN_ORDER) do
+	ns.DIAGNOSTIC_SPELLS[#ns.DIAGNOSTIC_SPELLS + 1] = { Label = key, Path = "COLLECTIONS." .. key .. ".Spells" }
+end
+ns.DIAGNOSTIC_SPELLS[#ns.DIAGNOSTIC_SPELLS + 1] =
+	{ Label = "Improved Healthstone", Path = "HEALTHSTONE_TALENT_SPELLS", IdFrom = "value" }
 
--- IsSpellKnown misses some trained ranks on Classic Era; IsPlayerSpell is the fallback, either true counts as known.
-local function IsSpellLearned(spellId)
-	if IsSpellKnown and IsSpellKnown(spellId) then
-		return true
+-- The highest-ranked spell in one table that this character knows, by the same test the add-on uses; nil when none is.
+local function HighestKnownSpell(spells, idFrom)
+	local bestId, bestRank
+	for key, value in pairs(spells) do
+		local id, rank = key, value
+		if idFrom == "value" then
+			id, rank = value, key
+		end
+		if ns.IsSpellLearned(id) and (not bestRank or rank > bestRank) then
+			bestId, bestRank = id, rank
+		end
 	end
-	if IsPlayerSpell and IsPlayerSpell(spellId) then
-		return true
-	end
-	return false
+	return bestId, bestRank
 end
 
 local function CurrentScope(trade)
@@ -651,17 +761,29 @@ function ns:BuildContextReport()
 	end
 
 	lines[#lines + 1] = ""
-	lines[#lines + 1] = "Spells (verdict via IsSpellLearned; raw checks in parentheses):"
-	local hasIsSpellKnown = type(IsSpellKnown) == "function"
-	local hasIsPlayerSpell = type(IsPlayerSpell) == "function"
-	for _, spell in ipairs(ns.DIAGNOSTIC_SPELLS) do
-		local id, label = spell[1], spell[2]
-		local verdict = IsSpellLearned(id) and "known" or "unknown"
-		local rawKnown = hasIsSpellKnown and tostring(IsSpellKnown(id)) or "n/a"
-		local rawPlayer = hasIsPlayerSpell and tostring(IsPlayerSpell(id)) or "n/a"
-		lines[#lines + 1] =
-			string.format("  [%s] %s (%d) (IsSpellKnown=%s, IsPlayerSpell=%s)", verdict, label, id, rawKnown, rawPlayer)
+	lines[#lines + 1] = "Spells (highest rank known, via ns.IsSpellLearned; per-ID detail is in Validate Data):"
+	for _, entry in ipairs(ns.DIAGNOSTIC_SPELLS) do
+		local spells = ResolveTable(entry.Path)
+		if not spells then
+			lines[#lines + 1] = string.format("  %s: TABLE MISSING (%s)", entry.Label, entry.Path)
+		else
+			local id, rank = HighestKnownSpell(spells, entry.IdFrom)
+			if id then
+				local info = C_Spell.GetSpellInfo(id)
+				lines[#lines + 1] =
+					string.format("  %s: rank %d, %s (%d)", entry.Label, rank, tostring(info and info.name), id)
+			else
+				lines[#lines + 1] = string.format("  %s: none known", entry.Label)
+			end
+		end
 	end
+	local talentRank = ns.HealthstoneTalentRank and ns.HealthstoneTalentRank()
+	lines[#lines + 1] =
+		string.format("Improved Healthstone rank sent to the group: %s", talentRank and tostring(talentRank) or "n/a")
+
+	lines[#lines + 1] = ""
+	lines[#lines + 1] = string.format("Unit tooltip hook: %s", ns.unitTooltipPath or "not hooked")
+	lines[#lines + 1] = string.format("Bag tooltip hook: %s", ns.bagTooltipPath or "not hooked")
 
 	return table.concat(lines, "\n")
 end
@@ -670,22 +792,18 @@ end
 -- Other Add-ons
 --------------------------------------------------------------------------------
 
+-- C_AddOns is called directly: every supported client ships it, and the legacy globals are gone.
 function ns:BuildAddOnReport()
 	local lines = { GetClientHeader(), "" }
-	--[[
-		All three of these moved into C_AddOns in the same patch, and the API probe has
-		now watched the legacy globals fail on Era 1.15.9, so the namespace is called
-		directly. The `or GetAddOnInfo` tails that used to sit here were never a real
-		guard anyway -- the line below them indexed C_AddOns unconditionally, so a
-		client without the namespace was already an error rather than a fallback.
-	]]
-	local getInfo = C_AddOns.GetAddOnInfo
-	local getMeta = C_AddOns.GetAddOnMetadata
-	local count = C_AddOns.GetNumAddOns()
-	for index = 1, count do
-		local name, _, _, loadable = getInfo(index)
-		local version = getMeta(index, "Version") or "?"
-		lines[#lines + 1] = string.format("%s v%s [%s]", name, version, loadable and "loadable" or "disabled")
+	for index = 1, C_AddOns.GetNumAddOns() do
+		local name, _, _, _, reason = C_AddOns.GetAddOnInfo(index)
+		local version = C_AddOns.GetAddOnMetadata(index, "Version") or "?"
+		local state = C_AddOns.IsAddOnLoaded(index) and "loaded" or "not loaded"
+		local line = string.format("%s v%s [%s]", name, version, state)
+		if reason and reason ~= "" then
+			line = line .. " (" .. tostring(reason) .. ")"
+		end
+		lines[#lines + 1] = line
 	end
 	return table.concat(lines, "\n")
 end
@@ -738,33 +856,35 @@ end
 --------------------------------------------------------------------------------
 
 --[[
-	One entry per static data file the add-on ships. Tables name each static table
-	in it, the kind of ID its keys hold, and the label the SOURCE column carries.
-	The panel builds one section per entry, so a new data file adds a row here
-	rather than a new builder, and the validator can't drift from what ships.
+	One entry per static data file the add-on ships; every flavor folder carries the
+	same file names, so one manifest serves every client. Tables name each static
+	table in the file by its path on ns, which doubles as the SOURCE column, and the
+	kind of ID its keys hold. The panel builds one section per entry, so a new data
+	file adds a row here rather than a new builder, and the validator can't drift
+	from what ships.
 
 	IdFrom = "value" reads the ID out of the value instead of the key, for a plain
 	array of IDs rather than an [id] = data map.
 ]]
 ns.DIAGNOSTIC_DATA_SOURCES = {
 	{
-		Label = "Data/Collections.lua",
+		Label = "Collections.lua",
 		Tables = {
-			{ Source = "MageWater.Items", Kind = "item", Table = ns.COLLECTIONS.MageWater.Items },
-			{ Source = "MageFood.Items", Kind = "item", Table = ns.COLLECTIONS.MageFood.Items },
-			{ Source = "WarlockHealthstone.Items", Kind = "item", Table = ns.COLLECTIONS.WarlockHealthstone.Items },
-			{ Source = "MageWater.Spells", Kind = "spell", Table = ns.COLLECTIONS.MageWater.Spells },
-			{ Source = "MageFood.Spells", Kind = "spell", Table = ns.COLLECTIONS.MageFood.Spells },
-			{ Source = "WarlockHealthstone.Spells", Kind = "spell", Table = ns.COLLECTIONS.WarlockHealthstone.Spells },
-			{
-				Source = "HEALTHSTONE_TALENT_SPELLS",
-				Kind = "spell",
-				Table = ns.HEALTHSTONE_TALENT_SPELLS,
-				IdFrom = "value",
-			},
+			{ Source = "COLLECTIONS.MageWater.Items", Kind = "item" },
+			{ Source = "COLLECTIONS.MageFood.Items", Kind = "item" },
+			{ Source = "COLLECTIONS.WarlockHealthstone.Items", Kind = "item" },
+			{ Source = "COLLECTIONS.MageWater.Spells", Kind = "spell" },
+			{ Source = "COLLECTIONS.MageFood.Spells", Kind = "spell" },
+			{ Source = "COLLECTIONS.WarlockHealthstone.Spells", Kind = "spell" },
+			{ Source = "HEALTHSTONE_TALENT_SPELLS", Kind = "spell", IdFrom = "value" },
 		},
 	},
 }
+
+-- The section and button label: the file as this client loaded it, e.g. "Forever/Collections.lua".
+function ns.DiagnosticDataSourceLabel(source)
+	return tostring(ns.DATA_FOLDER) .. "/" .. source.Label
+end
 
 local VALIDATE_BATCH_SIZE = 100
 
@@ -773,6 +893,7 @@ local VALIDATE_MAX_RETRIES = 20
 
 local STATUS_OK = "OK"
 local STATUS_MISSING = "NOT ON CLIENT"
+local STATUS_TABLE_MISSING = "TABLE MISSING"
 
 --[[
 	One TSV cell. Tabs and newlines would break the grid, and pipes are escaped so
@@ -842,20 +963,12 @@ local ITEM_COLUMNS = Row(
 	"INSTANT_SUBCLASS_ID"
 )
 
--- Modern namespace when the client has it, legacy global otherwise; existence is checked, then exactly one is called.
 local function SpellFields(spellId)
-	if C_Spell and C_Spell.GetSpellInfo then
-		local info = C_Spell.GetSpellInfo(spellId)
-		if not info then
-			return nil
-		end
-		local subtext = C_Spell.GetSpellSubtext and C_Spell.GetSpellSubtext(spellId)
-		return info.name, subtext, info.iconID, info.castTime, info.minRange, info.maxRange
+	local info = C_Spell.GetSpellInfo(spellId)
+	if not info then
+		return nil
 	end
-	if GetSpellInfo then
-		return GetSpellInfo(spellId)
-	end
-	return nil
+	return info.name, C_Spell.GetSpellSubtext(spellId), info.iconID, info.castTime, info.minRange, info.maxRange
 end
 
 local function SpellRow(source, spellId)
@@ -885,23 +998,18 @@ end
 	that exists, so pending is retried rather than flagged.
 ]]
 local function ItemRow(source, itemId)
-	if C_Item and C_Item.DoesItemExistByID and not C_Item.DoesItemExistByID(itemId) then
+	if not C_Item.DoesItemExistByID(itemId) then
 		return "missing", Row(STATUS_MISSING, source, itemId)
 	end
 
 	local name, link, quality, itemLevel, minLevel, itemType, subType, stackCount, equipLoc, texture, sellPrice, classID, subclassID, bindType, expacID, setID, isReagent =
-		ns.GetItemInfo(itemId)
+		C_Item.GetItemInfo(itemId)
 	if not name then
 		return "pending"
 	end
 
-	local getInstant = (C_Item and C_Item.GetItemInfoInstant) or GetItemInfoInstant
-	local instantType, instantSubType, instantEquipLoc, instantIcon, instantClassID, instantSubclassID
-	if getInstant then
-		local _
-		_, instantType, instantSubType, instantEquipLoc, instantIcon, instantClassID, instantSubclassID =
-			getInstant(itemId)
-	end
+	local _, instantType, instantSubType, instantEquipLoc, instantIcon, instantClassID, instantSubclassID =
+		C_Item.GetItemInfoInstant(itemId)
 
 	return "ok",
 		Row(
@@ -947,11 +1055,35 @@ function ns:RunValidateData(sourceIndex)
 	end
 
 	local field = "validateReport" .. sourceIndex
+
+	--[[
+		Each run is stamped, and a run stops writing the moment the panel is switched
+		off or a newer press replaces its stamp. The stamp lives on ns.diagnostics, so
+		switching off clears it with everything else, and a fresh table can never
+		collide with a stamp from before.
+	]]
+	local tokenField = "validateRun" .. sourceIndex
+	local token = {}
+	ns.diagnostics[tokenField] = token
+	local function IsCurrent()
+		return ns.diagnostics.enabled and ns.diagnostics[tokenField] == token
+	end
+
+	local itemRows, spellRows = {}, {}
+	local missingTables = 0
 	local queue = {}
 	for _, entry in ipairs(source.Tables) do
-		for key, value in pairs(entry.Table) do
-			local id = (entry.IdFrom == "value") and value or key
-			queue[#queue + 1] = { Source = entry.Source, Kind = entry.Kind, Id = id }
+		local data = ResolveTable(entry.Source)
+		if data then
+			for key, value in pairs(data) do
+				local id = (entry.IdFrom == "value") and value or key
+				queue[#queue + 1] = { Source = entry.Source, Kind = entry.Kind, Id = id }
+			end
+		else
+			-- The loaded folder is missing a file or a table: one row says so, in the block its kind prints in.
+			local rows = (entry.Kind == "item") and itemRows or spellRows
+			rows[#rows + 1] = Row(STATUS_TABLE_MISSING, entry.Source)
+			missingTables = missingTables + 1
 		end
 	end
 	table.sort(queue, function(a, b)
@@ -962,15 +1094,12 @@ function ns:RunValidateData(sourceIndex)
 	end)
 
 	local total = #queue
-	if C_Item and C_Item.RequestLoadItemDataByID then
-		for _, entry in ipairs(queue) do
-			if entry.Kind == "item" then
-				C_Item.RequestLoadItemDataByID(entry.Id)
-			end
+	for _, entry in ipairs(queue) do
+		if entry.Kind == "item" then
+			C_Item.RequestLoadItemDataByID(entry.Id)
 		end
 	end
 
-	local itemRows, spellRows = {}, {}
 	local index, flagged = 1, 0
 
 	local function RefreshPanel()
@@ -1000,11 +1129,17 @@ function ns:RunValidateData(sourceIndex)
 		else
 			lines[#lines + 1] = string.format(ns.DiagnosticsStrings.VALIDATE_SUMMARY_CLEAN, total)
 		end
+		if missingTables > 0 then
+			lines[#lines + 1] = string.format(ns.DiagnosticsStrings.VALIDATE_TABLES_MISSING, missingTables)
+		end
 		ns.diagnostics[field] = table.concat(lines, "\n")
 		RefreshPanel()
 	end
 
 	local function Step()
+		if not IsCurrent() then
+			return
+		end
 		local processed = 0
 		local deferred = {}
 		while index <= #queue and processed < VALIDATE_BATCH_SIZE do
@@ -1051,7 +1186,8 @@ function ns:RunValidateData(sourceIndex)
 			return
 		end
 
-		ns.diagnostics[field] = string.format(ns.DiagnosticsStrings.VALIDATE_PROGRESS, #itemRows + #spellRows, total)
+		ns.diagnostics[field] =
+			string.format(ns.DiagnosticsStrings.VALIDATE_PROGRESS, #itemRows + #spellRows - missingTables, total)
 		RefreshPanel()
 		C_Timer.After(0, Step)
 	end

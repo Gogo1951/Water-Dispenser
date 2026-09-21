@@ -46,7 +46,7 @@ L["CHAT_NONE_ACTIVE_FOR_CLASS"] =
 	"当你使用 %s 游玩时，没有设置任何要分发的物品。请打开 选项 > 插件 > Water Dispenser > 分发物品 启用适用于此职业的物品。"
 -- "- Dispenser" is the macro's literal name and is never translated.
 L["CHAT_MACRO_DELETED"] = '喊话宏 "- Dispenser" 已删除。'
-L["CHAT_MACRO_FULL"] = "无法创建宏：角色专属宏数量已达上限。"
+L["CHAT_MACRO_FULL"] = "无法创建喊话宏：角色专属宏数量已达上限。"
 
 --------------------------------------------------------------------------------
 -- Player Tooltips
@@ -62,7 +62,7 @@ L["TOOLTIP_HEALTHSTONE"] = "治疗石（等级 %d/%d）"
 
 -- Shown on a carried bag item the player has set up to give away.
 L["TOOLTIP_WILL_DISPENSE"] = "此物品将会被分发。"
--- The same line for an item that stacks, which is also tidied back together once a trade ends.
+-- The same line for a stacking item while OPTIONS_RESTACK is on, which tidies it back together once a trade ends.
 L["TOOLTIP_WILL_DISPENSE_STACKED"] = "此物品将会被分发。交易结束后，它的零散堆叠会被合并。"
 
 --------------------------------------------------------------------------------
@@ -76,7 +76,10 @@ L["BUTTON_FILL"] = "填充交易窗口"
 -- Minimap Button
 --------------------------------------------------------------------------------
 
--- The tooltip's feature row reuses TAB_DISPENSE for its name; these are its state and click words.
+--[[
+	The tooltip's feature row reuses TAB_DISPENSE for its name and
+	OPTIONS_DISPENSE_MASTER_DESC for its description; these are its state and click words.
+]]
 L["UI_ENABLED"] = "已启用"
 L["UI_DISABLED"] = "已禁用"
 L["UI_LEFT_CLICK"] = "左键点击"
@@ -104,11 +107,11 @@ L["OPTIONS_COMMAND_DESCRIPTION"] = "打开本插件的选项界面。"
 -- Options — Dispense
 --------------------------------------------------------------------------------
 
--- Names the panel, its section header, and the mini-map tooltip's feature row.
+-- Names the panel and the mini-map tooltip's feature row.
 L["TAB_DISPENSE"] = "分发"
-L["OPTIONS_DISPENSE_DESC"] = "打开交易时自动填充交易窗口。"
 L["OPTIONS_DISPENSE_MASTER"] = "启用分发"
-L["OPTIONS_DISPENSE_MASTER_DESC"] = "根据你的设置自动填充交易窗口。"
+-- Also the panel's intro line and the mini-map tooltip's feature description.
+L["OPTIONS_DISPENSE_MASTER_DESC"] = "打开交易时根据你的设置自动填充交易窗口。"
 L["OPTIONS_DISPENSE_SOLO"] = "对陌生人启用"
 L["OPTIONS_DISPENSE_SOLO_DESC"] = "当与不在队伍或团队中的玩家交易时，自动填充交易窗口。"
 L["OPTIONS_DISPENSE_GROUP"] = "对小队启用"
@@ -118,7 +121,7 @@ L["OPTIONS_DISPENSE_RAID_DESC"] = "当与团队成员交易时，自动填充交
 -- The label says what it does; the tooltip only covers why it is needed and when it stands down.
 L["OPTIONS_RESTACK"] = "交易结束后合并零散堆叠"
 L["OPTIONS_RESTACK_DESC"] =
-	"制造的水和食物每次施放都会落在新的背包格中，游戏从不会把它们合回去，因此 Water Dispenser 会在交易窗口关闭后立即合并一次。除此之外它绝不会整理你的背包，在战斗中或你的光标上拿着东西时也绝不会执行。"
+	"制造的水和食物每次施放都会落在新的背包格中，游戏从不会把它们合回去，因此 Water Dispenser 会在交易窗口关闭后立即合并一次，而在其他任何时候、战斗中或你的光标上拿着东西时都绝不会这样做。"
 L["OPTIONS_MISSING_STACK_WARNINGS"] = "库存不足时启用警告"
 L["OPTIONS_MISSING_STACK_WARNINGS_DESC"] =
 	"当背包中已配置物品的数量不足以给出你设定的数量时，在聊天框中输出提示。"
@@ -135,7 +138,7 @@ L["OPTIONS_COMBAT_NOTIFY_DESC"] =
 
 L["TAB_INVENTORY_TOOLTIPS"] = "库存提示"
 L["OPTIONS_TOOLTIPS_DESC"] =
-	"在使用 Water Dispenser 的队友的玩家提示信息中显示他们设置为分发的内容，并在你自己背包中的这些物品上做出标记。"
+	"在玩家提示信息中显示使用 Water Dispenser 的队友设置为分发的内容，并在你自己的背包中标记你要分发的物品。"
 L["OPTIONS_SHOW_INVENTORY"] = "在玩家提示中显示库存"
 L["OPTIONS_SHOW_INVENTORY_DESC"] =
 	"在玩家提示信息中添加一个 Water Dispenser 区块，列出他们设置为分发的内容以及可以送出的数量，而无论是否组队，你自己的库存都会始终显示。"
@@ -161,29 +164,33 @@ L["OPTIONS_ITEM_AMOUNTS"] = "数量"
 L["OPTIONS_ITEM_AMOUNTS_DESC"] =
 	"按对方是陌生人、你的小队成员还是团队成员，选择每个职业各拿多少。按单个物品计算，而非按堆。填 0 表示他们永远拿不到这个物品。"
 L["OPTIONS_ITEM_EVERYONE"] = "所有人"
+-- "Apply" must match OPTIONS_ITEM_APPLY.
 L["OPTIONS_ITEM_EVERYONE_DESC"] =
-	"按下回车即可一次性为所有职业设定这个数量，当下方各职业的数值不一致时会显示为空白。"
+	"按下回车或点击应用即可一次性为所有职业设定这个数量，当下方各职业的数值不一致时会显示为空白。"
 -- The accept button inside every number box in this panel.
 L["OPTIONS_ITEM_APPLY"] = "应用"
 -- %d is the highest amount this item accepts, which is 1 for anything unique.
 L["OPTIONS_ITEM_COUNT_TOO_HIGH"] = "超过了此物品可分发的数量。最多为 %d。"
-L["OPTIONS_ITEM_COUNT_INVALID"] = "请输入物品数量，或输入 0 表示永不分发。"
+L["OPTIONS_ITEM_COUNT_INVALID"] = "请输入物品数量。"
 L["OPTIONS_ITEM_SETTINGS"] = "物品设置"
 L["OPTIONS_ITEM_DISTRIBUTE"] = "分发范围"
 -- "In Instance" must match the dropdown entry below.
 L["OPTIONS_ITEM_DISTRIBUTE_DESC"] =
-	"设置此物品在哪里才会被分发：在其他任何地方它都不会被交易、写入喊话，也不会显示在你的提示信息中。副本中涵盖地下城、团队副本、战场和竞技场。若只是想不给小队或团队，请把该列的数量设为 0。"
--- Dropdown entries. The stored values are "Always" and "Instance"; these are only their labels.
+	"设置此物品在哪里才会被分发，其中副本中涵盖地下城、团队副本、战场和竞技场，而在其他任何地方它都不会被交易、写入喊话，也不会显示在你的提示信息中。"
+--[[
+	Dropdown entries, looked up as OPTIONS_ITEM_DISTRIBUTE_ plus the stored value in
+	capitals ("Always", "Instance"), so no code names these keys in full.
+]]
 L["OPTIONS_ITEM_DISTRIBUTE_ALWAYS"] = "始终"
 L["OPTIONS_ITEM_DISTRIBUTE_INSTANCE"] = "副本中"
 L["OPTIONS_ITEM_GUILDIES_ONLY"] = "仅限公会成员"
-L["OPTIONS_ITEM_GUILDIES_ONLY_DESC"] = "当交易对象不在你的公会中时，跳过该物品。"
+L["OPTIONS_ITEM_GUILDIES_ONLY_DESC"] = "当你的交易对象不在你的公会中时，跳过该物品。"
 -- Panel line under the toggle, not a tooltip: it names the guild, which no fixed string can. %s is the player's guild.
 L["OPTIONS_ITEM_GUILDIES_ONLY_HELP"] = "只给 <%s> 的成员。"
 L["OPTIONS_ITEM_GUILDIES_ONLY_NO_GUILD"] =
 	"你没有加入任何公会，所以这样设置不会把该物品给任何人。"
 L["OPTIONS_ITEM_FACTOR_LEVEL"] = "考虑物品的等级需求"
-L["OPTIONS_ITEM_FACTOR_LEVEL_DESC"] = "当交易对象未达到该物品的使用等级时，跳过该物品。"
+L["OPTIONS_ITEM_FACTOR_LEVEL_DESC"] = "当你的交易对象未达到该物品的需求等级时，跳过该物品。"
 L["OPTIONS_ITEM_RESERVE"] = "启用保留数量"
 L["OPTIONS_ITEM_RESERVE_DESC"] =
 	"始终在背包中至少保留这么多，而分发、你的玩家提示和喊话宏会把超出这个数量的部分视为可以送出的。"

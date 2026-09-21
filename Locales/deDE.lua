@@ -47,7 +47,7 @@ L["CHAT_NONE_ACTIVE_FOR_CLASS"] =
 	"Es sind keine Gegenstände zur Ausgabe eingestellt, während du einen %s spielst. Öffne Optionen > AddOns > Water Dispenser > Ausgegebene Gegenstände, um Gegenstände für diese Klasse zu aktivieren."
 -- "- Dispenser" is the macro's literal name and is never translated.
 L["CHAT_MACRO_DELETED"] = 'Ankündigungs-Makro "- Dispenser" gelöscht.'
-L["CHAT_MACRO_FULL"] = "Makro konnte nicht erstellt werden: Alle Charakter-Makroplätze sind belegt."
+L["CHAT_MACRO_FULL"] = "Das Ankündigungs-Makro konnte nicht erstellt werden: Alle Charakter-Makroplätze sind belegt."
 
 --------------------------------------------------------------------------------
 -- Player Tooltips
@@ -63,7 +63,7 @@ L["TOOLTIP_HEALTHSTONE"] = "Gesundheitsstein (Rang %d/%d)"
 
 -- Shown on a carried bag item the player has set up to give away.
 L["TOOLTIP_WILL_DISPENSE"] = "Dieser Gegenstand wird ausgegeben."
--- The same line for an item that stacks, which is also tidied back together once a trade ends.
+-- The same line for a stacking item while OPTIONS_RESTACK is on, which tidies it back together once a trade ends.
 L["TOOLTIP_WILL_DISPENSE_STACKED"] =
 	"Dieser Gegenstand wird ausgegeben. Teilstapel davon werden zusammengelegt, sobald ein Handel endet."
 
@@ -78,7 +78,10 @@ L["BUTTON_FILL"] = "Handelsfenster füllen"
 -- Minimap Button
 --------------------------------------------------------------------------------
 
--- The tooltip's feature row reuses TAB_DISPENSE for its name; these are its state and click words.
+--[[
+	The tooltip's feature row reuses TAB_DISPENSE for its name and
+	OPTIONS_DISPENSE_MASTER_DESC for its description; these are its state and click words.
+]]
 L["UI_ENABLED"] = "Aktiviert"
 L["UI_DISABLED"] = "Deaktiviert"
 L["UI_LEFT_CLICK"] = "Linksklick"
@@ -107,11 +110,12 @@ L["OPTIONS_COMMAND_DESCRIPTION"] = "Öffnet das Optionsfenster dieses Add-ons."
 -- Options — Dispense
 --------------------------------------------------------------------------------
 
--- Names the panel, its section header, and the mini-map tooltip's feature row.
+-- Names the panel and the mini-map tooltip's feature row.
 L["TAB_DISPENSE"] = "Ausgabe"
-L["OPTIONS_DISPENSE_DESC"] = "Füllt das Handelsfenster automatisch, sobald ein Handel geöffnet wird."
 L["OPTIONS_DISPENSE_MASTER"] = "Ausgabe aktivieren"
-L["OPTIONS_DISPENSE_MASTER_DESC"] = "Füllt das Handelsfenster automatisch basierend auf deinen Einstellungen."
+-- Also the panel's intro line and the mini-map tooltip's feature description.
+L["OPTIONS_DISPENSE_MASTER_DESC"] =
+	"Füllt das Handelsfenster automatisch nach deinen Einstellungen, sobald ein Handel geöffnet wird."
 L["OPTIONS_DISPENSE_SOLO"] = "Für Fremde aktivieren"
 L["OPTIONS_DISPENSE_SOLO_DESC"] =
 	"Füllt das Handelsfenster automatisch, wenn du mit jemandem handelst, der nicht in deiner Gruppe oder deinem Schlachtzug ist."
@@ -123,7 +127,7 @@ L["OPTIONS_DISPENSE_RAID_DESC"] =
 -- The label says what it does; the tooltip only covers why it is needed and when it stands down.
 L["OPTIONS_RESTACK"] = "Teilstapel nach einem Handel zusammenlegen"
 L["OPTIONS_RESTACK_DESC"] =
-	"Herbeigezaubertes Wasser und Essen landen bei jedem Zauber in einem neuen Taschenplatz und das Spiel legt sie nie wieder zusammen, also führt Water Dispenser sie einmal zusammen, direkt nachdem sich ein Handelsfenster geschlossen hat. Zu keinem anderen Zeitpunkt werden deine Taschen umsortiert, und nie im Kampf oder während du etwas auf dem Mauszeiger hältst."
+	"Herbeigezaubertes Wasser und Essen landen bei jedem Zauber in einem neuen Taschenplatz und das Spiel legt sie nie wieder zusammen, also führt Water Dispenser sie einmal zusammen, direkt nachdem sich ein Handelsfenster geschlossen hat, und nie zu einem anderen Zeitpunkt, im Kampf oder während du etwas auf dem Mauszeiger hältst."
 L["OPTIONS_MISSING_STACK_WARNINGS"] = "Warnungen aktivieren, wenn dir etwas ausgeht"
 L["OPTIONS_MISSING_STACK_WARNINGS_DESC"] =
 	"Gibt einen Hinweis in deinem Chatfenster aus, wenn du nicht genug von einem eingerichteten Gegenstand in deinen Taschen hast, um die eingestellte Menge zu geben."
@@ -140,7 +144,7 @@ L["OPTIONS_COMBAT_NOTIFY_DESC"] =
 
 L["TAB_INVENTORY_TOOLTIPS"] = "Inventar-Tooltips"
 L["OPTIONS_TOOLTIPS_DESC"] =
-	"Zeigt in den Spieler-Tooltips von Gruppenmitgliedern, die Water Dispenser verwenden, was sie zum Verschenken eingerichtet haben, und markiert diese Gegenstände in deinen eigenen Taschen."
+	"Zeigt in Spieler-Tooltips, was Gruppenmitglieder, die Water Dispenser verwenden, zum Verschenken eingerichtet haben, und markiert die Gegenstände, die du selbst verschenkst, in deinen eigenen Taschen."
 L["OPTIONS_SHOW_INVENTORY"] = "Inventar in Spieler-Tooltips anzeigen"
 L["OPTIONS_SHOW_INVENTORY_DESC"] =
 	"Fügt Spieler-Tooltips einen Water Dispenser-Block hinzu, der auflistet, was sie zum Verschenken eingerichtet haben und wie viele sie davon abgeben können, wobei dein eigener immer angezeigt wird, ob in einer Gruppe oder nicht."
@@ -166,30 +170,34 @@ L["OPTIONS_ITEM_AMOUNTS"] = "Mengen"
 L["OPTIONS_ITEM_AMOUNTS_DESC"] =
 	"Wähle, wie viele jede Klasse beim Handel erhält, je nachdem, ob sie fremd, in deiner Gruppe oder in deinem Schlachtzug ist. Gezählt werden einzelne Gegenstände, keine Stapel. Null bedeutet, dass sie diesen Gegenstand nie erhalten."
 L["OPTIONS_ITEM_EVERYONE"] = "Alle"
+-- "Apply" must match OPTIONS_ITEM_APPLY.
 L["OPTIONS_ITEM_EVERYONE_DESC"] =
-	"Setzt diese Menge mit einem Druck auf die Eingabetaste für alle Klassen auf einmal und bleibt leer, wenn die Klassen unten nicht alle übereinstimmen."
+	"Setzt diese Menge für alle Klassen auf einmal, wenn du die Eingabetaste drückst oder auf Übernehmen klickst, und bleibt leer, wenn die Klassen unten nicht alle übereinstimmen."
 -- The accept button inside every number box in this panel.
 L["OPTIONS_ITEM_APPLY"] = "Übernehmen"
 -- %d is the highest amount this item accepts, which is 1 for anything unique.
 L["OPTIONS_ITEM_COUNT_TOO_HIGH"] = "Das ist mehr, als dieser Gegenstand ausgeben kann. Das Maximum ist %d."
-L["OPTIONS_ITEM_COUNT_INVALID"] = "Gib eine Anzahl von Gegenständen ein oder 0, um diesen nie auszugeben."
+L["OPTIONS_ITEM_COUNT_INVALID"] = "Gib eine Anzahl von Gegenständen ein."
 L["OPTIONS_ITEM_SETTINGS"] = "Gegenstandseinstellungen"
 L["OPTIONS_ITEM_DISTRIBUTE"] = "Verteilen"
 -- "In Instance" must match the dropdown entry below.
 L["OPTIONS_ITEM_DISTRIBUTE_DESC"] =
-	"Legt fest, wo dieser Gegenstand überhaupt ausgegeben wird: überall sonst wird er nie gehandelt, nie angekündigt und nie in deinem Tooltip gezeigt. In Instanzen umfasst Dungeons, Schlachtzüge, Schlachtfelder und Arenen. Um einen Gegenstand stattdessen vor einer Gruppe oder einem Schlachtzug zurückzuhalten, setze die Mengen dieser Spalte auf 0."
--- Dropdown entries. The stored values are "Always" and "Instance"; these are only their labels.
+	"Legt fest, wo dieser Gegenstand überhaupt ausgegeben wird, wobei In Instanzen Dungeons, Schlachtzüge, Schlachtfelder und Arenen umfasst, und überall sonst wird er nie gehandelt, angekündigt oder in deinem Tooltip gezeigt."
+--[[
+	Dropdown entries, looked up as OPTIONS_ITEM_DISTRIBUTE_ plus the stored value in
+	capitals ("Always", "Instance"), so no code names these keys in full.
+]]
 L["OPTIONS_ITEM_DISTRIBUTE_ALWAYS"] = "Immer"
 L["OPTIONS_ITEM_DISTRIBUTE_INSTANCE"] = "In Instanzen"
 L["OPTIONS_ITEM_GUILDIES_ONLY"] = "Nur Gildenmitglieder"
 L["OPTIONS_ITEM_GUILDIES_ONLY_DESC"] =
-	"Überspringt diesen Gegenstand, wenn die Person, mit der du handelst, nicht in deiner Gilde ist."
+	"Überspringt diesen Gegenstand, wenn dein Handelspartner nicht in deiner Gilde ist."
 -- Panel line under the toggle, not a tooltip: it names the guild, which no fixed string can. %s is the player's guild.
 L["OPTIONS_ITEM_GUILDIES_ONLY_HELP"] = "Nur an Mitglieder von <%s> geben."
 L["OPTIONS_ITEM_GUILDIES_ONLY_NO_GUILD"] = "Du bist in keiner Gilde, also gibt dies den Gegenstand an niemanden aus."
 L["OPTIONS_ITEM_FACTOR_LEVEL"] = "Stufenanforderung des Gegenstands berücksichtigen"
 L["OPTIONS_ITEM_FACTOR_LEVEL_DESC"] =
-	"Überspringt diesen Gegenstand, wenn der Handelspartner unter der benötigten Stufe des Gegenstands liegt."
+	"Überspringt diesen Gegenstand, wenn dein Handelspartner unter der benötigten Stufe des Gegenstands liegt."
 L["OPTIONS_ITEM_RESERVE"] = "Reserven aktivieren"
 L["OPTIONS_ITEM_RESERVE_DESC"] =
 	"Behält immer mindestens diese Menge in deinen Taschen, wobei die Ausgabe, dein Spieler-Tooltip und das Ankündigungs-Makro alles darüber hinaus als verschenkbar behandeln."

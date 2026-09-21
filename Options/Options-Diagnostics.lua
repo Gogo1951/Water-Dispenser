@@ -264,10 +264,11 @@ function ns.BuildDiagnosticsOptions()
 	-- One Validate Data section per static data file, between Saved Variables and Library Versions.
 	local order = 45
 	for index, source in ipairs(ns.DIAGNOSTIC_DATA_SOURCES) do
-		options.args["headerValidate" .. index] = SectionHeader(string.format(D.VALIDATE_TITLE, source.Label), order)
+		local label = ns.DiagnosticDataSourceLabel(source)
+		options.args["headerValidate" .. index] = SectionHeader(string.format(D.VALIDATE_TITLE, label), order)
 		options.args["buttonValidate" .. index] = {
 			type = "execute",
-			name = string.format(D.VALIDATE_BUTTON, source.Label),
+			name = string.format(D.VALIDATE_BUTTON, label),
 			order = order + 1,
 			hidden = Hidden,
 			func = function()
