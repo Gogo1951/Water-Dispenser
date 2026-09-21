@@ -51,6 +51,9 @@ Effortless consumable distribution for mages and warlocks. Auto-fill the trade w
 - Your own inventory always shows on your own tooltip, grouped or not.
 - The `- Dispenser` macro posts your leftover giveaways to the channel that matches your group: Say when you're on your own, Party in a party, Raid in a raid, Instance in a dungeon or battleground group. Item names are real hyperlinks, so people can shift-click them for the tooltip.
 
+<img width="200" src="https://github.com/user-attachments/assets/9db47e56-023c-4e07-b282-0b5a5a3093d5" />
+
+
 ### Mini-Map Button
 
 | Click | What happens |
@@ -59,9 +62,10 @@ Effortless consumable distribution for mages and warlocks. Auto-fill the trade w
 | Shift + Middle-Click | Opens the options panel, the same as typing `/wd` |
 | Hover | Shows whether Dispense is currently on |
 
-### Options
+<img width="300" src="https://github.com/user-attachments/assets/8ef56312-1f0a-44b9-87b2-049acd80393e" />
 
-<img width="800" src="https://github.com/user-attachments/assets/78e15b06-f153-4e95-81e4-f47410eefdd0" />
+
+### Options
 
 - **Water Dispenser** // The welcome message, the mini-map button, the `/wd` command, and where to reach the author.
 - **Dispense** // The master **Enable Dispense** switch and its per-scope toggles for raid members, party members, and strangers. Under those sit **Combine Partial Stacks After a Trade**, the warning when you run short, and whether Water Dispenser says anything when combat blocks a fill.
@@ -70,6 +74,9 @@ Effortless consumable distribution for mages and warlocks. Auto-fill the trade w
 - **Inventory Tooltips** // **Show Inventory in Player Tooltips** and, beneath it, **Share My Inventory** if you would rather read other people's without sending your own. **Show Bag Tooltips for Dispensed Items** adds a line to your own bag items saying they are set to be given out.
 - **Profiles** // Share one set of rules across every character, or give a character its own.
 - **Diagnostic Tools** // Read-only probes to paste into a bug report.
+
+<img width="800" src="https://github.com/user-attachments/assets/4b95d4e6-d9af-4b4a-972b-3e29266e1769" />
+
 
 ## Testing & Localization Status
 
