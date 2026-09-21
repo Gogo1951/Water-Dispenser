@@ -50,13 +50,30 @@ local movesPerItem = {}
 --[[
 	The loose slot counts of each item as they stood when its last move was issued,
 	as a sorted string. A move that lands always changes them -- a split adds a
-	slot, a merge removes one -- so finding them unchanged on the next pass means the
-	move bounced: on Classic Era the split call has been seen moving the whole
+	slot, a merge removes one -- so finding them unchanged once the move's settle
+	window (below) has closed means it bounced: on Classic Era the split call has been seen moving the whole
 	stack to a fresh slot instead, which leaves the same counts in different
 	places. One bounce ends shaping for that item this trade, where the ceilings
 	alone would let it reshuffle the bags several more times first.
 ]]
 local lastShape = {}
+
+--[[
+	Items whose last shaping move is still settling, as shapeSettling[configId] =
+	the GetTime() it is given up on.
+
+	On Forever a split can take several bag updates to land: the portion reads as
+	an empty slot until the server confirms it, and the source slot can unlock with
+	its old count first. A pass in that gap sees the bags short, so it would split
+	again into the same slot, or read the unchanged counts as a bounce and hand the
+	loose scraps over instead. While an item is settling, a slot that already
+	matches is still placed whole, but the item is neither shaped again nor handed
+	over loose; the bag update the move causes, or the settle check after the
+	window, comes back here.
+]]
+local SHAPE_SETTLE = 1
+local shapeSettling = {}
+local settleTimer
 
 --[[
 	Bag slots this trade's fill has put in the window, as
@@ -197,13 +214,10 @@ end
 ]]
 local function PendingOffer()
 	local items, slotsByItem = {}, {}
-	if not ns.GetContainerItemInfo then
-		return items, slotsByItem
-	end
 	for itemId, slots in pairs(placedThisTrade) do
 		for key, count in pairs(slots) do
 			local bag, slot = key:match("^(%-?%d+):(%d+)$")
-			local info = bag and ns.GetContainerItemInfo(tonumber(bag), tonumber(slot))
+			local info = bag and C_Container.GetContainerItemInfo(tonumber(bag), tonumber(slot))
 			if info and info.isLocked and info.itemID == itemId then
 				slotsByItem[itemId] = (slotsByItem[itemId] or 0) + 1
 				local configKey = ns.GetItemConfigKey(itemId)
@@ -227,9 +241,7 @@ end
 	already matches; anything smaller goes through PortionIntoBag below.
 ]]
 local function PickupWhole(bag, slot)
-	if ns.PickupContainerItem then
-		ns.PickupContainerItem(bag, slot)
-	end
+	C_Container.PickupContainerItem(bag, slot)
 end
 
 --[[
@@ -242,16 +254,16 @@ end
 
 	Everything is checked *before* the slot is disturbed, because there is no
 	verify-after-placing (README-Technical, Pitfalls). A locked slot is already in
-	the window or still mid-move, and lifting one is a silent no-op -- which used
-	to count as a placement, so the fill believed the partner had been handed a
-	stack that never left the bag and stopped one short. A count that no longer
+	the window or still mid-move, and lifting one is a silent no-op that must never
+	count as a placement, or the fill believes it handed over a stack that never
+	left the bag and stops one short. A count that no longer
 	matches the scan means the bag changed under the pass; the update that changed
 	it re-enters the fill with a fresh scan, so the slot is left to that pass. The
 	cursor is the last word: pickup is the only thing that puts an item on it, so
 	an empty cursor after pickup is proof nothing was lifted.
 ]]
 local function PlaceStack(bag, slot, expectedCount)
-	local info = ns.GetContainerItemInfo and ns.GetContainerItemInfo(bag, slot)
+	local info = C_Container.GetContainerItemInfo(bag, slot)
 	local reason
 	if not info then
 		reason = "empty"
@@ -427,6 +439,25 @@ local function ShapeStack(configId, itemConfig, loose, want)
 	return false, false
 end
 
+--[[
+	One fill pass after the newest move's settle window closes. The move's own bag
+	update normally re-enters the fill first; this covers the move whose last bag
+	update came while it was still settling. Dropping the inventory cache makes the
+	scan report a change, so the non-forced pass runs.
+]]
+local function ScheduleSettleCheck()
+	if settleTimer then
+		settleTimer:Cancel()
+	end
+	settleTimer = C_Timer.NewTimer(SHAPE_SETTLE, function()
+		settleTimer = nil
+		if ns.State.Trade.Active and ns.State.MissingStack and not ns.IsInCombat() then
+			ns.ClearInventory()
+			ns.FillTrade(false)
+		end
+	end)
+end
+
 local function ReportMissing(configId, itemConfig, inventoryItem, count)
 	local icon = (inventoryItem and inventoryItem.Icon) or ns.GetItemConfigIcon(configId, itemConfig)
 	local name = (inventoryItem and inventoryItem.Name) or ns.GetItemConfigName(configId, itemConfig) or "?"
@@ -581,7 +612,7 @@ function ns.FillTrade(forced)
 				if itemConfig.FactorLevel and trade.Level and trade.Level > 0 then
 					local requiredLevel = inventoryItem and inventoryItem.Level
 					if not requiredLevel and type(configId) == "number" then
-						local _, _, _, _, itemMinLevel = ns.GetItemInfo(configId)
+						local _, _, _, _, itemMinLevel = C_Item.GetItemInfo(configId)
 						requiredLevel = itemMinLevel
 					end
 					if requiredLevel and requiredLevel > trade.Level then
@@ -662,12 +693,11 @@ function ns.FillTrade(forced)
 				--[[
 					Whole slots first, biggest first, but only ones that do not fragment the
 					offer: a full stack, or a slot holding exactly what is still owed. A loose
-					1 that fit inside a target of 2 used to go straight in, and the pass after
-					split another 1 to sit beside it. Now the 1 waits and the shaping below
-					builds the 2.
+					1 inside a target of 2 waits, and the shaping below builds the 2, rather
+					than going in beside a second 1 split off on the next pass.
 
-					`Full` is true while the stack size is uncached, so a cold cache degrades to
-					the old whole-slot rule rather than refusing to place anything.
+					`Full` is true while the stack size is uncached, so a cold cache places any
+					slot no larger than what is owed rather than refusing to place anything.
 				]]
 				local spent = {}
 				for index, bagEntry in ipairs(slots) do
@@ -704,7 +734,14 @@ function ns.FillTrade(forced)
 				if entry.StackSize and entry.StackSize > 0 and want > entry.StackSize then
 					want = entry.StackSize
 				end
-				if want > 0 and not aborted and next(conjureWatch) == nil then
+				local settling = (shapeSettling[configId] or 0) > GetTime()
+				if want > 0 and not aborted and settling then
+					inFlight = true
+					if ns.diagnostics and ns.diagnostics.logging then
+						ns:LogEventNow("SHAPE", configId, "want=" .. want, "settling")
+					end
+				elseif want > 0 and not aborted and next(conjureWatch) == nil then
+					shapeSettling[configId] = nil
 					local loose = {}
 					for index, bagEntry in ipairs(slots) do
 						if not spent[index] then
@@ -712,6 +749,10 @@ function ns.FillTrade(forced)
 						end
 					end
 					local moved, waiting = ShapeStack(configId, itemConfig, loose, want)
+					if moved then
+						shapeSettling[configId] = GetTime() + SHAPE_SETTLE
+						ScheduleSettleCheck()
+					end
 					if moved or waiting then
 						inFlight = true
 					else
@@ -787,7 +828,7 @@ end
 -- Snapshots every bag slot currently holding one of the cast spell's items, as [bag:slot] = count.
 local function WatchConjure(spellId)
 	local itemIds = ns.SPELL_TO_ITEMS[spellId]
-	if not itemIds or not (ns.GetContainerNumSlots and ns.GetContainerItemInfo) then
+	if not itemIds then
 		return
 	end
 
@@ -795,9 +836,9 @@ local function WatchConjure(spellId)
 		conjureWatch[itemId] = {}
 	end
 	for bag = BACKPACK_CONTAINER, ns.LAST_BAG_INDEX do
-		local slots = ns.GetContainerNumSlots(bag) or 0
+		local slots = C_Container.GetContainerNumSlots(bag) or 0
 		for slot = 1, slots do
-			local info = ns.GetContainerItemInfo(bag, slot)
+			local info = C_Container.GetContainerItemInfo(bag, slot)
 			local watched = info and conjureWatch[info.itemID]
 			if watched then
 				watched[bag .. ":" .. slot] = info.stackCount or 0
@@ -808,15 +849,10 @@ end
 
 -- Offers every watched slot that grew or appeared since the snapshot, then drops the watch either way.
 local function PlaceConjured()
-	if not (ns.GetContainerNumSlots and ns.GetContainerItemInfo) then
-		wipe(conjureWatch)
-		return
-	end
-
 	for bag = BACKPACK_CONTAINER, ns.LAST_BAG_INDEX do
-		local slots = ns.GetContainerNumSlots(bag) or 0
+		local slots = C_Container.GetContainerNumSlots(bag) or 0
 		for slot = 1, slots do
-			local info = ns.GetContainerItemInfo(bag, slot)
+			local info = C_Container.GetContainerItemInfo(bag, slot)
 			local watched = info and conjureWatch[info.itemID]
 			-- A locked slot is still moving server-side; leaving it be lets the next bag update catch it settled.
 			if watched and not info.isLocked then
@@ -838,10 +874,11 @@ end
 
 -- The player's own conjure during a trade arms the watch; the bag update that follows does the placing.
 local function OnSpellcastSucceeded(_, _, _, spellId)
-	if not ns.SPELL_TO_COLLECTION[spellId] then
+	-- Every check before the lookup: in combat on Forever the spell ID can be a hidden value.
+	if not ns.State.Trade.Active or ns.IsInCombat() or ns.IsSecretValue(spellId) then
 		return
 	end
-	if not ns.State.Trade.Active then
+	if not ns.SPELL_TO_COLLECTION[spellId] then
 		return
 	end
 	WatchConjure(spellId)
@@ -868,6 +905,7 @@ local function OnTradeShow()
 	movesThisTrade = 0
 	wipe(movesPerItem)
 	wipe(lastShape)
+	wipe(shapeSettling)
 	wipe(placedThisTrade)
 	ns.ResetSessionCapNotices()
 	--[[
@@ -932,6 +970,11 @@ local function OnTradeClosed()
 	ns.State.MissingStack = false
 
 	wipe(conjureWatch)
+	wipe(shapeSettling)
+	if settleTimer then
+		settleTimer:Cancel()
+		settleTimer = nil
+	end
 	ns.ClearInventory()
 	if ns.TradeUI then
 		ns.TradeUI:Detach()
@@ -977,14 +1020,14 @@ local function OnSpellsChanged()
 	]]
 	for _, collection in pairs(ns.COLLECTIONS) do
 		for itemId in pairs(collection.Items) do
-			ns.GetItemInfo(itemId)
+			C_Item.GetItemInfo(itemId)
 		end
 	end
 	if ns.db and ns.db.profile.Items then
 		for id in pairs(ns.db.profile.Items) do
 			local numericId = tonumber(id)
 			if numericId then
-				ns.GetItemInfo(numericId)
+				C_Item.GetItemInfo(numericId)
 			end
 		end
 	end

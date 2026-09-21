@@ -46,7 +46,7 @@ L["CHAT_NONE_ACTIVE_FOR_CLASS"] =
 	"No hay objetos configurados para dispensar mientras juegas con un %s. Abre Opciones > Accesorios > Water Dispenser > Objetos dispensados para habilitar objetos para esta clase."
 -- "- Dispenser" is the macro's literal name and is never translated.
 L["CHAT_MACRO_DELETED"] = 'Macro de anuncio "- Dispenser" eliminada.'
-L["CHAT_MACRO_FULL"] = "No se pudo crear la macro: todas las ranuras de macro del personaje están en uso."
+L["CHAT_MACRO_FULL"] = "No se pudo crear la macro de anuncio: todas las ranuras de macro del personaje están en uso."
 
 --------------------------------------------------------------------------------
 -- Player Tooltips
@@ -62,7 +62,7 @@ L["TOOLTIP_HEALTHSTONE"] = "Piedra de salud (Rango %d/%d)"
 
 -- Shown on a carried bag item the player has set up to give away.
 L["TOOLTIP_WILL_DISPENSE"] = "Este objeto se dispensará."
--- The same line for an item that stacks, which is also tidied back together once a trade ends.
+-- The same line for a stacking item while OPTIONS_RESTACK is on, which tidies it back together once a trade ends.
 L["TOOLTIP_WILL_DISPENSE_STACKED"] =
 	"Este objeto se dispensará. Sus pilas parciales se combinan cuando se cierra un comercio."
 
@@ -77,7 +77,10 @@ L["BUTTON_FILL"] = "Llenar ventana de comercio"
 -- Minimap Button
 --------------------------------------------------------------------------------
 
--- The tooltip's feature row reuses TAB_DISPENSE for its name; these are its state and click words.
+--[[
+	The tooltip's feature row reuses TAB_DISPENSE for its name and
+	OPTIONS_DISPENSE_MASTER_DESC for its description; these are its state and click words.
+]]
 L["UI_ENABLED"] = "Activado"
 L["UI_DISABLED"] = "Desactivado"
 L["UI_LEFT_CLICK"] = "Clic izquierdo"
@@ -106,11 +109,12 @@ L["OPTIONS_COMMAND_DESCRIPTION"] = "Abre la interfaz de opciones de este accesor
 -- Options — Dispense
 --------------------------------------------------------------------------------
 
--- Names the panel, its section header, and the mini-map tooltip's feature row.
+-- Names the panel and the mini-map tooltip's feature row.
 L["TAB_DISPENSE"] = "Dispensar"
-L["OPTIONS_DISPENSE_DESC"] = "Llena automáticamente la ventana de comercio al abrirse un intercambio."
 L["OPTIONS_DISPENSE_MASTER"] = "Activar dispensado"
-L["OPTIONS_DISPENSE_MASTER_DESC"] = "Llena automáticamente la ventana de comercio según tus ajustes."
+-- Also the panel's intro line and the mini-map tooltip's feature description.
+L["OPTIONS_DISPENSE_MASTER_DESC"] =
+	"Llena automáticamente la ventana de comercio al abrirse un intercambio, según tus ajustes."
 L["OPTIONS_DISPENSE_SOLO"] = "Activar para desconocidos"
 L["OPTIONS_DISPENSE_SOLO_DESC"] =
 	"Llena la ventana de comercio automáticamente al comerciar con alguien que no está en tu grupo ni en tu banda."
@@ -123,7 +127,7 @@ L["OPTIONS_DISPENSE_RAID_DESC"] =
 -- The label says what it does; the tooltip only covers why it is needed and when it stands down.
 L["OPTIONS_RESTACK"] = "Combinar pilas parciales tras un comercio"
 L["OPTIONS_RESTACK_DESC"] =
-	"El agua y la comida conjuradas caen en una ranura nueva de la bolsa con cada lanzamiento y el juego nunca las vuelve a juntar, así que Water Dispenser las combina una vez, justo después de que se cierre una ventana de comercio. Nunca reordena tus bolsas en ningún otro momento, ni en combate ni mientras llevas algo en el cursor."
+	"El agua y la comida conjuradas caen en una ranura nueva de la bolsa con cada lanzamiento y el juego nunca las vuelve a juntar, así que Water Dispenser las combina una vez, justo después de que se cierre una ventana de comercio, y nunca en ningún otro momento, ni en combate ni mientras llevas algo en el cursor."
 L["OPTIONS_MISSING_STACK_WARNINGS"] = "Activar avisos cuando te quedes corto"
 L["OPTIONS_MISSING_STACK_WARNINGS_DESC"] =
 	"Muestra un aviso en tu ventana de chat cuando no tienes suficiente de un objeto configurado en tus bolsas para dar la cantidad que fijaste."
@@ -140,7 +144,7 @@ L["OPTIONS_COMBAT_NOTIFY_DESC"] =
 
 L["TAB_INVENTORY_TOOLTIPS"] = "Descripciones de inventario"
 L["OPTIONS_TOOLTIPS_DESC"] =
-	"Muestra en las descripciones de jugador de los miembros del grupo que usan Water Dispenser lo que tienen configurado para repartir, y marca esos objetos en tus propias bolsas."
+	"Muestra en las descripciones de jugador lo que los miembros del grupo que usan Water Dispenser tienen configurado para repartir, y marca en tus propias bolsas los objetos que tú repartes."
 L["OPTIONS_SHOW_INVENTORY"] = "Mostrar inventario en las descripciones de jugador"
 L["OPTIONS_SHOW_INVENTORY_DESC"] =
 	"Añade un bloque de Water Dispenser a las descripciones de jugador con lo que tienen configurado para repartir y cuántos pueden dar, mostrándose el tuyo siempre, estés en grupo o no."
@@ -166,30 +170,33 @@ L["OPTIONS_ITEM_AMOUNTS"] = "Cantidades"
 L["OPTIONS_ITEM_AMOUNTS_DESC"] =
 	"Elige cuántos recibe cada clase al comerciar con ella, según si es un desconocido, está en tu grupo o en tu banda. Se cuentan objetos individuales, no pilas. Cero significa que nunca recibirán este objeto."
 L["OPTIONS_ITEM_EVERYONE"] = "Todos"
+-- "Apply" must match OPTIONS_ITEM_APPLY.
 L["OPTIONS_ITEM_EVERYONE_DESC"] =
-	"Fija esta cantidad para todas las clases a la vez cuando pulsas Intro, y aparece en blanco cuando las clases de abajo no coinciden."
+	"Fija esta cantidad para todas las clases a la vez cuando pulsas Intro o haces clic en Aplicar, y aparece en blanco cuando las clases de abajo no coinciden."
 -- The accept button inside every number box in this panel.
 L["OPTIONS_ITEM_APPLY"] = "Aplicar"
 -- %d is the highest amount this item accepts, which is 1 for anything unique.
 L["OPTIONS_ITEM_COUNT_TOO_HIGH"] = "Eso es más de lo que este objeto puede dispensar. El máximo es %d."
-L["OPTIONS_ITEM_COUNT_INVALID"] = "Introduce un número de objetos, o 0 para no dispensar este nunca."
+L["OPTIONS_ITEM_COUNT_INVALID"] = "Introduce un número de objetos."
 L["OPTIONS_ITEM_SETTINGS"] = "Ajustes del objeto"
 L["OPTIONS_ITEM_DISTRIBUTE"] = "Repartir"
 -- "In Instance" must match the dropdown entry below.
 L["OPTIONS_ITEM_DISTRIBUTE_DESC"] =
-	"Define dónde se reparte este objeto: en cualquier otro sitio nunca se comercia, ni se anuncia, ni se muestra en tu descripción. En instancia cubre mazmorras, bandas, campos de batalla y arenas. Para retener un objeto ante un grupo o una banda, pon a 0 las cantidades de esa columna."
--- Dropdown entries. The stored values are "Always" and "Instance"; these are only their labels.
+	"Define dónde se reparte este objeto: En instancia abarca mazmorras, bandas, campos de batalla y arenas, y en cualquier otro sitio nunca se comercia, ni se anuncia, ni se muestra en tu descripción."
+--[[
+	Dropdown entries, looked up as OPTIONS_ITEM_DISTRIBUTE_ plus the stored value in
+	capitals ("Always", "Instance"), so no code names these keys in full.
+]]
 L["OPTIONS_ITEM_DISTRIBUTE_ALWAYS"] = "Siempre"
 L["OPTIONS_ITEM_DISTRIBUTE_INSTANCE"] = "En instancia"
 L["OPTIONS_ITEM_GUILDIES_ONLY"] = "Solo hermandad"
-L["OPTIONS_ITEM_GUILDIES_ONLY_DESC"] =
-	"Omite este objeto cuando la persona con la que comercias no está en tu hermandad."
+L["OPTIONS_ITEM_GUILDIES_ONLY_DESC"] = "Omite este objeto cuando tu compañero de comercio no está en tu hermandad."
 -- Panel line under the toggle, not a tooltip: it names the guild, which no fixed string can. %s is the player's guild.
 L["OPTIONS_ITEM_GUILDIES_ONLY_HELP"] = "Dar solo a miembros de <%s>."
 L["OPTIONS_ITEM_GUILDIES_ONLY_NO_GUILD"] = "No estás en ninguna hermandad, así que esto no da el objeto a nadie."
 L["OPTIONS_ITEM_FACTOR_LEVEL"] = "Tener en cuenta el nivel requerido del objeto"
 L["OPTIONS_ITEM_FACTOR_LEVEL_DESC"] =
-	"Omite este objeto cuando el compañero de comercio esté por debajo del nivel requerido del objeto."
+	"Omite este objeto cuando tu compañero de comercio está por debajo del nivel requerido del objeto."
 L["OPTIONS_ITEM_RESERVE"] = "Activar reservas"
 L["OPTIONS_ITEM_RESERVE_DESC"] =
 	"Guarda siempre al menos esta cantidad en tus bolsas, y el dispensado, tu descripción de jugador y la macro de anuncio tratan todo lo que exceda ese número como disponible para regalar."

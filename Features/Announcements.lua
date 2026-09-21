@@ -154,9 +154,14 @@ local function BuildAnnouncementParts()
 	return parts
 end
 
--- Shared lead for the full message and macro body: "{marker} {title} // " (assembled here, not per locale).
+--[[
+	Shared lead for the full message and macro body: "{marker} {title} // " (assembled
+	here, not per locale). WoW Forever blocks raid-marker tokens in chat, so there the
+	marker is left off and the rest of the format stands.
+]]
 local function AnnouncementPrefix()
-	return ns.TARGET_MARKER .. " " .. L["ADDON_TITLE"] .. " // "
+	local marker = ns.FLAVOR == "Forever" and "" or (ns.TARGET_MARKER .. " ")
+	return marker .. L["ADDON_TITLE"] .. " // "
 end
 
 --[[

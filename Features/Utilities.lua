@@ -3,30 +3,22 @@ local _, ns = ...
 local L = ns.L
 
 --------------------------------------------------------------------------------
--- API Compatibility
---------------------------------------------------------------------------------
-
--- Resolved once. GetItemInfo keeps its legacy global fallback, which still works on both Era and TBC.
-ns.GetItemInfo = (C_Item and C_Item.GetItemInfo) or GetItemInfo
-
--- No legacy fallback: the bag-API globals are gone on both target clients (Era 1.15.8, TBC 2.5.5), so call C_Container directly.
-ns.GetContainerNumSlots = C_Container and C_Container.GetContainerNumSlots
-ns.PickupContainerItem = C_Container and C_Container.PickupContainerItem
-ns.GetContainerItemInfo = C_Container and C_Container.GetContainerItemInfo
---[[
-	Nothing verifies that the split honored the count, because nothing can. That is
-	why the portion goes into a bag slot rather than straight into a trade slot: a
-	client that hands back the whole stack has only moved a stack between bag slots,
-	and FillTrade's whole-slot rule places nothing larger than what is still owed.
-]]
-ns.SplitContainerItem = C_Container and C_Container.SplitContainerItem
-
---------------------------------------------------------------------------------
 -- Combat Guard
 --------------------------------------------------------------------------------
 
 function ns.IsInCombat()
 	return InCombatLockdown()
+end
+
+--[[
+	Forever's Retail engine hides some values from add-ons in combat, and comparing,
+	indexing or string-building with one throws. Era and TBC ship issecretvalue too,
+	but only Forever is known to hand an add-on a hidden value.
+]]
+local isSecretValue = issecretvalue
+
+function ns.IsSecretValue(value)
+	return isSecretValue ~= nil and isSecretValue(value) == true
 end
 
 --------------------------------------------------------------------------------
@@ -133,6 +125,15 @@ function ns.RefreshGiveaways()
 	if ns.RefreshGroupSpares then
 		ns.RefreshGroupSpares()
 	end
+end
+
+--------------------------------------------------------------------------------
+-- Spells
+--------------------------------------------------------------------------------
+
+-- IsSpellKnown misses some trained ranks on Classic Era, so IsPlayerSpell backs it up; either true counts as known.
+function ns.IsSpellLearned(spellId)
+	return (IsSpellKnown(spellId) or IsPlayerSpell(spellId)) and true or false
 end
 
 --------------------------------------------------------------------------------

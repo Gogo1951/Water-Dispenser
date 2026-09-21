@@ -17,9 +17,9 @@ local GetColor = ns.GetColor
 	answers the fill reads, through the same helpers.
 
 	Two hook paths, because the tooltip API differs across the flavors we target.
-	Modern clients expose TooltipDataProcessor; neither of ours does today, so the
-	live path is a hooksecurefunc on GameTooltip:SetBagItem. Only one is ever
-	active, so the line can never double up.
+	A client with TooltipDataProcessor (Forever, and TBC Anniversary) takes the
+	post-call; Era has none, so there the live path is a hooksecurefunc on
+	GameTooltip:SetBagItem. Only one is ever active, so the line can never double up.
 
 	Hooking the setter rather than the shared OnTooltipSetItem script is what keeps
 	the line: a heavy tooltip add-on that clears and re-fills the tooltip on
@@ -90,7 +90,7 @@ local function BuildLine(itemId)
 		the shorter line is true either way, where promising to combine stacks of
 		something that cannot stack is not.
 	]]
-	local _, _, _, _, _, _, _, maxStack = ns.GetItemInfo(itemId)
+	local _, _, _, _, _, _, _, maxStack = C_Item.GetItemInfo(itemId)
 	local stacked = maxStack and maxStack > 1 and ns.db.profile.RestackBags
 	local body = stacked and L["TOOLTIP_WILL_DISPENSE_STACKED"] or L["TOOLTIP_WILL_DISPENSE"]
 	return ns.BuildBrandedLine(GetColor("TEXT") .. body .. "|r")
@@ -111,6 +111,7 @@ end
 -- Initialization
 --------------------------------------------------------------------------------
 
+-- Records the path taken in ns.bagTooltipPath, which the Diagnostic Tools context report prints.
 function ns.SetupItemTooltips()
 	if TooltipDataProcessor and TooltipDataProcessor.AddTooltipPostCall then
 		--[[
@@ -122,6 +123,7 @@ function ns.SetupItemTooltips()
 				AddDispenseLine(tooltip, data and data.id)
 			end
 		end)
+		ns.bagTooltipPath = "TooltipDataProcessor"
 		return
 	end
 
@@ -139,9 +141,10 @@ function ns.SetupItemTooltips()
 		if type(bag) ~= "number" or bag < 0 or bag > ns.LAST_BAG_INDEX then
 			return
 		end
-		local info = ns.GetContainerItemInfo and ns.GetContainerItemInfo(bag, slot)
+		local info = C_Container.GetContainerItemInfo(bag, slot)
 		if AddDispenseLine(tooltip, info and info.itemID) then
 			tooltip:Show()
 		end
 	end)
+	ns.bagTooltipPath = "SetBagItem"
 end

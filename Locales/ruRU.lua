@@ -48,7 +48,7 @@ L["CHAT_NONE_ACTIVE_FOR_CLASS"] =
 -- "- Dispenser" is the macro's literal name and is never translated.
 L["CHAT_MACRO_DELETED"] = 'Макрос анонса "- Dispenser" удален.'
 L["CHAT_MACRO_FULL"] =
-	"Не удалось создать макрос: все персональные слоты для макросов заняты."
+	"Не удалось создать макрос анонса: все персональные слоты для макросов заняты."
 
 --------------------------------------------------------------------------------
 -- Player Tooltips
@@ -64,7 +64,7 @@ L["TOOLTIP_HEALTHSTONE"] = "Камень здоровья (ранг %d/%d)"
 
 -- Shown on a carried bag item the player has set up to give away.
 L["TOOLTIP_WILL_DISPENSE"] = "Этот предмет будет раздаваться."
--- The same line for an item that stacks, which is also tidied back together once a trade ends.
+-- The same line for a stacking item while OPTIONS_RESTACK is on, which tidies it back together once a trade ends.
 L["TOOLTIP_WILL_DISPENSE_STACKED"] =
 	"Этот предмет будет раздаваться. Его неполные стопки объединяются после закрытия обмена."
 
@@ -79,7 +79,10 @@ L["BUTTON_FILL"] = "Заполнить окно обмена"
 -- Minimap Button
 --------------------------------------------------------------------------------
 
--- The tooltip's feature row reuses TAB_DISPENSE for its name; these are its state and click words.
+--[[
+	The tooltip's feature row reuses TAB_DISPENSE for its name and
+	OPTIONS_DISPENSE_MASTER_DESC for its description; these are its state and click words.
+]]
 L["UI_ENABLED"] = "Включено"
 L["UI_DISABLED"] = "Отключено"
 L["UI_LEFT_CLICK"] = "ЛКМ"
@@ -108,13 +111,12 @@ L["OPTIONS_COMMAND_DESCRIPTION"] = "Открывает окно настроек
 -- Options — Dispense
 --------------------------------------------------------------------------------
 
--- Names the panel, its section header, and the mini-map tooltip's feature row.
+-- Names the panel and the mini-map tooltip's feature row.
 L["TAB_DISPENSE"] = "Раздача"
-L["OPTIONS_DISPENSE_DESC"] =
-	"Автоматически заполняет окно обмена при его открытии."
 L["OPTIONS_DISPENSE_MASTER"] = "Включить раздачу"
+-- Also the panel's intro line and the mini-map tooltip's feature description.
 L["OPTIONS_DISPENSE_MASTER_DESC"] =
-	"Автоматически заполняет окно обмена на основе ваших настроек."
+	"Автоматически заполняет окно обмена при его открытии на основе ваших настроек."
 L["OPTIONS_DISPENSE_SOLO"] = "Включить для незнакомцев"
 L["OPTIONS_DISPENSE_SOLO_DESC"] =
 	"Автоматически заполняет окно обмена при обмене с игроком не из вашей группы или рейда."
@@ -127,7 +129,7 @@ L["OPTIONS_DISPENSE_RAID_DESC"] =
 -- The label says what it does; the tooltip only covers why it is needed and when it stands down.
 L["OPTIONS_RESTACK"] = "Объединять неполные стопки после обмена"
 L["OPTIONS_RESTACK_DESC"] =
-	"Сотворенные вода и еда каждый раз попадают в новую ячейку сумки, и игра никогда не складывает их обратно, поэтому Water Dispenser объединяет их один раз, сразу после закрытия окна обмена. В другое время он никогда не переставляет вещи в сумках, а также никогда не делает этого в бою или пока вы держите что-то на курсоре."
+	"Сотворенные вода и еда каждый раз попадают в новую ячейку сумки, и игра никогда не складывает их обратно, поэтому Water Dispenser объединяет их один раз, сразу после закрытия окна обмена, и никогда в другое время, в бою или пока вы держите что-то на курсоре."
 L["OPTIONS_MISSING_STACK_WARNINGS"] =
 	"Включить предупреждения, когда запасы на исходе"
 L["OPTIONS_MISSING_STACK_WARNINGS_DESC"] =
@@ -147,7 +149,7 @@ L["OPTIONS_COMBAT_NOTIFY_DESC"] =
 
 L["TAB_INVENTORY_TOOLTIPS"] = "Подсказки с запасами"
 L["OPTIONS_TOOLTIPS_DESC"] =
-	"Показывает в подсказках игроков из вашей группы, у которых установлен Water Dispenser, что они настроили для раздачи, и отмечает эти предметы в ваших собственных сумках."
+	"Показывает в подсказках игроков, что участники вашей группы с установленным Water Dispenser настроили для раздачи, и отмечает в ваших собственных сумках предметы, которые раздаете вы."
 L["OPTIONS_SHOW_INVENTORY"] =
 	"Показывать запасы во всплывающих подсказках игроков"
 L["OPTIONS_SHOW_INVENTORY_DESC"] =
@@ -175,33 +177,36 @@ L["OPTIONS_ITEM_AMOUNTS"] = "Количество"
 L["OPTIONS_ITEM_AMOUNTS_DESC"] =
 	"Выберите, сколько получает каждый класс при обмене, в зависимости от того, незнакомец это, участник вашей группы или рейда. Считается в отдельных предметах, а не в стопках. Ноль означает, что этот предмет им никогда не достанется."
 L["OPTIONS_ITEM_EVERYONE"] = "Все"
+-- "Apply" must match OPTIONS_ITEM_APPLY.
 L["OPTIONS_ITEM_EVERYONE_DESC"] =
-	"Задает это количество сразу для всех классов, когда вы нажимаете Enter, и остается пустым, когда классы ниже не совпадают."
+	"Задает это количество сразу для всех классов, когда вы нажимаете Enter или кнопку Применить, и остается пустым, когда классы ниже не совпадают."
 -- The accept button inside every number box in this panel.
 L["OPTIONS_ITEM_APPLY"] = "Применить"
 -- %d is the highest amount this item accepts, which is 1 for anything unique.
 L["OPTIONS_ITEM_COUNT_TOO_HIGH"] =
 	"Это больше, чем этот предмет может раздать. Максимум: %d."
-L["OPTIONS_ITEM_COUNT_INVALID"] =
-	"Введите количество предметов или 0, чтобы никогда не раздавать этот предмет."
+L["OPTIONS_ITEM_COUNT_INVALID"] = "Введите количество предметов."
 L["OPTIONS_ITEM_SETTINGS"] = "Настройки предмета"
 L["OPTIONS_ITEM_DISTRIBUTE"] = "Выдавать"
 -- "In Instance" must match the dropdown entry below.
 L["OPTIONS_ITEM_DISTRIBUTE_DESC"] =
-	"Задает, где этот предмет вообще раздается: в любом другом месте он никогда не передается, не попадает в анонс и не отображается в вашей подсказке. Вариант В подземельях охватывает подземелья, рейды, поля боя и арены. Чтобы вместо этого придержать предмет от группы или рейда, задайте в этом столбце количество 0."
--- Dropdown entries. The stored values are "Always" and "Instance"; these are only their labels.
+	"Задает, где этот предмет вообще раздается: вариант В подземельях охватывает подземелья, рейды, поля боя и арены, а в любом другом месте предмет никогда не передается, не попадает в анонс и не отображается в вашей подсказке."
+--[[
+	Dropdown entries, looked up as OPTIONS_ITEM_DISTRIBUTE_ plus the stored value in
+	capitals ("Always", "Instance"), so no code names these keys in full.
+]]
 L["OPTIONS_ITEM_DISTRIBUTE_ALWAYS"] = "Всегда"
 L["OPTIONS_ITEM_DISTRIBUTE_INSTANCE"] = "В подземельях"
 L["OPTIONS_ITEM_GUILDIES_ONLY"] = "Только согильдийцам"
 L["OPTIONS_ITEM_GUILDIES_ONLY_DESC"] =
-	"Пропускает этот предмет, если игрок, с которым вы обмениваетесь, не состоит в вашей гильдии."
+	"Пропускает этот предмет, если ваш партнер по обмену не состоит в вашей гильдии."
 -- Panel line under the toggle, not a tooltip: it names the guild, which no fixed string can. %s is the player's guild.
 L["OPTIONS_ITEM_GUILDIES_ONLY_HELP"] = "Отдавать только участникам <%s>."
 L["OPTIONS_ITEM_GUILDIES_ONLY_NO_GUILD"] =
 	"Вы не состоите в гильдии, поэтому так этот предмет не достанется никому."
 L["OPTIONS_ITEM_FACTOR_LEVEL"] = "Учитывать требуемый уровень предмета"
 L["OPTIONS_ITEM_FACTOR_LEVEL_DESC"] =
-	"Пропускает этот предмет, если уровень партнера по обмену ниже требуемого для предмета."
+	"Пропускает этот предмет, если уровень вашего партнера по обмену ниже требуемого для предмета."
 L["OPTIONS_ITEM_RESERVE"] = "Включить резерв"
 L["OPTIONS_ITEM_RESERVE_DESC"] =
 	"Всегда оставляет в сумках хотя бы столько, а раздача, ваша подсказка игрока и макрос анонса считают все сверх этого числа доступным для передачи."

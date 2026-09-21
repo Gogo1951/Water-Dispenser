@@ -7,9 +7,6 @@ local GetColor = ns.GetColor
 -- Constants
 --------------------------------------------------------------------------------
 
--- Addon-message prefix. The client caps these at 16 characters.
-local ADDON_PREFIX = "WaterDispenser"
-
 --[[
 	Payload budget per message: the client's ceiling less 25 bytes of headroom for
 	the "<chunk>/<total>|" header this file prepends.
@@ -58,6 +55,9 @@ local lastBroadcast, lastChannel
 ]]
 local cachedOffer
 
+-- A roster change that arrived in combat, replayed on PLAYER_REGEN_ENABLED.
+local rosterChangedInCombat = false
+
 --------------------------------------------------------------------------------
 -- Player Keys
 --------------------------------------------------------------------------------
@@ -70,6 +70,9 @@ local cachedOffer
 ]]
 local function UnitKey(unit)
 	local name, realm = UnitName(unit)
+	if ns.IsSecretValue(name) or ns.IsSecretValue(realm) then
+		return nil
+	end
 	if not name or name == "" then
 		return nil
 	end
@@ -95,12 +98,15 @@ local function HealthstoneTalentRank()
 
 	local rank = 0
 	for index, spellId in ipairs(ns.HEALTHSTONE_TALENT_SPELLS) do
-		if (IsSpellKnown and IsSpellKnown(spellId)) or (IsPlayerSpell and IsPlayerSpell(spellId)) then
+		if ns.IsSpellLearned(spellId) then
 			rank = index
 		end
 	end
 	return rank
 end
+
+-- Diagnostics reports the rank through this, so its number is the one the group is sent.
+ns.HealthstoneTalentRank = HealthstoneTalentRank
 
 --[[
 	Item ID to how many of it this player has to give away, for every item on their
@@ -255,7 +261,7 @@ local function Broadcast()
 
 	local total = #messages
 	for index, chunk in ipairs(messages) do
-		C_ChatInfo.SendAddonMessage(ADDON_PREFIX, index .. "/" .. total .. "|" .. chunk, channel)
+		C_ChatInfo.SendAddonMessage(ns.ADDON_MESSAGE_PREFIX, index .. "/" .. total .. "|" .. chunk, channel)
 	end
 end
 
@@ -277,7 +283,10 @@ end
 --------------------------------------------------------------------------------
 
 local function OnAddonMessage(_, prefix, message, _, sender)
-	if prefix ~= ADDON_PREFIX or not sender then
+	if ns.IsSecretValue(prefix) or ns.IsSecretValue(message) or ns.IsSecretValue(sender) then
+		return
+	end
+	if prefix ~= ns.ADDON_MESSAGE_PREFIX or not sender then
 		return
 	end
 
@@ -371,7 +380,7 @@ local function BuildRows(offer, isWarlock)
 			-- Folded into the talent row below rather than listed as its own item.
 			healthstones = healthstones + item.Count
 		else
-			local name, _, quality = ns.GetItemInfo(itemId)
+			local name, _, quality = C_Item.GetItemInfo(itemId)
 			if name then
 				rows[#rows + 1] = { Name = name, Quality = quality, Amount = item.ShowQuantity and item.Count or nil }
 			end
@@ -447,19 +456,56 @@ local function AddSpareBlock(tooltip, unit)
 end
 
 --[[
-	One tooltip system. TooltipDataProcessor arrived in Dragonflight and was never
-	backported: the Diagnostic Tools API probe reports it absent on Era 1.15.9, which
-	carries every other modern namespace this add-on uses, so the pre-Dragonflight
-	script is what both supported flavors have. Do not add the modern branch back
-	without a client that actually passes that probe.
+	Two hook paths, one live per client. Forever runs the Retail engine, which has
+	TooltipDataProcessor and no OnTooltipSetUnit script at all, so hooking that
+	script there throws and takes the rest of login setup down with it. Era is the
+	reverse: the Diagnostic Tools API probe reports TooltipDataProcessor absent on
+	Era 1.15.9, so it keeps the pre-Dragonflight script. A client with both, as TBC
+	Anniversary has, takes the modern path.
+
+	The post-call fires for every tooltip showing a unit; the script hook only ever
+	covered GameTooltip, so the modern path is gated to it to match.
 ]]
+local function OnUnitTooltip(tooltip)
+	-- Before GetUnit: in combat on Forever, the unit it returns can be a hidden value.
+	if ns.IsInCombat() then
+		return
+	end
+	local _, unit = tooltip:GetUnit()
+	if unit and not ns.IsSecretValue(unit) then
+		AddSpareBlock(tooltip, unit)
+	end
+end
+
+-- Records the path taken in ns.unitTooltipPath, which the Diagnostic Tools context report prints.
 local function HookTooltip()
-	GameTooltip:HookScript("OnTooltipSetUnit", function(tooltip)
-		local _, unit = tooltip:GetUnit()
-		if unit then
-			AddSpareBlock(tooltip, unit)
-		end
-	end)
+	if TooltipDataProcessor and TooltipDataProcessor.AddTooltipPostCall then
+		TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, function(tooltip)
+			if tooltip == GameTooltip then
+				OnUnitTooltip(tooltip)
+			end
+		end)
+		ns.unitTooltipPath = "TooltipDataProcessor"
+		return
+	end
+
+	GameTooltip:HookScript("OnTooltipSetUnit", OnUnitTooltip)
+	ns.unitTooltipPath = "OnTooltipSetUnit"
+end
+
+--[[
+	Deferred in combat: on Forever the roster's names can come back hidden there, and
+	a prune that could not read some of them would drop real groupmates.
+]]
+local function OnRosterUpdate()
+	if ns.IsInCombat() then
+		rosterChangedInCombat = true
+		return
+	end
+	PruneToGroup()
+	-- Someone who just joined has heard nothing from us yet, unchanged list or not.
+	lastBroadcast = nil
+	ScheduleBroadcast()
 end
 
 --------------------------------------------------------------------------------
@@ -468,7 +514,7 @@ end
 
 function ns.InitGroupSpares()
 	if C_ChatInfo and C_ChatInfo.RegisterAddonMessagePrefix then
-		C_ChatInfo.RegisterAddonMessagePrefix(ADDON_PREFIX)
+		C_ChatInfo.RegisterAddonMessagePrefix(ns.ADDON_MESSAGE_PREFIX)
 	end
 
 	HookTooltip()
@@ -476,11 +522,12 @@ function ns.InitGroupSpares()
 	ns.RegisterEvent("CHAT_MSG_ADDON", OnAddonMessage)
 	-- Bag changes settle into one broadcast; BAG_UPDATE_DELAYED fires once per batch.
 	ns.RegisterEvent("BAG_UPDATE_DELAYED", ScheduleBroadcast)
-	ns.RegisterEvent("GROUP_ROSTER_UPDATE", function()
-		PruneToGroup()
-		-- Someone who just joined has heard nothing from us yet, unchanged list or not.
-		lastBroadcast = nil
-		ScheduleBroadcast()
+	ns.RegisterEvent("GROUP_ROSTER_UPDATE", OnRosterUpdate)
+	ns.RegisterEvent("PLAYER_REGEN_ENABLED", function()
+		if rosterChangedInCombat then
+			rosterChangedInCombat = false
+			OnRosterUpdate()
+		end
 	end)
 	ns.RegisterEvent("PLAYER_ENTERING_WORLD", ScheduleBroadcast)
 	-- Also fires on a talent change, which moves a warlock's healthstone rank.

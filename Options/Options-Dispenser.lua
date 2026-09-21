@@ -25,7 +25,7 @@ function ns.BuildDispenserOptions()
 		name = L["TAB_DISPENSE"],
 		args = {
 			-- Dispense: the panel's opening section, titled by the tab rather than a header of its own.
-			intro = Desc(L["OPTIONS_DISPENSE_DESC"], 1),
+			intro = Desc(L["OPTIONS_DISPENSE_MASTER_DESC"], 1),
 			spaceIntro = Spacer(2),
 			Dispense = {
 				type = "toggle",

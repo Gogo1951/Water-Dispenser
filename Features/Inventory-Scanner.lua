@@ -44,16 +44,16 @@ local function ScanInventory()
 	inventory = {}
 
 	for bag = BACKPACK_CONTAINER, ns.LAST_BAG_INDEX do
-		local slots = ns.GetContainerNumSlots(bag) or 0
+		local slots = C_Container.GetContainerNumSlots(bag) or 0
 		for slot = 1, slots do
-			local info = ns.GetContainerItemInfo(bag, slot)
+			local info = C_Container.GetContainerItemInfo(bag, slot)
 			if info then
 				local itemId = info.itemID
 
-				local itemName, _, _, _, itemMinLevel, _, _, itemStackCount, _, itemIcon = ns.GetItemInfo(itemId)
+				local itemName, _, _, _, itemMinLevel, _, _, itemStackCount, _, itemIcon = C_Item.GetItemInfo(itemId)
 
 				-- nil itemName = uncached item. Request a load so the next scan is warm; don't trust the other returns this pass.
-				if not itemName and C_Item and C_Item.RequestLoadItemDataByID then
+				if not itemName then
 					C_Item.RequestLoadItemDataByID(itemId)
 				end
 
@@ -294,7 +294,7 @@ function ns.GetAvailableItemsToAdd()
 		--[[
 			Only items with at least one tradable copy, matching the L["OPTIONS_ADD_DESC"]
 			promise that soulbound items won't appear. A name is required too: the scan
-			now tracks every slot, so an item the client hasn't cached yet would reach the
+			tracks every slot, so an item the client hasn't cached yet would reach the
 			picker with no label. It has already been requested, so it lists once warm.
 		]]
 		if not isCollectionItem and not isConfigured and item.HasUnbound and item.Name then

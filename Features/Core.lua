@@ -28,7 +28,7 @@ ns.State = {
 --------------------------------------------------------------------------------
 
 local function GetVersion()
-	-- No legacy fallback: GetAddOnMetadata is gone on both target clients.
+	-- No legacy fallback: GetAddOnMetadata is gone on every supported client.
 	local version = C_AddOns.GetAddOnMetadata(ADDON_NAME, "Version")
 	if not version or version:find("@") then
 		return "Dev"
