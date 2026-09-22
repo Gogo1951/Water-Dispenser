@@ -110,26 +110,23 @@ To tell people out loud instead, turn on the macro under the Announcements tab a
 
 ## Related Add-ons
 
-🟢 Pairs With // Gogo1951's [Connoisseur & Restocker](https://www.curseforge.com/wow/addons/consumable-connoisseur)
+### 🟢 Pairs With
 
-🟢 Pairs With // Gogo1951's [Play It Forward](https://www.curseforge.com/wow/addons/play-it-forward)
+* Gogo1951's [Connoisseur & Restocker](https://www.curseforge.com/wow/addons/consumable-connoisseur)
+* Gogo1951's [Play It Forward](https://www.curseforge.com/wow/addons/play-it-forward)
+* noobsgonewild's [Tank HealthStone Tracker](https://www.curseforge.com/wow/addons/tank-healthstone-tracker)
 
-🟢 Pairs With // noobsgonewild's [Tank HealthStone Tracker](https://www.curseforge.com/wow/addons/tank-healthstone-tracker)
+### 🟡 Overlaps
 
-🟡 Some Overlap // Emmadruid's [ConjureHelper](https://www.curseforge.com/wow/addons/conjurehelper)
+* Emmadruid's [ConjureHelper](https://www.curseforge.com/wow/addons/conjurehelper)
+* afrugalpenguin's [MageTools](https://www.curseforge.com/wow/addons/magetools)
+* Shadrizz's [Necrosis TBC Anniversary](https://www.curseforge.com/wow/addons/necrosis-tbc-anniversary)
+* afrugalpenguin's [WarlockTools](https://www.curseforge.com/wow/addons/warlocktools)
 
-🟡 Some Overlap // afrugalpenguin's [MageTools](https://www.curseforge.com/wow/addons/magetools)
+### 🔴 Alternatives
 
-🟡 Some Overlap // Shadrizz's [Necrosis TBC Anniversary](https://www.curseforge.com/wow/addons/necrosis-tbc-anniversary)
-
-🟡 Some Overlap // afrugalpenguin's [WarlockTools](https://www.curseforge.com/wow/addons/warlocktools)
-
-🔴 Direct Alternative // HazeSuite's [HazeWaterBoy](https://www.curseforge.com/wow/addons/hazewaterboy)
-
-🔴 Direct Alternative // Codermik's [tradeDispenser](https://www.curseforge.com/wow/addons/tradedispenser)
-
-🔴 Direct Alternative // Mafkees's [TradeFill](https://www.curseforge.com/wow/addons/tradefill)
-
-🔴 Direct Alternative // enshadowed\_'s [Water Dispenser BCC](https://www.curseforge.com/wow/addons/water-dispenser-bcc)
-
-🔴 Direct Alternative // BlessedRabies2's [Water Dispenser Fixed](https://www.curseforge.com/wow/addons/water-dispenser-fixed)
+* HazeSuite's [HazeWaterBoy](https://www.curseforge.com/wow/addons/hazewaterboy)
+* Codermik's [tradeDispenser](https://www.curseforge.com/wow/addons/tradedispenser)
+* Mafkees's [TradeFill](https://www.curseforge.com/wow/addons/tradefill)
+* enshadowed\_'s [Water Dispenser BCC](https://www.curseforge.com/wow/addons/water-dispenser-bcc)
+* BlessedRabies2's [Water Dispenser Fixed](https://www.curseforge.com/wow/addons/water-dispenser-fixed)
