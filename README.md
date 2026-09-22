@@ -92,7 +92,7 @@ To tell people out loud instead, turn on the macro under the Announcements tab a
 
 🟢 World of Warcraft Classic // 1.15.9
 
-**Localization Status** // enUS, deDE, esES, esMX, frFR, itIT, koKR, ptBR, ruRU, zhCN, zhTW
+**Available Locales** // enUS, deDE, esES, esMX, frFR, itIT, koKR, ptBR, ruRU, zhCN, zhTW
 
 ## Get Involved
 
