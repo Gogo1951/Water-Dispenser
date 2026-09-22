@@ -94,13 +94,6 @@ To tell people out loud instead, turn on the macro under the Announcements tab a
 
 **Available Locales** // enUS, deDE, esES, esMX, frFR, itIT, koKR, ptBR, ruRU, zhCN, zhTW
 
-## Get Involved
-
-❤️ **You can help make this better!** Feedback, code contributions, testing, and localization assistance are always appreciated. If you'd like to get involved, please reach out.
-
-* [GitHub](https://github.com/Gogo1951/Water-Dispenser)
-* [Discord](https://discord.gg/eh8hKq992Q)
-
 ## Appreciation & History
 
 👾 **I didn't create this add-on, I just updated it.**
@@ -112,6 +105,13 @@ To tell people out loud instead, turn on the macro under the Announcements tab a
 
 * **Spek** // For all the testing, troubleshooting, and attention to detail that helped make this add-on better!
 * **Ort** // For complaining about sand distribution so relentlessly that I eventually got inspired to update this add-on.
+
+## Get Involved
+
+❤️ **You can help make this better!** Feedback, code contributions, testing, and localization assistance are always appreciated. If you'd like to get involved, please reach out.
+
+* [GitHub](https://github.com/Gogo1951/Water-Dispenser)
+* [Discord](https://discord.gg/eh8hKq992Q)
 
 ## Related Add-ons
 
