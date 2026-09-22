@@ -80,19 +80,21 @@ To tell people out loud instead, turn on the macro under the Announcements tab a
 
 ## Testing & Localization Status
 
-🟢 World of Warcraft Classic (🟡 Season of Discovery) // WoW 1.15.9
+🔴 World of Warcraft // 12.1.0
 
-🟢 World of Warcraft Forever // WoW 1.60.1
+🔴 Mists of Pandaria Classic // 5.5.4
 
-🟢 Burning Crusade Anniversary // WoW 2.5.6
+🟢 Burning Crusade Anniversary // 2.5.6
 
-🔴 Mists of Pandaria Classic // WoW 5.5.4
+🟢 World of Warcraft Forever // 1.60.1
 
-🔴 World of Warcraft // WoW 12.1.0
+🟡 World of Warcraft: Season of Discovery // 1.15.9
 
-**Localization Status** // Works with all Classic WoW Locales (enUS, deDE, esES, esMX, frFR, itIT, koKR, ptBR, ruRU, zhCN, zhTW).
+🟢 World of Warcraft Classic // 1.15.9
 
-Please reach out if you would like to be involved!
+**Localization Status** // enUS, deDE, esES, esMX, frFR, itIT, koKR, ptBR, ruRU, zhCN, zhTW
+
+❤️ **You can help make this better!** Feedback, code contributions, testing, and localization assistance are always appreciated. If you'd like to get involved, please reach out.
 
 ## Links
 
