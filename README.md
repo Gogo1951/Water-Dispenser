@@ -101,12 +101,17 @@ To tell people out loud instead, turn on the macro under the Announcements tab a
 * [GitHub](https://github.com/Gogo1951/Water-Dispenser)
 * [Discord](https://discord.gg/eh8hKq992Q)
 
-## History
+## Appreciation & History
 
 👾 **I didn't create this add-on, I just updated it.**
 
 * Razyel's [Water Dispenser](https://www.wowinterface.com/downloads/info25489-WaterDispenser.html)
 * Junsa's [Water Dispenser Era](https://www.curseforge.com/wow/addons/water-dispenser-era)
+
+### Special Thanks
+
+* **Spek** // For all the testing, troubleshooting, and attention to detail that helped make this add-on better!
+* **Ort** // For complaining about sand distribution so relentlessly that I eventually got inspired to update this add-on.
 
 ## Related Add-ons
 
