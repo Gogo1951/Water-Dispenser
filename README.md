@@ -49,11 +49,11 @@ Conjure while a trade is open and the water, food, or healthstone you just made 
 
 Hover a party or raid member and Water Dispenser adds a short block to the bottom of their tooltip with every item they have set up to give out, and how many they're carrying. Warlocks always show a `Healthstone (Rank N/2)` line stating their Improved Healthstone rank, carrying one or not, since that is what a raid coordinates around. Your own inventory always shows on your own tooltip, grouped or not.
 
-![](https://github.com/user-attachments/assets/6771d79f-8415-4fff-8731-06f095c2bbee)
+<img width="300" src="https://github.com/user-attachments/assets/6771d79f-8415-4fff-8731-06f095c2bbee" />
 
-![](https://github.com/user-attachments/assets/07ddf682-4e0b-4044-950e-80c34d219126)
+<img width="300" src="https://github.com/user-attachments/assets/07ddf682-4e0b-4044-950e-80c34d219126" />
 
-![](https://github.com/user-attachments/assets/959c50d3-cec9-415f-a5b7-3cbefdfd4717)
+<img width="300" src="https://github.com/user-attachments/assets/959c50d3-cec9-415f-a5b7-3cbefdfd4717" />
 
 To tell people out loud instead, turn on the macro under the Announcements tab and a `- Dispenser` macro appears on your character. Click it to post your leftover giveaways to the channel that matches your group: Say when you're on your own, Party in a group, Raid in a raid. Item names are real hyperlinks, so people can shift-click them for the tooltip.
 
@@ -65,6 +65,8 @@ To tell people out loud instead, turn on the macro under the Announcements tab a
 | Shift + Middle-Click | Opens the options panel, the same as typing `/wd`      |
 | Hover                | Shows whether Dispense is currently on                 |
 
+<img width="300" src="https://github.com/user-attachments/assets/8ef56312-1f0a-44b9-87b2-049acd80393e" />
+
 ### Options
 
 * **Water Dispenser** // The welcome message, the mini-map button, and the master **Enable Dispense** switch with its per-scope toggles for raid members, party members, and strangers. The warning when you run short and the automatic combining of partial stacks live here too.
@@ -74,7 +76,7 @@ To tell people out loud instead, turn on the macro under the Announcements tab a
 * **Profiles** // Share one set of rules across every character, or give a character its own.
 * **Diagnostic Tools** // Read-only probes to paste into a bug report.
 
-![](https://github.com/user-attachments/assets/b978dc1f-6bd7-48b0-a147-c3c9475b8bb1)
+<img width="800" src="https://github.com/user-attachments/assets/b978dc1f-6bd7-48b0-a147-c3c9475b8bb1" />
 
 ## Testing & Localization Status
 
