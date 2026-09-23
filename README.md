@@ -82,15 +82,15 @@ To tell people out loud instead, turn on the macro under the Announcements tab a
 
 🔴 World of Warcraft // 12.1.0
 
-🔴 Mists of Pandaria // 5.5.4
+🔴 Mists of Pandaria Classic // 5.5.4
 
-🟢 Burning Crusade // 2.5.6
+🟢 Burning Crusade Anniversary // 2.5.6
 
-🟢 Forever // 1.60.1
+🟢 World of Warcraft: Forever // 1.60.1
 
-🟡 Season of Discovery // 1.15.9
+🟡 World of Warcraft: Season of Discovery // 1.15.9
 
-🟢 Classic // 1.15.9
+🟢 World of Warcraft: Classic // 1.15.9
 
 **Available Locales** // enUS, deDE, esES, esMX, frFR, itIT, koKR, ptBR, ruRU, zhCN, zhTW
 
