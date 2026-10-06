@@ -8,7 +8,8 @@ This document combines architecture notes and contribution guidance for develope
 Water-Dispenser/
 ├── .github/
 │   └── workflows/
-│       └── package.yml              CurseForge release plus library vendoring
+│       ├── ci.yml                   Calls Common-Core: Lua 5.1 syntax, luacheck, StyLua and tests on every PR
+│       └── package.yml              Calls Common-Core: CurseForge release plus library vendoring
 ├── .gitattributes                   Line-ending normalization
 ├── .gitignore                       Dev-clutter ignore list
 ├── .luacheckrc                      Lint config, excludes Includes/
