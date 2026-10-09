@@ -35,6 +35,11 @@ function ns.TradePartnerKey()
 	return name
 end
 
+-- A partner key as the player reads it, without the realm a cross-realm key carries.
+function ns.NameWithoutRealm(partnerKey)
+	return partnerKey and partnerKey:match("^[^-]+") or partnerKey
+end
+
 --------------------------------------------------------------------------------
 -- Ledger
 --------------------------------------------------------------------------------
@@ -56,7 +61,7 @@ end
 --[[
 	Forgets what everyone has already been given of an item, so a limit changed
 	part-way through a session is measured from now rather than against giving that
-	happened under the old number. Without it, raising Maximum per Session from 2 to
+	happened under the old number. Without it, raising Maximum per Player from 2 to
 	10 hands over nothing until the next reload, which reads as the setting being
 	ignored. Passing nil clears every item.
 ]]

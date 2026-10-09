@@ -13,12 +13,23 @@ ns.State = {
 	Trade = {
 		Active = false,
 		Class = nil,
+		-- The partner's class as the client names it, gendered for them, for display.
+		ClassName = nil,
 		Level = nil,
 		Party = false,
 		-- Whether the partner shares the player's guild, for items gated to guildies.
 		Guild = false,
 		-- Captured at TRADE_SHOW: UnitName("NPC") is gone by the time the trade closes.
 		Partner = nil,
+		--[[
+			Feed the trade panel's status line. Note is a trade-wide reason (auto-fill
+			off, the window just cleared); HoldReasons and ShortNotes are the last fill
+			pass's per-item hold-backs, keyed by config key; Status is the line shown.
+		]]
+		Note = nil,
+		HoldReasons = {},
+		ShortNotes = {},
+		Status = nil,
 	},
 	MissingStack = false,
 }
@@ -89,24 +100,38 @@ end)
 -- Addon Lifecycle
 --------------------------------------------------------------------------------
 
--- Creates the AceDB database and wires the refresh that follows a profile switch.
-local function SetupDatabase()
-	ns.db = LibStub("AceDB-3.0"):New("WaterDispenserDB", ns.DATABASE_DEFAULTS, true)
-
-	ns.RefreshCollectionMeta()
-
-	-- Re-sync metadata, item panels, and the macro on any profile switch/copy/reset.
-	ns.db.RegisterCallback(ns, "OnProfileChanged", "OnProfileRefresh")
-	ns.db.RegisterCallback(ns, "OnProfileCopied", "OnProfileRefresh")
-	ns.db.RegisterCallback(ns, "OnProfileReset", "OnProfileRefresh")
+-- MIGRATION (remove after 2026-11-07): user-added items stored their Name and Icon; both are now read from the client.
+local function DropStoredItemNames()
+	for key, itemConfig in pairs(ns.db.profile.Items) do
+		if type(key) == "number" and type(itemConfig) == "table" then
+			itemConfig.Name = nil
+			itemConfig.Icon = nil
+		end
+	end
 end
 
-function ns:OnProfileRefresh()
+-- Creates the AceDB database and wires the refresh that follows a profile switch.
+local function SetupDatabase()
+	ns.db = LibStub("AceDB-3.0"):New(ns.SAVED_VARIABLES_NAME, ns.DATABASE_DEFAULTS, true)
+
+	DropStoredItemNames() -- MIGRATION (remove after 2026-11-07)
+	ns.RefreshCollectionMeta()
+
+	-- Re-applies everything the profile drives on any profile switch, copy or reset.
+	for _, msg in ipairs({ "OnProfileChanged", "OnProfileReset", "OnProfileCopied" }) do
+		ns.db.RegisterCallback(ns, msg, "ApplyProfile")
+	end
+end
+
+function ns:ApplyProfile()
+	DropStoredItemNames() -- MIGRATION (remove after 2026-11-07)
 	ns.RefreshCollectionMeta()
 	if ns.RebuildDispensedItemsOptions then
 		ns.RebuildDispensedItemsOptions()
 	end
 	ns.RefreshGiveaways()
+	-- The conjure buttons are shown and hidden imperatively, so they would keep the old profile's switches mid-trade.
+	ns.RefreshConjureButtons()
 
 	-- Every panel reads the profile, so all of them repaint; an open one would otherwise show the old profile's values.
 	for _, registryName in pairs(ns.OPTIONS_REGISTRY) do
@@ -129,8 +154,15 @@ ns.RegisterEvent("PLAYER_LOGIN", function()
 	if ns.RegisterOptionsPanels then
 		ns.RegisterOptionsPanels()
 	end
+	if ns.InitDispensedItemsOptions then
+		ns.InitDispensedItemsOptions()
+	end
 	if ns.InitDispenser then
 		ns.InitDispenser()
+	end
+	-- After InitDispenser: its TRADE_SHOW handler attaches the panel the buttons anchor to.
+	if ns.InitConjureButtons then
+		ns.InitConjureButtons()
 	end
 	if ns.InitAnnouncements then
 		ns.InitAnnouncements()

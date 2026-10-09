@@ -326,8 +326,11 @@ end
     the group broadcast: nothing is being handed out, so nothing is announced. Each
     item is still gated by its reserve, its Distribute rule and its player-class
     filter, so the macro never names what the fill would refuse.
+
+    ignoreReserve counts the whole bag instead, for the mini-map Dispense Report:
+    a mage carrying less water than the reserve still sees it listed there.
 ]]
-function ns.BuildAnnouncementSnapshot()
+function ns.BuildAnnouncementSnapshot(ignoreReserve)
 	ScanInventoryForDisplay()
 
 	local entries = {}
@@ -343,7 +346,7 @@ function ns.BuildAnnouncementSnapshot()
 			local inventoryItem = bestId and inventory[bestId] or nil
 			if inventoryItem and #inventoryItem.Bags > 0 then
 				local total = TotalItemCount(inventoryItem)
-				local keep = ns.GetItemReserve(itemConfig)
+				local keep = ignoreReserve and 0 or ns.GetItemReserve(itemConfig)
 				local count = math.max(0, total - keep)
 				if count > 0 then
 					table.insert(entries, {
@@ -370,7 +373,7 @@ function ns.BuildAnnouncementSnapshot()
 			if inventoryItem and #inventoryItem.Bags > 0 then
 				-- Only tradable copies count: soulbound ones can't be given.
 				local total = UnboundItemCount(inventoryItem)
-				local keep = ns.GetItemReserve(itemConfig)
+				local keep = ignoreReserve and 0 or ns.GetItemReserve(itemConfig)
 				local count = math.max(0, total - keep)
 				if count > 0 then
 					table.insert(custom, {

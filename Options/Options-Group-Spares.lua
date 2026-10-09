@@ -2,6 +2,8 @@ local _, ns = ...
 
 local L = ns.L
 
+local AceConfigRegistry = LibStub("AceConfigRegistry-3.0")
+
 local Desc = ns.OptionsDesc
 local Spacer = ns.OptionsSpacer
 local SubRow = ns.OptionsSubRow
@@ -36,6 +38,8 @@ function ns.BuildGroupSparesOptions()
 					SetDB(info, value)
 					-- This gates sharing too, so the group needs telling either way.
 					ns.RefreshGiveaways()
+					-- The front page carries the same switch.
+					AceConfigRegistry:NotifyChange(ns.OPTIONS_REGISTRY.General)
 				end,
 			},
 			-- Its own control rather than a sub-option of the player tooltips above, so it needs the gap to read as separate.
@@ -47,7 +51,10 @@ function ns.BuildGroupSparesOptions()
 				desc = L["OPTIONS_BAG_TOOLTIPS_DESC"],
 				order = 6,
 				get = GetDB,
-				set = SetDB,
+				set = function(info, value)
+					SetDB(info, value)
+					AceConfigRegistry:NotifyChange(ns.OPTIONS_REGISTRY.General)
+				end,
 			},
 			rowShareInventory = SubRow(4, TooltipsOff, {
 				SubToggle("ShareInventory", L["OPTIONS_SHARE_INVENTORY"], L["OPTIONS_SHARE_INVENTORY_DESC"], function()

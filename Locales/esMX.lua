@@ -15,6 +15,8 @@ L["ADDON_TITLE"] = "Water Dispenser"
 
 -- %s is the item's name or link, %d how many of it. Used by the chat prints and the announcement macro.
 L["FORMAT_ITEM_COUNT"] = "%s x%d"
+-- Stands in for an item's name until the client has loaded it. %d is the item ID.
+L["ITEM_LOADING"] = "Cargando ID: %d"
 
 --------------------------------------------------------------------------------
 -- Chat Messages
@@ -33,14 +35,14 @@ L["CHAT_OPTIONS_IN_COMBAT"] = "Como medida de seguridad, la interfaz de opciones
 -- The item and its count are appended after the colon by the code.
 L["CHAT_MISSING_STACK"] = "Falta:"
 --[[
-	%s is the item's name, %d the Maximum per Session it has hit.
-	"Maximum per Session" is the label of OPTIONS_ITEM_SESSION_CAP, minus its "Enable".
+	%s is the item's name, then the trade partner's name; %d is the Maximum per
+	Player they have reached.
 ]]
-L["CHAT_SESSION_CAP_REACHED"] =
-	"%s no añadido: ya ha recibido %d en esta sesión. Cambia Máximo por sesión, o recarga para reiniciar."
--- %s is the item's name, %d the amount that could not be split off.
-L["CHAT_SPLIT_REFUSED"] =
-	"%s no añadido: este cliente no ha querido separar %d de una pila, y entregar una pila entera en su lugar daría mucho más de lo que pediste. Ajusta la cantidad de este objeto a una pila entera para comerciarlo."
+L["CHAT_PLAYER_CAP_REACHED"] =
+	"%s no añadido: %s ya ha recibido %d de ti. Los recuentos se reinician al cerrar sesión o recargar."
+-- %s is the item's name; the first %d is the amount that could not be split off, the second the item's full stack size.
+L["CHAT_SPLIT_NEEDS_FULL_STACK"] =
+	"%s no añadido: el juego no quiso separar %d de una pila. Fija la cantidad en una pila completa (%d) para entregarlo."
 -- %s is the player's class name. "Dispensed Items" must match TAB_DISPENSED_ITEMS.
 L["CHAT_NONE_ACTIVE_FOR_CLASS"] =
 	"No hay objetos configurados para dispensar mientras juegas con un %s. Abre Opciones > Accesorios > Water Dispenser > Objetos dispensados para habilitar objetos para esta clase."
@@ -53,18 +55,15 @@ L["CHAT_MACRO_FULL"] = "No se pudo crear la macro de anuncio: todas las ranuras 
 --------------------------------------------------------------------------------
 
 L["TOOLTIP_OPEN_TRADE"] = "¡Abre comercio!"
--- %d/%d is the warlock's Improved Healthstone rank out of its maximum.
-L["TOOLTIP_HEALTHSTONE"] = "Piedra de salud (Rango %d/%d)"
+-- %s is the Improved Healthstone talent's name from the client, then the warlock's rank out of its maximum.
+L["TOOLTIP_HEALTHSTONE_TALENT"] = "%s %d/%d"
 
 --------------------------------------------------------------------------------
 -- Bag Item Tooltips
 --------------------------------------------------------------------------------
 
 -- Shown on a carried bag item the player has set up to give away.
-L["TOOLTIP_WILL_DISPENSE"] = "Este objeto se dispensará."
--- The same line for a stacking item while OPTIONS_RESTACK is on, which tidies it back together once a trade ends.
-L["TOOLTIP_WILL_DISPENSE_STACKED"] =
-	"Este objeto se dispensará. Sus pilas parciales se combinan cuando se cierra un comercio."
+L["TOOLTIP_WILL_DISPENSE"] = "Se reparte en los comercios."
 
 --------------------------------------------------------------------------------
 -- Trade Side Panel
@@ -72,6 +71,46 @@ L["TOOLTIP_WILL_DISPENSE_STACKED"] =
 
 L["BUTTON_CLEAR"] = "Limpiar ventana de comercio"
 L["BUTTON_FILL"] = "Llenar ventana de comercio"
+
+--[[
+	The silver status line under the trade panel's buttons. "Fill Trade Window" must
+	match BUTTON_FILL. ADDED's %s is the window's contents, each FORMAT_ITEM_COUNT,
+	joined like the announcement's list. In the rest, %s is an item or collection
+	name unless noted.
+]]
+L["TRADE_STATUS_ADDED"] = "Añadido: %s."
+-- %d is how many short.
+L["TRADE_STATUS_SHORT"] = "Faltan %d %s: no hay suficientes en tus bolsas."
+L["TRADE_STATUS_SHORT_RESERVE"] = "Faltan %d %s: tu reserva guarda el resto."
+L["TRADE_STATUS_DISPENSE_OFF"] =
+	"El llenado automático está desactivado. Llenar ventana de comercio sigue añadiendo tus cantidades habituales."
+L["TRADE_STATUS_OFF_STRANGERS"] =
+	"El llenado automático está desactivado para desconocidos. Llenar ventana de comercio sigue añadiendo tus cantidades habituales."
+L["TRADE_STATUS_OFF_PARTY"] =
+	"El llenado automático está desactivado para miembros del grupo. Llenar ventana de comercio sigue añadiendo tus cantidades habituales."
+L["TRADE_STATUS_OFF_RAID"] =
+	"El llenado automático está desactivado para miembros de la banda. Llenar ventana de comercio sigue añadiendo tus cantidades habituales."
+L["TRADE_STATUS_MASTER_LOOT"] =
+	"Retenido mientras eres maestro despojador. Llenar ventana de comercio sigue añadiendo tus cantidades habituales."
+-- The first %s is the partner's class name.
+L["TRADE_STATUS_ZERO"] = "Fijado en 0 para %s: %s."
+L["TRADE_STATUS_INSTANCE_ONLY"] = "%s solo se reparte en instancias."
+L["TRADE_STATUS_GUILD_ONLY"] = "%s solo va para tu hermandad."
+-- The partner's name, then the rank they can't use yet and its level.
+L["TRADE_STATUS_LEVEL"] = "%s no puede usar tu %s hasta el nivel %d."
+-- The partner's name first.
+L["TRADE_STATUS_TOO_LOW"] = "%s tiene un nivel demasiado bajo para %s."
+-- The partner's name first.
+L["TRADE_STATUS_CAPPED"] = "%s ya ha alcanzado tu máximo por jugador de %s."
+L["TRADE_STATUS_NONE_HELD"] = "No tienes %s para dar."
+L["TRADE_STATUS_CLEARED"] = "Vaciado."
+--[[
+	A conjure button's tooltip, under the spell's name. MAKES: the item it makes,
+	then the trade partner's name and level. LOWEST, when no rank fits the partner:
+	the item only.
+]]
+L["TRADE_CONJURE_MAKES"] = "Crea %s, lo mejor que %s (nivel %d) puede usar."
+L["TRADE_CONJURE_MAKES_LOWEST"] = "Crea %s, el rango más bajo que conoces."
 
 --------------------------------------------------------------------------------
 -- Minimap Button
@@ -87,19 +126,23 @@ L["UI_LEFT_CLICK"] = "Clic izquierdo"
 L["UI_TOGGLE"] = "Alternar"
 L["MINIMAP_OPTIONS"] = "Opciones de Water Dispenser"
 L["MINIMAP_OPTIONS_KEYBIND"] = "Mayús + Clic central"
+-- Heads the tooltip section listing what the player can give right now.
+L["MINIMAP_DISPENSE_REPORT"] = "Informe de reparto"
 
 --------------------------------------------------------------------------------
 -- Options — General
 --------------------------------------------------------------------------------
 
 L["OPTIONS_DESCRIPTION"] =
-	"Reparte consumibles sin esfuerzo. Llena automáticamente la ventana de comercio con agua, comida y piedras de salud. Añade cualquier objeto que quieras, como Arena de reloj de arena o pociones de resistencia, para repartirlo a tu banda."
+	"Reparto de consumibles sin esfuerzo. Llena automáticamente las ventanas de comercio con agua, comida y piedras de salud conjuradas, del rango y la cantidad adecuados para cada jugador. Añade cualquier objeto, desde Arena de reloj de arena hasta pociones de resistencia, y abastece a toda una banda en segundos."
 
 L["OPTIONS_WELCOME_MESSAGE"] = "Activar mensaje de bienvenida"
 L["OPTIONS_WELCOME_MESSAGE_DESC"] =
 	"Muestra un saludo de una línea en tu ventana de chat cuando Water Dispenser se carga."
 L["OPTIONS_MINIMAP"] = "Activar botón del minimapa"
 L["OPTIONS_MINIMAP_DESC"] = "Muestra el botón de Water Dispenser en el minimapa."
+
+L["OPTIONS_FEATURES_HEADER"] = "Funciones"
 
 L["OPTIONS_COMMANDS_HEADER"] = "/Comandos"
 L["OPTIONS_COMMAND"] = "/wd"
@@ -128,15 +171,26 @@ L["OPTIONS_DISPENSE_RAID_DESC"] =
 L["OPTIONS_RESTACK"] = "Combinar pilas parciales tras un comercio"
 L["OPTIONS_RESTACK_DESC"] =
 	"El agua y la comida conjuradas caen en una ranura nueva de la bolsa con cada lanzamiento y el juego nunca las vuelve a juntar, así que Water Dispenser las combina una vez, justo después de que se cierre una ventana de comercio, y nunca en ningún otro momento, ni en combate ni mientras llevas algo en el cursor."
+L["OPTIONS_HOLD_MASTER_LOOT"] = "Retener mientras eres maestro despojador"
+-- "Fill Trade Window" must match BUTTON_FILL.
+L["OPTIONS_HOLD_MASTER_LOOT_DESC"] =
+	"Deja vacía la ventana de comercio mientras eres maestro despojador en una instancia, ya que esos comercios sirven para repartir botín. Llenar ventana de comercio sigue añadiendo tus cantidades habituales."
+L["OPTIONS_CONJURE_BUTTONS"] = "Mostrar botones de conjuración junto a los comercios"
+-- "Fill Trade Window" must match BUTTON_FILL.
+L["OPTIONS_CONJURE_BUTTONS_DESC"] =
+	"Añade botones bajo Llenar ventana de comercio que conjuran agua, comida o una piedra de salud que tu compañero de comercio puede usar a su nivel, y lo que creas va directo al comercio abierto."
 L["OPTIONS_MISSING_STACK_WARNINGS"] = "Activar avisos cuando te quedes corto"
 L["OPTIONS_MISSING_STACK_WARNINGS_DESC"] =
 	"Muestra un aviso en tu ventana de chat cuando no tienes suficiente de un objeto configurado en tus bolsas para dar la cantidad que fijaste."
+
+-- Leads the silver line under a setting that shows the exact chat line it prints.
+L["OPTIONS_EXAMPLE"] = "Ejemplo:"
 
 L["OPTIONS_COMBAT_HEADER"] = "Combate"
 L["OPTIONS_COMBAT_DESC"] = "WoW impide que los accesorios muevan objetos a un comercio durante el combate."
 L["OPTIONS_COMBAT_NOTIFY"] = "Activar notificaciones cuando el dispensado esté bloqueado"
 L["OPTIONS_COMBAT_NOTIFY_DESC"] =
-	"Muestra un aviso en tu ventana de chat cuando el combate impide llenar un comercio, y con esto desactivado Water Dispenser calla sobre por qué el comercio siguió vacío."
+	"Muestra un aviso en tu ventana de chat cuando el combate impide que se llene un comercio."
 
 --------------------------------------------------------------------------------
 -- Options — Inventory Tooltips
@@ -153,7 +207,7 @@ L["OPTIONS_BAG_TOOLTIPS_DESC"] =
 	"Añade una línea de Water Dispenser a la descripción de un objeto de tus bolsas cuando ese objeto está configurado para repartirse, para que veas de un vistazo qué entregará el accesorio."
 L["OPTIONS_SHARE_INVENTORY"] = "Compartir mi inventario"
 L["OPTIONS_SHARE_INVENTORY_DESC"] =
-	"Comunica a tu grupo y a tu banda lo que tienes para dar para que tu inventario aparezca cuando pasen el ratón por encima de ti, sin publicar nada en el chat ni avisar a nadie fuera de tu grupo, y desactivarlo te deja seguir viendo el de los demás."
+	"Indica a tu grupo o banda lo que tienes para regalar, para que aparezca cuando pasen el ratón sobre ti. Nunca publica en el chat ni llega a nadie fuera de tu grupo. Al desactivarlo sigues viendo lo de los demás."
 
 --------------------------------------------------------------------------------
 -- Options — Dispensed Items
@@ -166,6 +220,15 @@ L["OPTIONS_ITEMS_DESC"] =
 L["OPTIONS_ITEMS_EMPTY"] =
 	'No hay objetos configurados. Selecciona "Añadir objeto" en la lista para añadir cualquier objeto comerciable de tus bolsas.'
 
+--[[
+	The silver line opening an item's page while nothing of it would go out. In
+	OTHER_CLASS, %s is the player's class twice, then OPTIONS_ITEM_PLAYER_CLASSES;
+	in ALL_ZERO, %s is OPTIONS_ITEM_EVERYONE.
+]]
+L["OPTIONS_ITEM_STATUS_OTHER_CLASS"] = "No se reparte mientras juegas con un %s. Marca %s en %s."
+L["OPTIONS_ITEM_STATUS_ALL_ZERO"] =
+	"Todavía no sale nada: todas las cantidades están en 0. Escribe un número en %s para empezar."
+
 L["OPTIONS_ITEM_AMOUNTS"] = "Cantidades"
 L["OPTIONS_ITEM_AMOUNTS_DESC"] =
 	"Elige cuántos recibe cada clase al comerciar con ella, según si es un desconocido, está en tu grupo o en tu banda. Se cuentan objetos individuales, no pilas. Cero significa que nunca recibirán este objeto."
@@ -176,13 +239,13 @@ L["OPTIONS_ITEM_EVERYONE_DESC"] =
 -- The accept button inside every number box in this panel.
 L["OPTIONS_ITEM_APPLY"] = "Aplicar"
 -- %d is the highest amount this item accepts, which is 1 for anything unique.
-L["OPTIONS_ITEM_COUNT_TOO_HIGH"] = "Eso es más de lo que este objeto puede dispensar. El máximo es %d."
+L["OPTIONS_ITEM_COUNT_TOO_HIGH"] = "Eso es más de lo que puedes dar de este objeto. El máximo es %d."
 L["OPTIONS_ITEM_COUNT_INVALID"] = "Introduce un número de objetos."
 L["OPTIONS_ITEM_SETTINGS"] = "Ajustes del objeto"
 L["OPTIONS_ITEM_DISTRIBUTE"] = "Repartir"
--- "In Instance" must match the dropdown entry below.
+-- "In Instance" must match OPTIONS_ITEM_DISTRIBUTE_INSTANCE.
 L["OPTIONS_ITEM_DISTRIBUTE_DESC"] =
-	"Define dónde se reparte este objeto: En instancia abarca mazmorras, bandas, campos de batalla y arenas, y en cualquier otro sitio nunca se comercia, ni se anuncia, ni se muestra en tu descripción."
+	"Establece dónde se reparte este objeto. En instancia abarca mazmorras, bandas, campos de batalla y arenas. En cualquier otro lugar, el objeto nunca se comercia, se anuncia ni se muestra en tu descripción."
 --[[
 	Dropdown entries, looked up as OPTIONS_ITEM_DISTRIBUTE_ plus the stored value in
 	capitals ("Always", "Instance"), so no code names these keys in full.
@@ -200,9 +263,9 @@ L["OPTIONS_ITEM_FACTOR_LEVEL_DESC"] =
 L["OPTIONS_ITEM_RESERVE"] = "Activar reservas"
 L["OPTIONS_ITEM_RESERVE_DESC"] =
 	"Guarda siempre al menos esta cantidad en tus bolsas, y el dispensado, tu descripción de jugador y la macro de anuncio tratan todo lo que exceda ese número como disponible para regalar."
-L["OPTIONS_ITEM_SESSION_CAP"] = "Activar máximo por sesión"
-L["OPTIONS_ITEM_SESSION_CAP_DESC"] =
-	"Deja de dar este objeto a alguien una vez que ha recibido esta cantidad de ti, contando todos los comercios hasta que cierres sesión o recargues, y cambiar cualquier cantidad de este objeto reinicia la cuenta de todos."
+L["OPTIONS_ITEM_PLAYER_CAP"] = "Activar máximo por jugador"
+L["OPTIONS_ITEM_PLAYER_CAP_DESC"] =
+	"Deja de dar este objeto a alguien cuando ya ha recibido esta cantidad de ti. Los recuentos se reinician al cerrar sesión, recargar o cambiar las cantidades de este objeto."
 -- The label carries the meaning on its own; the tooltip only says why you'd switch it off.
 L["OPTIONS_ITEM_INCLUDE_QUANTITY"] = "Incluir cantidad en la descripción de jugador y la macro de anuncio"
 L["OPTIONS_ITEM_INCLUDE_QUANTITY_DESC"] =
@@ -251,17 +314,9 @@ L["ANNOUNCEMENTS_AND"] = "y"
 --------------------------------------------------------------------------------
 
 L["OPTIONS_SUPPORT"] = "Comentarios y soporte"
--- Precedes the version number on the General panel's last line.
-L["VERSION"] = "Versión"
+-- The General panel's last line. %s is the version.
+L["OPTIONS_VERSION"] = "Versión %s"
 L["SUPPORT_CURSEFORGE"] = "CurseForge"
 L["SUPPORT_GITHUB"] = "GitHub"
 L["SUPPORT_DISCORD"] = "Discord"
 L["SUPPORT_WAGO"] = "Wago"
-
---------------------------------------------------------------------------------
--- Built-in Collections
---------------------------------------------------------------------------------
-
-L["ITEM_MAGE_WATER"] = "Agua conjurada"
-L["ITEM_MAGE_FOOD"] = "Comida conjurada"
-L["ITEM_WARLOCK_HEALTHSTONE"] = "Piedra de salud"

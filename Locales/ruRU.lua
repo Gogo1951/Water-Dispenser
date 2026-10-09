@@ -15,6 +15,8 @@ L["ADDON_TITLE"] = "Water Dispenser"
 
 -- %s is the item's name or link, %d how many of it. Used by the chat prints and the announcement macro.
 L["FORMAT_ITEM_COUNT"] = "%s x%d"
+-- Stands in for an item's name until the client has loaded it. %d is the item ID.
+L["ITEM_LOADING"] = "Загрузка ID: %d"
 
 --------------------------------------------------------------------------------
 -- Chat Messages
@@ -34,14 +36,14 @@ L["CHAT_OPTIONS_IN_COMBAT"] =
 -- The item and its count are appended after the colon by the code.
 L["CHAT_MISSING_STACK"] = "Не хватает:"
 --[[
-	%s is the item's name, %d the Maximum per Session it has hit.
-	"Maximum per Session" is the label of OPTIONS_ITEM_SESSION_CAP, minus its "Enable".
+	%s is the item's name, then the trade partner's name; %d is the Maximum per
+	Player they have reached.
 ]]
-L["CHAT_SESSION_CAP_REACHED"] =
-	"%s не добавлено: этот игрок уже получил %d за эту сессию. Измените Максимум за сессию или перезагрузите интерфейс для сброса."
--- %s is the item's name, %d the amount that could not be split off.
-L["CHAT_SPLIT_REFUSED"] =
-	"%s не добавлено: клиент отказался отделить %d от стопки, а передать вместо этого целую стопку значило бы отдать намного больше, чем вы просили. Задайте для этого предмета количество, равное целой стопке, чтобы обменять его."
+L["CHAT_PLAYER_CAP_REACHED"] =
+	"%s не добавлено: игрок %s уже получил от вас %d. Счет начинается заново, когда вы выходите из игры или перезагружаете интерфейс."
+-- %s is the item's name; the first %d is the amount that could not be split off, the second the item's full stack size.
+L["CHAT_SPLIT_NEEDS_FULL_STACK"] =
+	"%s не добавлено: игра не смогла отделить %d от стопки. Укажите количество, равное полной стопке (%d), чтобы передать предмет."
 -- %s is the player's class name. "Dispensed Items" must match TAB_DISPENSED_ITEMS.
 L["CHAT_NONE_ACTIVE_FOR_CLASS"] =
 	"Нет предметов для раздачи, пока вы играете за класс %s. Откройте Настройки > Модификации > Water Dispenser > Раздаваемые предметы, чтобы включить предметы для этого класса."
@@ -55,18 +57,15 @@ L["CHAT_MACRO_FULL"] =
 --------------------------------------------------------------------------------
 
 L["TOOLTIP_OPEN_TRADE"] = "Кидайте обмен!"
--- %d/%d is the warlock's Improved Healthstone rank out of its maximum.
-L["TOOLTIP_HEALTHSTONE"] = "Камень здоровья (ранг %d/%d)"
+-- %s is the Improved Healthstone talent's name from the client, then the warlock's rank out of its maximum.
+L["TOOLTIP_HEALTHSTONE_TALENT"] = "%s %d/%d"
 
 --------------------------------------------------------------------------------
 -- Bag Item Tooltips
 --------------------------------------------------------------------------------
 
 -- Shown on a carried bag item the player has set up to give away.
-L["TOOLTIP_WILL_DISPENSE"] = "Этот предмет будет раздаваться."
--- The same line for a stacking item while OPTIONS_RESTACK is on, which tidies it back together once a trade ends.
-L["TOOLTIP_WILL_DISPENSE_STACKED"] =
-	"Этот предмет будет раздаваться. Его неполные стопки объединяются после закрытия обмена."
+L["TOOLTIP_WILL_DISPENSE"] = "Раздается при обмене."
 
 --------------------------------------------------------------------------------
 -- Trade Side Panel
@@ -74,6 +73,48 @@ L["TOOLTIP_WILL_DISPENSE_STACKED"] =
 
 L["BUTTON_CLEAR"] = "Очистить окно обмена"
 L["BUTTON_FILL"] = "Заполнить окно обмена"
+
+--[[
+	The silver status line under the trade panel's buttons. "Fill Trade Window" must
+	match BUTTON_FILL. ADDED's %s is the window's contents, each FORMAT_ITEM_COUNT,
+	joined like the announcement's list. In the rest, %s is an item or collection
+	name unless noted.
+]]
+L["TRADE_STATUS_ADDED"] = "Добавлено: %s."
+-- %d is how many short.
+L["TRADE_STATUS_SHORT"] = "Не хватает %d шт. (%s): в сумках недостаточно."
+L["TRADE_STATUS_SHORT_RESERVE"] =
+	"Не хватает %d шт. (%s): остальное держит ваш резерв."
+L["TRADE_STATUS_DISPENSE_OFF"] =
+	"Автозаполнение отключено. Заполнить окно обмена по-прежнему добавляет ваши обычные количества."
+L["TRADE_STATUS_OFF_STRANGERS"] =
+	"Автозаполнение отключено для незнакомцев. Заполнить окно обмена по-прежнему добавляет ваши обычные количества."
+L["TRADE_STATUS_OFF_PARTY"] =
+	"Автозаполнение отключено для участников группы. Заполнить окно обмена по-прежнему добавляет ваши обычные количества."
+L["TRADE_STATUS_OFF_RAID"] =
+	"Автозаполнение отключено для участников рейда. Заполнить окно обмена по-прежнему добавляет ваши обычные количества."
+L["TRADE_STATUS_MASTER_LOOT"] =
+	"Отложено, пока вы ответственный за добычу. Заполнить окно обмена по-прежнему добавляет ваши обычные количества."
+-- The first %s is the partner's class name.
+L["TRADE_STATUS_ZERO"] = "Для класса %s задано 0: %s."
+L["TRADE_STATUS_INSTANCE_ONLY"] = "%s выдается только в подземельях."
+L["TRADE_STATUS_GUILD_ONLY"] = "%s выдается только вашей гильдии."
+-- The partner's name, then the rank they can't use yet and its level.
+L["TRADE_STATUS_LEVEL"] = "%s не может использовать %s до %d-го уровня."
+-- The partner's name first.
+L["TRADE_STATUS_TOO_LOW"] = "%s: слишком низкий уровень для %s."
+-- The partner's name first.
+L["TRADE_STATUS_CAPPED"] = "%s: достигнут ваш максимум на игрока для %s."
+L["TRADE_STATUS_NONE_HELD"] = "Нечего раздать: %s."
+L["TRADE_STATUS_CLEARED"] = "Очищено."
+--[[
+	A conjure button's tooltip, under the spell's name. MAKES: the item it makes,
+	then the trade partner's name and level. LOWEST, when no rank fits the partner:
+	the item only.
+]]
+L["TRADE_CONJURE_MAKES"] =
+	"Создает %s, лучшее, что может использовать %s (уровень %d)."
+L["TRADE_CONJURE_MAKES_LOWEST"] = "Создает %s, самый низкий известный вам ранг."
 
 --------------------------------------------------------------------------------
 -- Minimap Button
@@ -89,19 +130,23 @@ L["UI_LEFT_CLICK"] = "ЛКМ"
 L["UI_TOGGLE"] = "Переключить"
 L["MINIMAP_OPTIONS"] = "Настройки Water Dispenser"
 L["MINIMAP_OPTIONS_KEYBIND"] = "Shift + СКМ"
+-- Heads the tooltip section listing what the player can give right now.
+L["MINIMAP_DISPENSE_REPORT"] = "Отчет о раздаче"
 
 --------------------------------------------------------------------------------
 -- Options — General
 --------------------------------------------------------------------------------
 
 L["OPTIONS_DESCRIPTION"] =
-	"Раздача расходников без хлопот. Автоматически заполняет окно обмена водой, едой и камнями здоровья. Добавьте любой предмет, какой захотите, например Песок песочных часов или зелья сопротивления, чтобы раздавать его своему рейду."
+	"Раздача расходников без усилий. Автоматически заполняет окна обмена сотворенной водой, едой и камнями здоровья нужного ранга и в нужном количестве для каждого игрока. Добавьте любой предмет, от песка из песочных часов до зелий сопротивления, и снабдите весь рейд за считанные секунды."
 
 L["OPTIONS_WELCOME_MESSAGE"] = "Включить приветственное сообщение"
 L["OPTIONS_WELCOME_MESSAGE_DESC"] =
 	"Выводит однострочное приветствие в чат при загрузке Water Dispenser."
 L["OPTIONS_MINIMAP"] = "Включить кнопку у миникарты"
 L["OPTIONS_MINIMAP_DESC"] = "Показывает кнопку Water Dispenser у миникарты."
+
+L["OPTIONS_FEATURES_HEADER"] = "Возможности"
 
 L["OPTIONS_COMMANDS_HEADER"] = "/Команды"
 L["OPTIONS_COMMAND"] = "/wd"
@@ -130,10 +175,21 @@ L["OPTIONS_DISPENSE_RAID_DESC"] =
 L["OPTIONS_RESTACK"] = "Объединять неполные стопки после обмена"
 L["OPTIONS_RESTACK_DESC"] =
 	"Сотворенные вода и еда каждый раз попадают в новую ячейку сумки, и игра никогда не складывает их обратно, поэтому Water Dispenser объединяет их один раз, сразу после закрытия окна обмена, и никогда в другое время, в бою или пока вы держите что-то на курсоре."
+L["OPTIONS_HOLD_MASTER_LOOT"] = "Не заполнять, пока вы ответственный за добычу"
+-- "Fill Trade Window" must match BUTTON_FILL.
+L["OPTIONS_HOLD_MASTER_LOOT_DESC"] =
+	"Оставляет окно обмена пустым, пока вы ответственный за добычу в подземелье, ведь такие обмены нужны для раздачи добычи. Заполнить окно обмена по-прежнему добавляет ваши обычные количества."
+L["OPTIONS_CONJURE_BUTTONS"] = "Показывать кнопки сотворения рядом с обменом"
+-- "Fill Trade Window" must match BUTTON_FILL.
+L["OPTIONS_CONJURE_BUTTONS_DESC"] =
+	"Добавляет под кнопкой Заполнить окно обмена кнопки, которые сотворяют воду, еду или камень здоровья, подходящие по уровню вашему партнеру по обмену, и созданное сразу попадает в открытый обмен."
 L["OPTIONS_MISSING_STACK_WARNINGS"] =
 	"Включить предупреждения, когда запасы на исходе"
 L["OPTIONS_MISSING_STACK_WARNINGS_DESC"] =
 	"Выводит заметку в чат, когда в сумках не хватает настроенного предмета, чтобы выдать заданное количество."
+
+-- Leads the silver line under a setting that shows the exact chat line it prints.
+L["OPTIONS_EXAMPLE"] = "Пример:"
 
 L["OPTIONS_COMBAT_HEADER"] = "Бой"
 L["OPTIONS_COMBAT_DESC"] =
@@ -141,7 +197,7 @@ L["OPTIONS_COMBAT_DESC"] =
 L["OPTIONS_COMBAT_NOTIFY"] =
 	"Включить уведомления, когда раздача заблокирована"
 L["OPTIONS_COMBAT_NOTIFY_DESC"] =
-	"Выводит заметку в чат, когда бой мешает заполнить обмен, а если отключить, Water Dispenser промолчит о том, почему обмен остался пустым."
+	"Выводит заметку в чат, когда бой мешает заполнить обмен."
 
 --------------------------------------------------------------------------------
 -- Options — Inventory Tooltips
@@ -160,7 +216,7 @@ L["OPTIONS_BAG_TOOLTIPS_DESC"] =
 	"Добавляет строку Water Dispenser в подсказку предмета в сумке, когда этот предмет настроен для раздачи, чтобы вы сразу видели, что аддон отдаст."
 L["OPTIONS_SHARE_INVENTORY"] = "Делиться своими запасами"
 L["OPTIONS_SHARE_INVENTORY_DESC"] =
-	"Сообщает вашей группе и рейду, что вы готовы отдать, чтобы ваши запасы появлялись при наведении на вас, ничего не отправляя в чат и не сообщая никому за пределами вашей группы, а если отключить, чужие списки все равно останутся доступны."
+	"Сообщает вашей группе или рейду, что вы можете раздать, чтобы это было видно при наведении на вас. Никогда не пишет в чат и не доходит ни до кого вне вашей группы. Если отключить, вы по-прежнему видите их запасы."
 
 --------------------------------------------------------------------------------
 -- Options — Dispensed Items
@@ -173,6 +229,16 @@ L["OPTIONS_ITEMS_DESC"] =
 L["OPTIONS_ITEMS_EMPTY"] =
 	'Нет настроенных предметов. Выберите "Добавить предмет" в списке, чтобы добавить любой передаваемый предмет из ваших сумок.'
 
+--[[
+	The silver line opening an item's page while nothing of it would go out. In
+	OTHER_CLASS, %s is the player's class twice, then OPTIONS_ITEM_PLAYER_CLASSES;
+	in ALL_ZERO, %s is OPTIONS_ITEM_EVERYONE.
+]]
+L["OPTIONS_ITEM_STATUS_OTHER_CLASS"] =
+	"Не раздается, пока вы играете за класс %s. Отметьте %s в разделе %s."
+L["OPTIONS_ITEM_STATUS_ALL_ZERO"] =
+	"Пока ничего не раздается: все количества равны 0. Введите число в поле %s, чтобы начать."
+
 L["OPTIONS_ITEM_AMOUNTS"] = "Количество"
 L["OPTIONS_ITEM_AMOUNTS_DESC"] =
 	"Выберите, сколько получает каждый класс при обмене, в зависимости от того, незнакомец это, участник вашей группы или рейда. Считается в отдельных предметах, а не в стопках. Ноль означает, что этот предмет им никогда не достанется."
@@ -184,13 +250,13 @@ L["OPTIONS_ITEM_EVERYONE_DESC"] =
 L["OPTIONS_ITEM_APPLY"] = "Применить"
 -- %d is the highest amount this item accepts, which is 1 for anything unique.
 L["OPTIONS_ITEM_COUNT_TOO_HIGH"] =
-	"Это больше, чем этот предмет может раздать. Максимум: %d."
+	"Это больше, чем вы можете дать этого предмета. Максимум: %d."
 L["OPTIONS_ITEM_COUNT_INVALID"] = "Введите количество предметов."
 L["OPTIONS_ITEM_SETTINGS"] = "Настройки предмета"
 L["OPTIONS_ITEM_DISTRIBUTE"] = "Выдавать"
--- "In Instance" must match the dropdown entry below.
+-- "In Instance" must match OPTIONS_ITEM_DISTRIBUTE_INSTANCE.
 L["OPTIONS_ITEM_DISTRIBUTE_DESC"] =
-	"Задает, где этот предмет вообще раздается: вариант В подземельях охватывает подземелья, рейды, поля боя и арены, а в любом другом месте предмет никогда не передается, не попадает в анонс и не отображается в вашей подсказке."
+	"Определяет, где раздается этот предмет. В подземельях охватывает подземелья, рейды, поля боя и арены. В любом другом месте предмет никогда не передается, не анонсируется и не показывается в вашей подсказке."
 --[[
 	Dropdown entries, looked up as OPTIONS_ITEM_DISTRIBUTE_ plus the stored value in
 	capitals ("Always", "Instance"), so no code names these keys in full.
@@ -210,9 +276,9 @@ L["OPTIONS_ITEM_FACTOR_LEVEL_DESC"] =
 L["OPTIONS_ITEM_RESERVE"] = "Включить резерв"
 L["OPTIONS_ITEM_RESERVE_DESC"] =
 	"Всегда оставляет в сумках хотя бы столько, а раздача, ваша подсказка игрока и макрос анонса считают все сверх этого числа доступным для передачи."
-L["OPTIONS_ITEM_SESSION_CAP"] = "Включить максимум за сессию"
-L["OPTIONS_ITEM_SESSION_CAP_DESC"] =
-	"Перестает выдавать этот предмет игроку, как только он получил от вас столько, считая по всем обменам до выхода из игры или перезагрузки интерфейса, а изменение любого количества этого предмета обнуляет счет для всех."
+L["OPTIONS_ITEM_PLAYER_CAP"] = "Включить максимум на игрока"
+L["OPTIONS_ITEM_PLAYER_CAP_DESC"] =
+	"Перестает давать этот предмет игроку, как только он получил от вас столько. Счет начинается заново, когда вы выходите из игры, перезагружаете интерфейс или меняете количества этого предмета."
 -- The label carries the meaning on its own; the tooltip only says why you'd switch it off.
 L["OPTIONS_ITEM_INCLUDE_QUANTITY"] =
 	"Показывать количество в подсказке игрока и макросе анонса"
@@ -263,17 +329,9 @@ L["ANNOUNCEMENTS_AND"] = "и"
 --------------------------------------------------------------------------------
 
 L["OPTIONS_SUPPORT"] = "Отзывы и поддержка"
--- Precedes the version number on the General panel's last line.
-L["VERSION"] = "Версия"
+-- The General panel's last line. %s is the version.
+L["OPTIONS_VERSION"] = "Версия %s"
 L["SUPPORT_CURSEFORGE"] = "CurseForge"
 L["SUPPORT_GITHUB"] = "GitHub"
 L["SUPPORT_DISCORD"] = "Discord"
 L["SUPPORT_WAGO"] = "Wago"
-
---------------------------------------------------------------------------------
--- Built-in Collections
---------------------------------------------------------------------------------
-
-L["ITEM_MAGE_WATER"] = "Сотворенная вода"
-L["ITEM_MAGE_FOOD"] = "Сотворенная еда"
-L["ITEM_WARLOCK_HEALTHSTONE"] = "Камень здоровья"

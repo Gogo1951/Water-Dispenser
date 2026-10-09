@@ -4,6 +4,8 @@ local L = ns.L
 local GetColor = ns.GetColor
 local URLS = ns.URLS
 
+local AceConfigRegistry = LibStub("AceConfigRegistry-3.0")
+
 local Header = ns.OptionsHeader
 local Desc = ns.OptionsDesc
 local Spacer = ns.OptionsSpacer
@@ -63,6 +65,28 @@ local function AddLinkRows(args, order)
 end
 
 --------------------------------------------------------------------------------
+-- Feature Switches
+--------------------------------------------------------------------------------
+
+--[[
+	Two to a line, each the same setting as the switch on its own feature page and
+	written through the same path, so flipping one here repaints that page too.
+]]
+local function FeatureToggle(order, name, desc, get, set)
+	return {
+		type = "toggle",
+		name = name,
+		desc = desc,
+		width = ns.OPTIONS_ROW_WIDTH / 2,
+		order = order,
+		get = get,
+		set = function(_, value)
+			set(value)
+		end,
+	}
+end
+
+--------------------------------------------------------------------------------
 -- General Settings Table
 --------------------------------------------------------------------------------
 
@@ -97,13 +121,60 @@ function ns.BuildGeneralOptions()
 					ns.ToggleMinimapButton(value)
 				end,
 			},
+			-- Features
+			spaceFeatures0 = Spacer(10),
+			headerFeatures = Header(L["OPTIONS_FEATURES_HEADER"], 11),
+			spaceFeatures1 = Spacer(12),
+			featureDispense = FeatureToggle(
+				13,
+				L["OPTIONS_DISPENSE_MASTER"],
+				L["OPTIONS_DISPENSE_MASTER_DESC"],
+				function()
+					return ns.db.profile.Dispense
+				end,
+				ns.SetDispense
+			),
+			featureAnnouncements = FeatureToggle(
+				14,
+				L["OPTIONS_ANNOUNCEMENTS_ENABLE"],
+				L["OPTIONS_ANNOUNCEMENTS_ENABLE_DESC"],
+				function()
+					return ns.db.profile.Announcements.Enabled
+				end,
+				ns.SetAnnouncementsEnabled
+			),
+			featureInventoryTooltips = FeatureToggle(
+				15,
+				L["OPTIONS_SHOW_INVENTORY"],
+				L["OPTIONS_SHOW_INVENTORY_DESC"],
+				function()
+					return ns.db.profile.ShowInventoryTooltips
+				end,
+				function(value)
+					ns.db.profile.ShowInventoryTooltips = value
+					ns.RefreshGiveaways()
+					AceConfigRegistry:NotifyChange(ns.OPTIONS_REGISTRY.GroupSpares)
+				end
+			),
+			featureBagTooltips = FeatureToggle(
+				16,
+				L["OPTIONS_BAG_TOOLTIPS"],
+				L["OPTIONS_BAG_TOOLTIPS_DESC"],
+				function()
+					return ns.db.profile.ShowBagTooltips
+				end,
+				function(value)
+					ns.db.profile.ShowBagTooltips = value
+					AceConfigRegistry:NotifyChange(ns.OPTIONS_REGISTRY.GroupSpares)
+				end
+			),
 			-- /Commands
-			spaceCommands0 = Spacer(6),
-			headerCommands = Header(L["OPTIONS_COMMANDS_HEADER"], 7),
-			spaceCommands1 = Spacer(8),
+			spaceCommands0 = Spacer(20),
+			headerCommands = Header(L["OPTIONS_COMMANDS_HEADER"], 21),
+			spaceCommands1 = Spacer(22),
 			descCommands = Desc(
 				GetColor("INFO") .. L["OPTIONS_COMMAND"] .. "|r" .. "  " .. L["OPTIONS_COMMAND_DESCRIPTION"],
-				9
+				23
 			),
 			-- Feedback & Support
 			spaceLinks0 = Spacer(69),
@@ -119,7 +190,7 @@ function ns.BuildGeneralOptions()
 			versionLine = {
 				type = "description",
 				name = function()
-					return GetColor("MUTED") .. L["VERSION"] .. " " .. ns.Version .. "|r"
+					return GetColor("MUTED") .. L["OPTIONS_VERSION"]:format(ns.Version) .. "|r"
 				end,
 				fontSize = "medium",
 				order = 999,

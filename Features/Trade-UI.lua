@@ -1,6 +1,7 @@
 local _, ns = ...
 
 local L = ns.L
+local GetColor = ns.GetColor
 
 --------------------------------------------------------------------------------
 -- Trade UI Frame
@@ -38,6 +39,25 @@ local function CreateTradeUI()
 		ns.FillTrade(true)
 	end)
 
+	-- What the window holds, or why the fill held back. Never printed to chat.
+	local status = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+	status:SetPoint("TOPLEFT", fillButton, "BOTTOMLEFT", 0, -6)
+	status:SetWidth(178)
+	status:SetJustifyH("LEFT")
+	status:SetWordWrap(true)
+	frame.status = status
+	frame.fillButton = fillButton
+
+	-- The status line sits under the conjure buttons while they show, else under Fill.
+	function frame:SetStatusAnchor(region)
+		status:ClearAllPoints()
+		status:SetPoint("TOPLEFT", region or fillButton, "BOTTOMLEFT", 0, -6)
+	end
+
+	function frame:SetStatus(text)
+		status:SetText(text and (GetColor("HELP") .. text .. "|r") or "")
+	end
+
 	function frame:Attach(parent)
 		frame:SetFrameStrata(parent:GetFrameStrata())
 		frame:ClearAllPoints()
@@ -46,6 +66,7 @@ local function CreateTradeUI()
 	end
 
 	function frame:Detach()
+		frame:SetStatus(nil)
 		frame:Hide()
 	end
 

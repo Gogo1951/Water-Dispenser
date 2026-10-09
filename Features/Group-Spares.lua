@@ -58,6 +58,9 @@ local cachedOffer
 -- A roster change that arrived in combat, replayed on PLAYER_REGEN_ENABLED.
 local rosterChangedInCombat = false
 
+-- A broadcast combat held back, sent on PLAYER_REGEN_ENABLED.
+local broadcastHeldForCombat = false
+
 --------------------------------------------------------------------------------
 -- Player Keys
 --------------------------------------------------------------------------------
@@ -65,8 +68,10 @@ local rosterChangedInCombat = false
 --[[
 	One spelling of a player, "Name-Realm", so the tooltip can match what arrived
 	over the wire. CHAT_MSG_ADDON already reports its sender that way, with the
-	realm's spaces stripped; UnitName only appends a realm for a foreign one, so the
-	local realm is filled in and stripped the same way.
+	realm normalized: spaces, hyphens and periods stripped. UnitName only returns a
+	realm for a foreign one, so the local realm is filled in from
+	GetNormalizedRealmName, and any realm is stripped the same way, since that call
+	can return nil during a loading screen.
 ]]
 local function UnitKey(unit)
 	local name, realm = UnitName(unit)
@@ -77,9 +82,9 @@ local function UnitKey(unit)
 		return nil
 	end
 	if not realm or realm == "" then
-		realm = GetRealmName() or ""
+		realm = GetNormalizedRealmName() or GetRealmName() or ""
 	end
-	return name .. "-" .. realm:gsub("%s+", "")
+	return name .. "-" .. (realm:gsub("[%s%-%.]", ""))
 end
 
 --------------------------------------------------------------------------------
@@ -217,13 +222,14 @@ end
 
 --[[
 	Sends the current offer to the group. Silent when ungrouped (there is nobody to
-	tell), in combat, where the client can drop addon traffic and nobody is reading
-	tooltips anyway, and whenever the payload would repeat what the group already
-	has.
+	tell) and whenever the payload would repeat what the group already has. In
+	combat, where the client can drop addon traffic, the send waits for combat to
+	end, so a stone used or water handed out mid-fight still reaches the group.
 ]]
 local function Broadcast()
 	broadcastTimer = nil
 	if ns.IsInCombat() then
+		broadcastHeldForCombat = true
 		return
 	end
 
@@ -322,13 +328,8 @@ end
 	silent: every member reads as ungrouped and their spares are dropped on any
 	roster change, then quietly reappear when everyone rebroadcasts.
 ]]
-local function PruneToGroup()
-	if not ns.GetGroupChatChannel() then
-		wipe(receivedSpares)
-		wipe(incoming)
-		return
-	end
-
+-- Every grouped player's key, the player's own included, as a set.
+local function RosterKeys()
 	local grouped = {}
 	local prefix, count = "party", 4
 	if IsInRaid() then
@@ -345,6 +346,17 @@ local function PruneToGroup()
 	if ownKey then
 		grouped[ownKey] = true
 	end
+	return grouped
+end
+
+local function PruneToGroup()
+	if not ns.GetGroupChatChannel() then
+		wipe(receivedSpares)
+		wipe(incoming)
+		return
+	end
+
+	local grouped = RosterKeys()
 
 	for playerKey in pairs(receivedSpares) do
 		if not grouped[playerKey] then
@@ -391,10 +403,14 @@ local function BuildRows(offer, isWarlock)
 		A warlock always gets a healthstone row, carrying none included. Which of the
 		three talent variants they make is what a raid coordinates around, and that is
 		true whether or not one is in their bags right now.
+
+		The row names the talent with the client's own spell name, so the number never
+		reads as a healthstone's rank. Skipped for this paint if the name is not loaded.
 	]]
-	if isWarlock and offer.Talent then
+	local talentName = isWarlock and offer.Talent and C_Spell.GetSpellName(ns.HEALTHSTONE_TALENT_SPELLS[1])
+	if talentName then
 		rows[#rows + 1] = {
-			Name = format(L["TOOLTIP_HEALTHSTONE"], offer.Talent, #ns.HEALTHSTONE_TALENT_SPELLS),
+			Name = format(L["TOOLTIP_HEALTHSTONE_TALENT"], talentName, offer.Talent, #ns.HEALTHSTONE_TALENT_SPELLS),
 			Quality = HEALTHSTONE_QUALITY,
 			Amount = offer.TalentShowQuantity and healthstones or nil,
 		}
@@ -456,12 +472,12 @@ local function AddSpareBlock(tooltip, unit)
 end
 
 --[[
-	Two hook paths, one live per client. Forever runs the Retail engine, which has
-	TooltipDataProcessor and no OnTooltipSetUnit script at all, so hooking that
-	script there throws and takes the rest of login setup down with it. Era is the
-	reverse: the Diagnostic Tools API probe reports TooltipDataProcessor absent on
-	Era 1.15.9, so it keeps the pre-Dragonflight script. A client with both, as TBC
-	Anniversary has, takes the modern path.
+	Two hook paths, one live per client, picked by whether GameTooltip still has the
+	OnTooltipSetUnit script. Era and TBC Anniversary do, and their GameTooltip never
+	passes through TooltipDataProcessor -- TBC ships that table, but a post-call
+	there never fires for GameTooltip. Forever runs the Retail engine, which has no
+	OnTooltipSetUnit script at all (hooking it throws and takes the rest of login
+	setup down with it) and builds every tooltip through TooltipDataProcessor.
 
 	The post-call fires for every tooltip showing a unit; the script hook only ever
 	covered GameTooltip, so the modern path is gated to it to match.
@@ -479,7 +495,7 @@ end
 
 -- Records the path taken in ns.unitTooltipPath, which the Diagnostic Tools context report prints.
 local function HookTooltip()
-	if TooltipDataProcessor and TooltipDataProcessor.AddTooltipPostCall then
+	if not GameTooltip:HasScript("OnTooltipSetUnit") then
 		TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, function(tooltip)
 			if tooltip == GameTooltip then
 				OnUnitTooltip(tooltip)
@@ -509,6 +525,55 @@ local function OnRosterUpdate()
 end
 
 --------------------------------------------------------------------------------
+-- Diagnostics
+--------------------------------------------------------------------------------
+
+local function CopyOffer(offer)
+	local copy = { Items = {}, Talent = offer.Talent, TalentShowQuantity = offer.TalentShowQuantity }
+	for itemId, item in pairs(offer.Items or {}) do
+		copy.Items[itemId] = { Count = item.Count, ShowQuantity = item.ShowQuantity }
+	end
+	return copy
+end
+
+--[[
+	What the group channel has seen, copied for the Diagnostic Tools Inventory
+	Tooltips report. The roster comes from RosterKeys, the walk the prune and the
+	tooltip lookup rely on, so a groupmate whose messages arrive under another
+	spelling shows as a sender with no roster match. Never builds the offer,
+	which scans the bags; LastBroadcast is what the group was actually told.
+]]
+function ns.GetGroupSparesState()
+	local roster = {}
+	if ns.GetGroupChatChannel() then
+		for key in pairs(RosterKeys()) do
+			roster[#roster + 1] = key
+		end
+	end
+	table.sort(roster)
+	local received = {}
+	for sender, offer in pairs(receivedSpares) do
+		received[sender] = CopyOffer(offer)
+	end
+	local partial = {}
+	for sender in pairs(incoming) do
+		partial[#partial + 1] = sender
+	end
+	table.sort(partial)
+	return {
+		OwnKey = UnitKey("player"),
+		Roster = roster,
+		Received = received,
+		Partial = partial,
+		LastBroadcast = lastBroadcast,
+		LastChannel = lastChannel,
+		BroadcastPending = broadcastTimer ~= nil,
+		HeldForCombat = broadcastHeldForCombat,
+		RosterChangedInCombat = rosterChangedInCombat,
+	}
+end
+
+--------------------------------------------------------------------------------
 -- Initialization
 --------------------------------------------------------------------------------
 
@@ -524,9 +589,14 @@ function ns.InitGroupSpares()
 	ns.RegisterEvent("BAG_UPDATE_DELAYED", ScheduleBroadcast)
 	ns.RegisterEvent("GROUP_ROSTER_UPDATE", OnRosterUpdate)
 	ns.RegisterEvent("PLAYER_REGEN_ENABLED", function()
+		local held = broadcastHeldForCombat
+		broadcastHeldForCombat = false
 		if rosterChangedInCombat then
 			rosterChangedInCombat = false
+			-- Schedules its own broadcast.
 			OnRosterUpdate()
+		elseif held then
+			ScheduleBroadcast()
 		end
 	end)
 	ns.RegisterEvent("PLAYER_ENTERING_WORLD", ScheduleBroadcast)

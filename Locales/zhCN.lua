@@ -15,6 +15,8 @@ L["ADDON_TITLE"] = "Water Dispenser"
 
 -- %s is the item's name or link, %d how many of it. Used by the chat prints and the announcement macro.
 L["FORMAT_ITEM_COUNT"] = "%s x%d"
+-- Stands in for an item's name until the client has loaded it. %d is the item ID.
+L["ITEM_LOADING"] = "正在加载 ID：%d"
 
 --------------------------------------------------------------------------------
 -- Chat Messages
@@ -33,14 +35,14 @@ L["CHAT_OPTIONS_IN_COMBAT"] = "出于安全考虑，战斗中无法打开选项�
 -- The item and its count are appended after the colon by the code.
 L["CHAT_MISSING_STACK"] = "缺少："
 --[[
-	%s is the item's name, %d the Maximum per Session it has hit.
-	"Maximum per Session" is the label of OPTIONS_ITEM_SESSION_CAP, minus its "Enable".
+	%s is the item's name, then the trade partner's name; %d is the Maximum per
+	Player they have reached.
 ]]
-L["CHAT_SESSION_CAP_REACHED"] =
-	"%s 未加入：本次登录他已经拿到了 %d 个。请调整每次登录上限，或重新加载以重置。"
--- %s is the item's name, %d the amount that could not be split off.
-L["CHAT_SPLIT_REFUSED"] =
-	"%s 未加入：此客户端无法从一堆中拆出 %d 个，而直接给出整堆会送出远超你设定的数量。请把此物品的数量设为一整堆才能交易。"
+L["CHAT_PLAYER_CAP_REACHED"] =
+	"%s 未添加：%s 已从你这里获得 %d 个。登出或重载界面后计数会重新开始。"
+-- %s is the item's name; the first %d is the amount that could not be split off, the second the item's full stack size.
+L["CHAT_SPLIT_NEEDS_FULL_STACK"] =
+	"%s 未添加：游戏无法从一堆中拆出 %d 个。请将数量设为一整堆（%d）以交出该物品。"
 -- %s is the player's class name. "Dispensed Items" must match TAB_DISPENSED_ITEMS.
 L["CHAT_NONE_ACTIVE_FOR_CLASS"] =
 	"当你使用 %s 游玩时，没有设置任何要分发的物品。请打开 选项 > 插件 > Water Dispenser > 分发物品 启用适用于此职业的物品。"
@@ -53,17 +55,15 @@ L["CHAT_MACRO_FULL"] = "无法创建喊话宏：角色专属宏数量已达上�
 --------------------------------------------------------------------------------
 
 L["TOOLTIP_OPEN_TRADE"] = "点我交易！"
--- %d/%d is the warlock's Improved Healthstone rank out of its maximum.
-L["TOOLTIP_HEALTHSTONE"] = "治疗石（等级 %d/%d）"
+-- %s is the Improved Healthstone talent's name from the client, then the warlock's rank out of its maximum.
+L["TOOLTIP_HEALTHSTONE_TALENT"] = "%s %d/%d"
 
 --------------------------------------------------------------------------------
 -- Bag Item Tooltips
 --------------------------------------------------------------------------------
 
 -- Shown on a carried bag item the player has set up to give away.
-L["TOOLTIP_WILL_DISPENSE"] = "此物品将会被分发。"
--- The same line for a stacking item while OPTIONS_RESTACK is on, which tidies it back together once a trade ends.
-L["TOOLTIP_WILL_DISPENSE_STACKED"] = "此物品将会被分发。交易结束后，它的零散堆叠会被合并。"
+L["TOOLTIP_WILL_DISPENSE"] = "会在交易中送出。"
 
 --------------------------------------------------------------------------------
 -- Trade Side Panel
@@ -71,6 +71,45 @@ L["TOOLTIP_WILL_DISPENSE_STACKED"] = "此物品将会被分发。交易结束后
 
 L["BUTTON_CLEAR"] = "清空交易窗口"
 L["BUTTON_FILL"] = "填充交易窗口"
+
+--[[
+	The silver status line under the trade panel's buttons. "Fill Trade Window" must
+	match BUTTON_FILL. ADDED's %s is the window's contents, each FORMAT_ITEM_COUNT,
+	joined like the announcement's list. In the rest, %s is an item or collection
+	name unless noted.
+]]
+L["TRADE_STATUS_ADDED"] = "已添加 %s。"
+-- %d is how many short.
+L["TRADE_STATUS_SHORT"] = "缺少 %d 个 %s：背包中数量不足。"
+L["TRADE_STATUS_SHORT_RESERVE"] = "缺少 %d 个 %s：其余部分由保留数量保留。"
+L["TRADE_STATUS_DISPENSE_OFF"] = "自动填充已关闭。填充交易窗口仍会添加你通常的数量。"
+L["TRADE_STATUS_OFF_STRANGERS"] =
+	"对陌生人的自动填充已关闭。填充交易窗口仍会添加你通常的数量。"
+L["TRADE_STATUS_OFF_PARTY"] =
+	"对小队成员的自动填充已关闭。填充交易窗口仍会添加你通常的数量。"
+L["TRADE_STATUS_OFF_RAID"] =
+	"对团队成员的自动填充已关闭。填充交易窗口仍会添加你通常的数量。"
+L["TRADE_STATUS_MASTER_LOOT"] =
+	"你负责分配战利品时暂不填充。填充交易窗口仍会添加你通常的数量。"
+-- The first %s is the partner's class name.
+L["TRADE_STATUS_ZERO"] = "对 %s 设为 0：%s。"
+L["TRADE_STATUS_INSTANCE_ONLY"] = "%s 只在副本中分发。"
+L["TRADE_STATUS_GUILD_ONLY"] = "%s 只给你的公会成员。"
+-- The partner's name, then the rank they can't use yet and its level.
+L["TRADE_STATUS_LEVEL"] = "%s 无法使用你的 %s，需达到 %d 级。"
+-- The partner's name first.
+L["TRADE_STATUS_TOO_LOW"] = "%s 的等级太低，无法使用 %s。"
+-- The partner's name first.
+L["TRADE_STATUS_CAPPED"] = "%s 已拿满你给每位玩家的 %s 上限。"
+L["TRADE_STATUS_NONE_HELD"] = "你没有可送出的 %s。"
+L["TRADE_STATUS_CLEARED"] = "已清空。"
+--[[
+	A conjure button's tooltip, under the spell's name. MAKES: the item it makes,
+	then the trade partner's name and level. LOWEST, when no rank fits the partner:
+	the item only.
+]]
+L["TRADE_CONJURE_MAKES"] = "制造 %s，%s（%d 级）能使用的最高等级。"
+L["TRADE_CONJURE_MAKES_LOWEST"] = "制造 %s，你已知的最低等级。"
 
 --------------------------------------------------------------------------------
 -- Minimap Button
@@ -86,18 +125,22 @@ L["UI_LEFT_CLICK"] = "左键点击"
 L["UI_TOGGLE"] = "切换"
 L["MINIMAP_OPTIONS"] = "Water Dispenser 选项"
 L["MINIMAP_OPTIONS_KEYBIND"] = "Shift + 中键点击"
+-- Heads the tooltip section listing what the player can give right now.
+L["MINIMAP_DISPENSE_REPORT"] = "分发报告"
 
 --------------------------------------------------------------------------------
 -- Options — General
 --------------------------------------------------------------------------------
 
 L["OPTIONS_DESCRIPTION"] =
-	"轻松分发消耗品。自动用水、食物和治疗石填充交易窗口。你还可以添加任何想给出的物品，比如沙漏之沙或各类抗性药水，分发给你的团队。"
+	"轻松分发消耗品。自动用制造的水、食物和治疗石填充交易窗口，为每位玩家提供合适的等级和数量。添加任意物品，从沙漏之沙到抗性药水，几秒钟就能分发一整个团队的份量。"
 
 L["OPTIONS_WELCOME_MESSAGE"] = "启用欢迎信息"
 L["OPTIONS_WELCOME_MESSAGE_DESC"] = "当 Water Dispenser 加载时，在聊天框输出一行问候语。"
 L["OPTIONS_MINIMAP"] = "启用小地图按钮"
 L["OPTIONS_MINIMAP_DESC"] = "显示 Water Dispenser 小地图按钮。"
+
+L["OPTIONS_FEATURES_HEADER"] = "功能"
 
 L["OPTIONS_COMMANDS_HEADER"] = "/命令"
 L["OPTIONS_COMMAND"] = "/wd"
@@ -122,15 +165,25 @@ L["OPTIONS_DISPENSE_RAID_DESC"] = "当与团队成员交易时，自动填充交
 L["OPTIONS_RESTACK"] = "交易结束后合并零散堆叠"
 L["OPTIONS_RESTACK_DESC"] =
 	"制造的水和食物每次施放都会落在新的背包格中，游戏从不会把它们合回去，因此 Water Dispenser 会在交易窗口关闭后立即合并一次，而在其他任何时候、战斗中或你的光标上拿着东西时都绝不会这样做。"
+L["OPTIONS_HOLD_MASTER_LOOT"] = "负责分配战利品时暂停"
+-- "Fill Trade Window" must match BUTTON_FILL.
+L["OPTIONS_HOLD_MASTER_LOOT_DESC"] =
+	"当你在副本中负责分配战利品时，交易窗口保持为空，因为这些交易是用来分发战利品的。填充交易窗口仍会添加你通常的数量。"
+L["OPTIONS_CONJURE_BUTTONS"] = "在交易旁显示制造按钮"
+-- "Fill Trade Window" must match BUTTON_FILL.
+L["OPTIONS_CONJURE_BUTTONS_DESC"] =
+	"在填充交易窗口下方添加按钮，用于制造你的交易对象在其等级可以使用的水、食物或治疗石，制造出的物品会直接放入当前交易。"
 L["OPTIONS_MISSING_STACK_WARNINGS"] = "库存不足时启用警告"
 L["OPTIONS_MISSING_STACK_WARNINGS_DESC"] =
 	"当背包中已配置物品的数量不足以给出你设定的数量时，在聊天框中输出提示。"
 
+-- Leads the silver line under a setting that shows the exact chat line it prints.
+L["OPTIONS_EXAMPLE"] = "示例："
+
 L["OPTIONS_COMBAT_HEADER"] = "战斗"
 L["OPTIONS_COMBAT_DESC"] = "魔兽世界禁止插件在战斗中将物品放入交易窗口。"
 L["OPTIONS_COMBAT_NOTIFY"] = "分发被阻止时启用提示"
-L["OPTIONS_COMBAT_NOTIFY_DESC"] =
-	"当战斗导致交易无法填充时，在聊天框中输出提示，而关闭后 Water Dispenser 不会再说明交易为何仍是空的。"
+L["OPTIONS_COMBAT_NOTIFY_DESC"] = "当战斗导致交易无法填充时，在聊天框中输出提示。"
 
 --------------------------------------------------------------------------------
 -- Options — Inventory Tooltips
@@ -147,7 +200,7 @@ L["OPTIONS_BAG_TOOLTIPS_DESC"] =
 	"当背包中的某个物品被设置为分发时，在它的提示信息中添加一行 Water Dispenser 说明，让你一眼就能看出插件会送出什么。"
 L["OPTIONS_SHARE_INVENTORY"] = "分享我的库存"
 L["OPTIONS_SHARE_INVENTORY_DESC"] =
-	"告知你的小队和团队你有什么可以送出，这样别人把鼠标移到你身上时就能看到你的库存，同时不会向聊天频道发送任何内容，队伍之外的人也不会知道，而且关闭后你依然可以查看别人的库存。"
+	"告诉你的小队或团队你有哪些可以送出的物品，让他们将鼠标悬停在你身上时可以看到。从不在聊天中发布，也不会传给队伍以外的任何人。关闭后你仍能看到他们的。"
 
 --------------------------------------------------------------------------------
 -- Options — Dispensed Items
@@ -160,6 +213,15 @@ L["OPTIONS_ITEMS_DESC"] =
 L["OPTIONS_ITEMS_EMPTY"] =
 	'未配置物品。请在列表中选择 "添加物品"，从背包中添加任何可交易的物品。'
 
+--[[
+	The silver line opening an item's page while nothing of it would go out. In
+	OTHER_CLASS, %s is the player's class twice, then OPTIONS_ITEM_PLAYER_CLASSES;
+	in ALL_ZERO, %s is OPTIONS_ITEM_EVERYONE.
+]]
+L["OPTIONS_ITEM_STATUS_OTHER_CLASS"] = "使用 %s 游玩时不会分发。请勾选 %s（位于 %s 下）。"
+L["OPTIONS_ITEM_STATUS_ALL_ZERO"] =
+	"尚未分发任何物品：所有数量都是 0。在 %s 中输入一个数字即可开始。"
+
 L["OPTIONS_ITEM_AMOUNTS"] = "数量"
 L["OPTIONS_ITEM_AMOUNTS_DESC"] =
 	"按对方是陌生人、你的小队成员还是团队成员，选择每个职业各拿多少。按单个物品计算，而非按堆。填 0 表示他们永远拿不到这个物品。"
@@ -170,13 +232,13 @@ L["OPTIONS_ITEM_EVERYONE_DESC"] =
 -- The accept button inside every number box in this panel.
 L["OPTIONS_ITEM_APPLY"] = "应用"
 -- %d is the highest amount this item accepts, which is 1 for anything unique.
-L["OPTIONS_ITEM_COUNT_TOO_HIGH"] = "超过了此物品可分发的数量。最多为 %d。"
+L["OPTIONS_ITEM_COUNT_TOO_HIGH"] = "这超出了你能给出的该物品数量。最多为 %d。"
 L["OPTIONS_ITEM_COUNT_INVALID"] = "请输入物品数量。"
 L["OPTIONS_ITEM_SETTINGS"] = "物品设置"
 L["OPTIONS_ITEM_DISTRIBUTE"] = "分发范围"
--- "In Instance" must match the dropdown entry below.
+-- "In Instance" must match OPTIONS_ITEM_DISTRIBUTE_INSTANCE.
 L["OPTIONS_ITEM_DISTRIBUTE_DESC"] =
-	"设置此物品在哪里才会被分发，其中副本中涵盖地下城、团队副本、战场和竞技场，而在其他任何地方它都不会被交易、写入喊话，也不会显示在你的提示信息中。"
+	"设置在哪里分发此物品。副本中涵盖地下城、团队副本、战场和竞技场。在其他任何地方，此物品都不会被交易、喊话或显示在你的提示中。"
 --[[
 	Dropdown entries, looked up as OPTIONS_ITEM_DISTRIBUTE_ plus the stored value in
 	capitals ("Always", "Instance"), so no code names these keys in full.
@@ -194,9 +256,9 @@ L["OPTIONS_ITEM_FACTOR_LEVEL_DESC"] = "当你的交易对象未达到该物品�
 L["OPTIONS_ITEM_RESERVE"] = "启用保留数量"
 L["OPTIONS_ITEM_RESERVE_DESC"] =
 	"始终在背包中至少保留这么多，而分发、你的玩家提示和喊话宏会把超出这个数量的部分视为可以送出的。"
-L["OPTIONS_ITEM_SESSION_CAP"] = "启用每次登录上限"
-L["OPTIONS_ITEM_SESSION_CAP_DESC"] =
-	"当某人从你这里拿到这么多之后就不再给他这个物品，跨所有交易累计，直到你登出或重新加载为止，而修改此物品的任何数量都会让所有人的计数重新开始。"
+L["OPTIONS_ITEM_PLAYER_CAP"] = "启用每位玩家上限"
+L["OPTIONS_ITEM_PLAYER_CAP_DESC"] =
+	"当某人已从你这里获得这么多后，停止向其送出此物品。登出、重载界面或更改此物品的数量后，计数会重新开始。"
 -- The label carries the meaning on its own; the tooltip only says why you'd switch it off.
 L["OPTIONS_ITEM_INCLUDE_QUANTITY"] = "在玩家提示和喊话宏中显示数量"
 L["OPTIONS_ITEM_INCLUDE_QUANTITY_DESC"] =
@@ -245,17 +307,9 @@ L["ANNOUNCEMENTS_AND"] = "和"
 --------------------------------------------------------------------------------
 
 L["OPTIONS_SUPPORT"] = "反馈与支持"
--- Precedes the version number on the General panel's last line.
-L["VERSION"] = "版本"
+-- The General panel's last line. %s is the version.
+L["OPTIONS_VERSION"] = "版本 %s"
 L["SUPPORT_CURSEFORGE"] = "CurseForge"
 L["SUPPORT_GITHUB"] = "GitHub"
 L["SUPPORT_DISCORD"] = "Discord"
 L["SUPPORT_WAGO"] = "Wago"
-
---------------------------------------------------------------------------------
--- Built-in Collections
---------------------------------------------------------------------------------
-
-L["ITEM_MAGE_WATER"] = "制造的水"
-L["ITEM_MAGE_FOOD"] = "制造的食物"
-L["ITEM_WARLOCK_HEALTHSTONE"] = "治疗石"

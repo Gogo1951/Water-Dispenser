@@ -1,6 +1,6 @@
 local _, ns = ...
 
-if not ns.IS_SOD then
+if not ns.IS_DISCOVERY then
 	return
 end
 

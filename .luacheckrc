@@ -1,7 +1,7 @@
 std = "lua51"
 max_line_length = false -- StyLua owns formatting
-ignore = { "212/self", "611", "612", "613", "614", "621" } -- implicit self (house ns: methods) + whitespace
-exclude_files = { "Includes/" } -- vendored, never linted
+ignore = { "212/self", "611", "612", "613", "614", "621" } -- implicit self (house ns: methods) + whitespace — StyLua owns the latter
+exclude_files = { "Includes/", ".claude/" } -- vendored or session-local, never linted
 
 -- The WoW API surface this add-on reads and never writes.
 read_globals = {
@@ -11,9 +11,12 @@ read_globals = {
 	"C_Container",
 	"C_EventUtils",
 	"C_Item",
+	"C_PartyInfo",
+	"C_QuestLog",
 	"C_Seasons",
 	"C_Spell",
 	"C_Timer",
+	"C_TooltipInfo",
 	"ClearCursor",
 	"ClickTradeButton",
 	"CreateFrame",
@@ -22,39 +25,40 @@ read_globals = {
 	"DeleteMacro",
 	"EditMacro",
 	"Enum",
+	"format",
 	"GameTooltip",
-	"hooksecurefunc",
 	"GetBuildInfo",
 	"GetCursorInfo",
 	"GetCVar",
 	"GetGuildInfo",
+	"GetItemStats",
 	"GetLocale",
-	"GetRealmName",
 	"GetMacroIndexByName",
+	"GetMacroInfo",
+	"GetNormalizedRealmName",
+	"GetNumMacros",
+	"GetPhysicalScreenSize",
+	"GetRealmName",
 	"GetTime",
 	"GetTradePlayerItemInfo",
 	"GetTradePlayerItemLink",
+	"hooksecurefunc",
 	"InCombatLockdown",
 	"IsInGroup",
 	"IsInInstance",
 	"IsInRaid",
 	"IsPlayerSpell",
+	"issecretvalue",
 	"IsShiftKeyDown",
 	"IsSpellKnown",
-	"issecretvalue",
 	"LE_PARTY_CATEGORY_INSTANCE",
-	"LOCALIZED_CLASS_NAMES_MALE",
 	"LibStub",
+	"LOCALIZED_CLASS_NAMES_MALE",
+	"MAX_CHARACTER_MACROS",
 	"MAX_TRADABLE_ITEMS",
 	"NUM_BAG_SLOTS",
 	"SetCVar",
 	"Settings",
-	--[[
-		Blizzard's table, so it is read-only apart from the one key the add-on
-		registers its slash command under. Declared as a field rather than by listing
-		the table under globals, which would sanction writing over the whole thing.
-	]]
-	SlashCmdList = { fields = { WATERDISPENSER = { read_only = false } } },
 	"TooltipDataProcessor",
 	"TradeFrame",
 	"TradeFrame_GetAvailableSlot",
@@ -62,17 +66,18 @@ read_globals = {
 	"UnitClass",
 	"UnitInParty",
 	"UnitInRaid",
-	"UnitLevel",
-	"UnitName",
 	"UnitIsInMyGuild",
 	"UnitIsPlayer",
 	"UnitIsUnit",
+	"UnitLevel",
+	"UnitName",
 	"wipe",
-	"format",
+	"WorldFrame",
 }
 
 -- The closed set of globals the add-on owns: its saved variables and its slash command.
 globals = {
 	"SLASH_WATERDISPENSER1",
 	"WaterDispenserDB",
+	SlashCmdList = { fields = { "WATERDISPENSER" } }, -- a field, so only the add-on's own slash entry is writable
 }
