@@ -23,13 +23,7 @@ local function GetEnabled()
 end
 
 local function SetEnabled(_, value)
-	local a = GetAnnouncements()
-	if not a then
-		return
-	end
-	a.Enabled = value and true or false
-	-- Macro is auto-managed: enabling creates it, disabling deletes it.
-	ns.RefreshGiveaways()
+	ns.SetAnnouncementsEnabled(value)
 end
 
 --------------------------------------------------------------------------------

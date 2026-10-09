@@ -88,6 +88,7 @@ function ns.RegisterOptionsPanels()
 	AceConfig:RegisterOptionsTable(REGISTRY.Profiles, profilesOptions)
 	AceConfigDialog:AddToBlizOptions(REGISTRY.Profiles, profilesOptions.name, parent)
 
-	AceConfig:RegisterOptionsTable(REGISTRY.Diagnostics, ns.BuildDiagnosticsOptions())
+	-- A builder function, so the tabs come and go with the enable toggle (see Diagnostics/Options-Diagnostics.lua).
+	AceConfig:RegisterOptionsTable(REGISTRY.Diagnostics, ns.BuildDiagnosticsOptions)
 	AceConfigDialog:AddToBlizOptions(REGISTRY.Diagnostics, ns.DiagnosticsStrings.TAB, parent)
 end

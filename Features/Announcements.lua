@@ -3,6 +3,8 @@ local _, ns = ...
 local L = ns.L
 local GetColor = ns.GetColor
 
+local AceConfigRegistry = LibStub("AceConfigRegistry-3.0")
+
 --[[
 	Water Dispenser never calls SendChatMessage: the player fires the "- Dispenser"
 	macro, so this file has no send path, only ns.PrintMessage.
@@ -30,13 +32,17 @@ function ns.BuildBrandedLine(message)
 		.. "|r"
 end
 
--- Prints a branded line to the player's chat frame: title // message [detail].
-function ns.PrintMessage(message, detail)
+-- The chat print's full line, title // message [detail]; the options panel's Example lines show exactly this.
+function ns.BuildPrintLine(message, detail)
 	local line = ns.BuildBrandedLine(message)
 	if detail then
 		line = line .. " " .. GetColor("MUTED") .. tostring(detail) .. "|r"
 	end
-	print(line)
+	return line
+end
+
+function ns.PrintMessage(message, detail)
+	print(ns.BuildPrintLine(message, detail))
 end
 
 --------------------------------------------------------------------------------
@@ -112,22 +118,12 @@ end
 -- Message Builder
 --------------------------------------------------------------------------------
 
--- Joins parts with commas and a localized "and" before the last: "A", "A and B", "A, B, and C".
-local function JoinList(parts)
-	local n = #parts
-	if n == 0 then
-		return ""
+-- One item's part of the announcement: its link, with the count unless the item's "Include quantity" is off.
+function ns.BuildAnnouncementPart(label, count, includeQuantity)
+	if includeQuantity then
+		return format(L["FORMAT_ITEM_COUNT"], label, count)
 	end
-	if n == 1 then
-		return parts[1]
-	end
-	local andWord = L["ANNOUNCEMENTS_AND"]
-	if n == 2 then
-		return parts[1] .. " " .. andWord .. " " .. parts[2]
-	end
-	local last = parts[n]
-	local head = table.concat(parts, ", ", 1, n - 1)
-	return head .. ", " .. andWord .. " " .. last
+	return label
 end
 
 -- Decorated item parts (hyperlink + optional count) for the current snapshot, one per giveable item; nil if nothing to give.
@@ -144,12 +140,7 @@ local function BuildAnnouncementParts()
 	local parts = {}
 	for _, entry in ipairs(entries) do
 		local label = entry.Link or ("[" .. (entry.Name or "?") .. "]")
-		if entry.IncludeQuantity then
-			parts[#parts + 1] = format(L["FORMAT_ITEM_COUNT"], label, entry.Count)
-		else
-			-- "Include quantity" off: name the item without a count.
-			parts[#parts + 1] = label
-		end
+		parts[#parts + 1] = ns.BuildAnnouncementPart(label, entry.Count, entry.IncludeQuantity)
 	end
 	return parts
 end
@@ -160,7 +151,7 @@ end
 	marker is left off and the rest of the format stands.
 ]]
 local function AnnouncementPrefix()
-	local marker = ns.FLAVOR == "Forever" and "" or (ns.TARGET_MARKER .. " ")
+	local marker = ns.FLAVOR == "Camelot" and "" or (ns.TARGET_MARKER .. " ")
 	return marker .. L["ADDON_TITLE"] .. " // "
 end
 
@@ -190,7 +181,7 @@ function ns.BuildAnnouncementMessage()
 		return nil
 	end
 	local head, tail = BodyTemplateParts()
-	return AnnouncementPrefix() .. head .. JoinList(parts) .. tail
+	return AnnouncementPrefix() .. head .. ns.JoinList(parts) .. tail
 end
 
 --------------------------------------------------------------------------------
@@ -201,28 +192,25 @@ end
 local TRUNCATION_SUFFIX = " ..."
 
 --[[
-	Full macro body: channel slash + announcement message. When the full message
-	fits the 255-byte SendChatMessage limit it is sent as-is; otherwise it is
-	rebuilt from the parts list -- lead laid down once, whole item parts appended
-	with ", " joiners while the running byte total stays within the limit minus the
-	" ..." reserve -- and closed with " ...", dropping the template's trailing text.
-	Truncation happens only at part boundaries: never inside an item link
-	(SendChatMessage rejects a broken link), and never via a comma search, since
-	item names can contain commas.
-]]
-local function BuildMacroBody()
-	local parts = BuildAnnouncementParts()
-	if not parts then
-		-- Empty inventory: silent body so firing the macro does nothing.
-		return ""
-	end
+	Full macro body from item parts and a channel slash: the slash + announcement
+	message. When the full message fits the 255-byte SendChatMessage limit it is
+	sent as-is; otherwise it is rebuilt from the parts list -- lead laid down once,
+	whole item parts appended with ", " joiners while the running byte total stays
+	within the limit minus the " ..." reserve -- and closed with " ...", dropping
+	the template's trailing text. Truncation happens only at part boundaries: never
+	inside an item link (SendChatMessage rejects a broken link), and never via a
+	comma search, since item names can contain commas.
 
-	local channel = ChannelSlash()
+	Builds a string and nothing else, so the Diagnostic Tools Message Length report
+	measures with it. Returns the body, how many parts it kept, and the byte length
+	of the untruncated message.
+]]
+function ns.BuildAnnouncementMacroBody(parts, channelSlash)
 	local head, tail = BodyTemplateParts()
-	local lead = channel .. AnnouncementPrefix() .. head
-	local full = lead .. JoinList(parts) .. tail
+	local lead = channelSlash .. AnnouncementPrefix() .. head
+	local full = lead .. ns.JoinList(parts) .. tail
 	if #full <= MACRO_BODY_LIMIT then
-		return full
+		return full, #parts, #full
 	end
 
 	local budget = MACRO_BODY_LIMIT - #TRUNCATION_SUFFIX
@@ -236,7 +224,16 @@ local function BuildMacroBody()
 		body = body .. piece
 		appended = appended + 1
 	end
-	return body .. TRUNCATION_SUFFIX
+	return body .. TRUNCATION_SUFFIX, appended, #full
+end
+
+local function BuildMacroBody()
+	local parts = BuildAnnouncementParts()
+	if not parts then
+		-- Empty inventory: silent body so firing the macro does nothing.
+		return ""
+	end
+	return (ns.BuildAnnouncementMacroBody(parts, ChannelSlash()))
 end
 
 --------------------------------------------------------------------------------
@@ -316,6 +313,47 @@ end
 
 -- Public so the options panel can refresh the macro after a settings change.
 ns.RefreshAnnouncementMacro = ScheduleUpdate
+
+--[[
+	The only place the macro switch is written. The Announcements panel and the
+	front page's Features switch both route through here, so each repaints the
+	other. The macro is auto-managed: enabling creates it, disabling deletes it.
+]]
+function ns.SetAnnouncementsEnabled(value)
+	local announcements = ns.db and ns.db.profile.Announcements
+	if not announcements then
+		return
+	end
+	announcements.Enabled = value and true or false
+	ns.RefreshGiveaways()
+	AceConfigRegistry:NotifyChange(ns.OPTIONS_REGISTRY.Announcements)
+	AceConfigRegistry:NotifyChange(ns.OPTIONS_REGISTRY.General)
+end
+
+--------------------------------------------------------------------------------
+-- Diagnostics
+--------------------------------------------------------------------------------
+
+-- The macro's bookkeeping, copied for the Diagnostic Tools Announcement Macro and Message Length reports. Builds nothing.
+function ns.GetAnnouncementState()
+	-- Ungrouped falls through to /s, so it is a candidate beside every channel's own slash.
+	local longest = "/s "
+	for _, slash in pairs(CHANNEL_SLASH) do
+		if #slash > #longest then
+			longest = slash
+		end
+	end
+	return {
+		MacroName = MACRO_NAME,
+		Index = GetAnnouncementMacroIndex(),
+		ChannelSlash = ChannelSlash(),
+		LongestChannelSlash = longest,
+		LastMacroBody = lastMacroBody,
+		UpdatePending = updateTimer ~= nil,
+		PendingCombatUpdate = pendingCombatUpdate,
+		MacroFullWarned = macroFullWarned,
+	}
+end
 
 --------------------------------------------------------------------------------
 -- Initialization

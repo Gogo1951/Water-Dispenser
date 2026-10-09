@@ -11,7 +11,7 @@ local AceGUI = LibStub("AceGUI-3.0")
 
 -- Shared widget builders so every options panel looks identical. Loads first in the Options block so panel files can reference these helpers.
 
--- The third argument collapses the header along with the section it titles.
+-- The last argument of OptionsHeader and OptionsSpacer collapses them along with the section they belong to.
 function ns.OptionsHeader(text, order, hidden)
 	return { type = "header", name = GetColor("TITLE") .. text .. "|r", order = order, hidden = hidden }
 end
@@ -20,8 +20,27 @@ function ns.OptionsDesc(text, order)
 	return { type = "description", name = text, fontSize = "medium", order = order }
 end
 
-function ns.OptionsSpacer(order)
-	return { type = "description", name = " ", order = order }
+function ns.OptionsSpacer(order, hidden)
+	return { type = "description", name = " ", order = order, hidden = hidden }
+end
+
+--[[
+	A silver Example line showing the exact chat line a setting prints. text may be
+	a function, so the line repaints. width is for a line inside a sub-row; left
+	out, the line takes the full row.
+]]
+function ns.OptionsExample(text, order, hidden, width)
+	return {
+		type = "description",
+		name = function()
+			local line = type(text) == "function" and text() or text
+			return GetColor("HELP") .. L["OPTIONS_EXAMPLE"] .. "|r " .. line
+		end,
+		fontSize = "medium",
+		width = width,
+		order = order,
+		hidden = hidden,
+	}
 end
 
 --[[

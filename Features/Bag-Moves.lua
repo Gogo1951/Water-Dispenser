@@ -248,13 +248,6 @@ function ns.SplitToCursor(bag, slot, count)
 end
 
 --[[
-	Parks whatever is on the cursor in an empty bag slot. True if it landed there,
-	false if it had to go back where it came from. Either way the cursor is empty
-	afterwards, which is the point: a stranded cursor is what makes the *next* split
-	fail with "Couldn't split those items", and it leaves an item stuck to the
-	player's pointer.
-]]
---[[
 	Slots a stow has just dropped into, as recentStows["bag:slot"] = GetTime(). On
 	Forever a dropped item reads as an empty slot until the server confirms it, and
 	a second stow into that slot merges two portions into one stack.
@@ -262,6 +255,13 @@ end
 local STOW_SETTLE = 1
 local recentStows = {}
 
+--[[
+	Parks whatever is on the cursor in an empty bag slot. True if it landed there,
+	false if it had to go back where it came from. Either way the cursor is empty
+	afterwards, which is the point: a stranded cursor is what makes the *next* split
+	fail with "Couldn't split those items", and it leaves an item stuck to the
+	player's pointer.
+]]
 function ns.StowCursorItem()
 	if not CursorHasItem() then
 		return false
@@ -355,6 +355,21 @@ local function RestackPass()
 		restackPassesLeft = restackPassesLeft - 1
 		restackTimer = C_Timer.NewTimer(RESTACK_SETTLE, RestackPass)
 	end
+end
+
+--------------------------------------------------------------------------------
+-- Diagnostics
+--------------------------------------------------------------------------------
+
+-- Read-only: the partials a restack pass would merge, for the Diagnostic Tools Conjure & Restack report.
+ns.CollectRestackPartials = CollectPartials
+
+-- The restack chain's own state, for the same report.
+function ns.GetRestackState()
+	return {
+		TimerPending = restackTimer ~= nil,
+		PassesLeft = restackPassesLeft,
+	}
 end
 
 --------------------------------------------------------------------------------

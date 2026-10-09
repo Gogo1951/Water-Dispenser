@@ -15,6 +15,8 @@ L["ADDON_TITLE"] = "Water Dispenser"
 
 -- %s is the item's name or link, %d how many of it. Used by the chat prints and the announcement macro.
 L["FORMAT_ITEM_COUNT"] = "%s x%d"
+-- Stands in for an item's name until the client has loaded it. %d is the item ID.
+L["ITEM_LOADING"] = "正在載入 ID：%d"
 
 --------------------------------------------------------------------------------
 -- Chat Messages
@@ -33,14 +35,14 @@ L["CHAT_OPTIONS_IN_COMBAT"] = "基於安全考量，戰鬥中無法開啟選項�
 -- The item and its count are appended after the colon by the code.
 L["CHAT_MISSING_STACK"] = "缺少："
 --[[
-	%s is the item's name, %d the Maximum per Session it has hit.
-	"Maximum per Session" is the label of OPTIONS_ITEM_SESSION_CAP, minus its "Enable".
+	%s is the item's name, then the trade partner's name; %d is the Maximum per
+	Player they have reached.
 ]]
-L["CHAT_SESSION_CAP_REACHED"] =
-	"%s 未加入：本次登入他已經拿到了 %d 個。請調整每次登入上限，或重新載入以重置。"
--- %s is the item's name, %d the amount that could not be split off.
-L["CHAT_SPLIT_REFUSED"] =
-	"%s 未加入：此客戶端無法從一疊中拆出 %d 個，而直接給出整疊會送出遠超你設定的數量。請把此物品的數量設為一整疊才能交易。"
+L["CHAT_PLAYER_CAP_REACHED"] =
+	"%s 未加入：%s 已從你這裡獲得 %d 個。登出或重新載入介面後計數會重新開始。"
+-- %s is the item's name; the first %d is the amount that could not be split off, the second the item's full stack size.
+L["CHAT_SPLIT_NEEDS_FULL_STACK"] =
+	"%s 未加入：遊戲無法從一疊中拆出 %d 個。請將數量設為一整疊（%d）以交出該物品。"
 -- %s is the player's class name. "Dispensed Items" must match TAB_DISPENSED_ITEMS.
 L["CHAT_NONE_ACTIVE_FOR_CLASS"] =
 	"當你使用 %s 遊玩時，沒有設定任何要分發的物品。請打開 選項 > 插件 > Water Dispenser > 分發物品 啟用適用於此職業的物品。"
@@ -53,17 +55,15 @@ L["CHAT_MACRO_FULL"] = "無法建立喊話巨集：角色專屬巨集數量已�
 --------------------------------------------------------------------------------
 
 L["TOOLTIP_OPEN_TRADE"] = "點我交易！"
--- %d/%d is the warlock's Improved Healthstone rank out of its maximum.
-L["TOOLTIP_HEALTHSTONE"] = "治療石（等級 %d/%d）"
+-- %s is the Improved Healthstone talent's name from the client, then the warlock's rank out of its maximum.
+L["TOOLTIP_HEALTHSTONE_TALENT"] = "%s %d/%d"
 
 --------------------------------------------------------------------------------
 -- Bag Item Tooltips
 --------------------------------------------------------------------------------
 
 -- Shown on a carried bag item the player has set up to give away.
-L["TOOLTIP_WILL_DISPENSE"] = "此物品將會被分發。"
--- The same line for a stacking item while OPTIONS_RESTACK is on, which tidies it back together once a trade ends.
-L["TOOLTIP_WILL_DISPENSE_STACKED"] = "此物品將會被分發。交易結束後，它的零散堆疊會被合併。"
+L["TOOLTIP_WILL_DISPENSE"] = "會在交易中送出。"
 
 --------------------------------------------------------------------------------
 -- Trade Side Panel
@@ -71,6 +71,45 @@ L["TOOLTIP_WILL_DISPENSE_STACKED"] = "此物品將會被分發。交易結束後
 
 L["BUTTON_CLEAR"] = "清空交易視窗"
 L["BUTTON_FILL"] = "填充交易視窗"
+
+--[[
+	The silver status line under the trade panel's buttons. "Fill Trade Window" must
+	match BUTTON_FILL. ADDED's %s is the window's contents, each FORMAT_ITEM_COUNT,
+	joined like the announcement's list. In the rest, %s is an item or collection
+	name unless noted.
+]]
+L["TRADE_STATUS_ADDED"] = "已加入 %s。"
+-- %d is how many short.
+L["TRADE_STATUS_SHORT"] = "缺少 %d 個 %s：背包中數量不足。"
+L["TRADE_STATUS_SHORT_RESERVE"] = "缺少 %d 個 %s：其餘部分由保留數量保留。"
+L["TRADE_STATUS_DISPENSE_OFF"] = "自動填充已關閉。填充交易視窗仍會加入你平常的數量。"
+L["TRADE_STATUS_OFF_STRANGERS"] =
+	"對陌生人的自動填充已關閉。填充交易視窗仍會加入你平常的數量。"
+L["TRADE_STATUS_OFF_PARTY"] =
+	"對隊伍成員的自動填充已關閉。填充交易視窗仍會加入你平常的數量。"
+L["TRADE_STATUS_OFF_RAID"] =
+	"對團隊成員的自動填充已關閉。填充交易視窗仍會加入你平常的數量。"
+L["TRADE_STATUS_MASTER_LOOT"] =
+	"你負責分配戰利品時暫不填充。填充交易視窗仍會加入你平常的數量。"
+-- The first %s is the partner's class name.
+L["TRADE_STATUS_ZERO"] = "對 %s 設為 0：%s。"
+L["TRADE_STATUS_INSTANCE_ONLY"] = "%s 只在副本中分發。"
+L["TRADE_STATUS_GUILD_ONLY"] = "%s 只給你的公會成員。"
+-- The partner's name, then the rank they can't use yet and its level.
+L["TRADE_STATUS_LEVEL"] = "%s 無法使用你的 %s，需達到 %d 級。"
+-- The partner's name first.
+L["TRADE_STATUS_TOO_LOW"] = "%s 的等級太低，無法使用 %s。"
+-- The partner's name first.
+L["TRADE_STATUS_CAPPED"] = "%s 已拿滿你給每位玩家的 %s 上限。"
+L["TRADE_STATUS_NONE_HELD"] = "你沒有可送出的 %s。"
+L["TRADE_STATUS_CLEARED"] = "已清空。"
+--[[
+	A conjure button's tooltip, under the spell's name. MAKES: the item it makes,
+	then the trade partner's name and level. LOWEST, when no rank fits the partner:
+	the item only.
+]]
+L["TRADE_CONJURE_MAKES"] = "製造 %s，%s（%d 級）能使用的最高等級。"
+L["TRADE_CONJURE_MAKES_LOWEST"] = "製造 %s，你已知的最低等級。"
 
 --------------------------------------------------------------------------------
 -- Minimap Button
@@ -86,18 +125,22 @@ L["UI_LEFT_CLICK"] = "左鍵點擊"
 L["UI_TOGGLE"] = "切換"
 L["MINIMAP_OPTIONS"] = "Water Dispenser 選項"
 L["MINIMAP_OPTIONS_KEYBIND"] = "Shift + 中鍵點擊"
+-- Heads the tooltip section listing what the player can give right now.
+L["MINIMAP_DISPENSE_REPORT"] = "分發報告"
 
 --------------------------------------------------------------------------------
 -- Options — General
 --------------------------------------------------------------------------------
 
 L["OPTIONS_DESCRIPTION"] =
-	"輕鬆分發消耗品。自動用水、食物和治療石填充交易視窗。你還可以加入任何想給出的物品，例如沙漏之沙或各類抗性藥水，分發給你的團隊。"
+	"輕鬆分發消耗品。自動用製造的水、食物和治療石填充交易視窗，為每位玩家提供合適的等級和數量。加入任何物品，從沙漏之沙到抗性藥水，幾秒鐘就能分發一整個團隊的份量。"
 
 L["OPTIONS_WELCOME_MESSAGE"] = "啟用歡迎訊息"
 L["OPTIONS_WELCOME_MESSAGE_DESC"] = "當 Water Dispenser 載入時，在聊天框輸出一行問候語。"
 L["OPTIONS_MINIMAP"] = "啟用小地圖按鈕"
 L["OPTIONS_MINIMAP_DESC"] = "顯示 Water Dispenser 小地圖按鈕。"
+
+L["OPTIONS_FEATURES_HEADER"] = "功能"
 
 L["OPTIONS_COMMANDS_HEADER"] = "/指令"
 L["OPTIONS_COMMAND"] = "/wd"
@@ -122,15 +165,25 @@ L["OPTIONS_DISPENSE_RAID_DESC"] = "當與團隊成員交易時，自動填充交
 L["OPTIONS_RESTACK"] = "交易結束後合併零散堆疊"
 L["OPTIONS_RESTACK_DESC"] =
 	"製造的水和食物每次施放都會落在新的背包格中，遊戲從不會把它們合回去，因此 Water Dispenser 會在交易視窗關閉後立即合併一次，而在其他任何時候、戰鬥中或你的游標上拿著東西時都絕不會這樣做。"
+L["OPTIONS_HOLD_MASTER_LOOT"] = "負責分配戰利品時暫停"
+-- "Fill Trade Window" must match BUTTON_FILL.
+L["OPTIONS_HOLD_MASTER_LOOT_DESC"] =
+	"當你在副本中負責分配戰利品時，交易視窗保持空白，因為這些交易是用來分發戰利品的。填充交易視窗仍會加入你平常的數量。"
+L["OPTIONS_CONJURE_BUTTONS"] = "在交易旁顯示製造按鈕"
+-- "Fill Trade Window" must match BUTTON_FILL.
+L["OPTIONS_CONJURE_BUTTONS_DESC"] =
+	"在填充交易視窗下方加入按鈕，用於製造你的交易對象在其等級可以使用的水、食物或治療石，製造出的物品會直接放入目前的交易。"
 L["OPTIONS_MISSING_STACK_WARNINGS"] = "庫存不足時啟用警告"
 L["OPTIONS_MISSING_STACK_WARNINGS_DESC"] =
 	"當背包中已設定物品的數量不足以給出你設定的數量時，在聊天框中輸出提示。"
 
+-- Leads the silver line under a setting that shows the exact chat line it prints.
+L["OPTIONS_EXAMPLE"] = "範例："
+
 L["OPTIONS_COMBAT_HEADER"] = "戰鬥"
 L["OPTIONS_COMBAT_DESC"] = "魔獸世界禁止插件在戰鬥中將物品放入交易視窗。"
 L["OPTIONS_COMBAT_NOTIFY"] = "分發被阻止時啟用提示"
-L["OPTIONS_COMBAT_NOTIFY_DESC"] =
-	"當戰鬥導致交易無法填充時，在聊天框中輸出提示，而關閉後 Water Dispenser 不會再說明交易為何仍是空的。"
+L["OPTIONS_COMBAT_NOTIFY_DESC"] = "當戰鬥導致交易無法填充時，在聊天框中輸出提示。"
 
 --------------------------------------------------------------------------------
 -- Options — Inventory Tooltips
@@ -147,7 +200,7 @@ L["OPTIONS_BAG_TOOLTIPS_DESC"] =
 	"當背包中的某個物品被設定為分發時，在它的提示資訊中加入一行 Water Dispenser 說明，讓你一眼就能看出插件會送出什麼。"
 L["OPTIONS_SHARE_INVENTORY"] = "分享我的庫存"
 L["OPTIONS_SHARE_INVENTORY_DESC"] =
-	"告知你的隊伍和團隊你有什麼可以送出，這樣別人把滑鼠移到你身上時就能看到你的庫存，同時不會向聊天頻道發送任何內容，隊伍之外的人也不會知道，而且關閉後你依然可以查看別人的庫存。"
+	"告訴你的隊伍或團隊你有哪些可以送出的物品，讓他們將滑鼠游標停在你身上時可以看到。從不在聊天中發布，也不會傳給隊伍以外的任何人。關閉後你仍能看到他們的。"
 
 --------------------------------------------------------------------------------
 -- Options — Dispensed Items
@@ -160,6 +213,15 @@ L["OPTIONS_ITEMS_DESC"] =
 L["OPTIONS_ITEMS_EMPTY"] =
 	'未設定物品。請在清單中選擇 "新增物品"，從背包中加入任何可交易的物品。'
 
+--[[
+	The silver line opening an item's page while nothing of it would go out. In
+	OTHER_CLASS, %s is the player's class twice, then OPTIONS_ITEM_PLAYER_CLASSES;
+	in ALL_ZERO, %s is OPTIONS_ITEM_EVERYONE.
+]]
+L["OPTIONS_ITEM_STATUS_OTHER_CLASS"] = "使用 %s 遊玩時不會分發。請勾選 %s（位於 %s 下）。"
+L["OPTIONS_ITEM_STATUS_ALL_ZERO"] =
+	"尚未分發任何物品：所有數量都是 0。在 %s 中輸入一個數字即可開始。"
+
 L["OPTIONS_ITEM_AMOUNTS"] = "數量"
 L["OPTIONS_ITEM_AMOUNTS_DESC"] =
 	"按對方是陌生人、你的隊伍成員還是團隊成員，選擇每個職業各拿多少。按單個物品計算，而非按疊。填 0 表示他們永遠拿不到這個物品。"
@@ -170,13 +232,13 @@ L["OPTIONS_ITEM_EVERYONE_DESC"] =
 -- The accept button inside every number box in this panel.
 L["OPTIONS_ITEM_APPLY"] = "套用"
 -- %d is the highest amount this item accepts, which is 1 for anything unique.
-L["OPTIONS_ITEM_COUNT_TOO_HIGH"] = "超過了此物品可分發的數量。最多為 %d。"
+L["OPTIONS_ITEM_COUNT_TOO_HIGH"] = "這超出了你能給出的該物品數量。最多為 %d。"
 L["OPTIONS_ITEM_COUNT_INVALID"] = "請輸入物品數量。"
 L["OPTIONS_ITEM_SETTINGS"] = "物品設定"
 L["OPTIONS_ITEM_DISTRIBUTE"] = "分發範圍"
--- "In Instance" must match the dropdown entry below.
+-- "In Instance" must match OPTIONS_ITEM_DISTRIBUTE_INSTANCE.
 L["OPTIONS_ITEM_DISTRIBUTE_DESC"] =
-	"設定此物品在哪裡才會被分發，其中副本中涵蓋地城、團隊副本、戰場和競技場，而在其他任何地方它都不會被交易、寫入喊話，也不會顯示在你的提示資訊中。"
+	"設定在哪裡分發此物品。副本中涵蓋地城、團隊副本、戰場和競技場。在其他任何地方，此物品都不會被交易、喊話或顯示在你的提示中。"
 --[[
 	Dropdown entries, looked up as OPTIONS_ITEM_DISTRIBUTE_ plus the stored value in
 	capitals ("Always", "Instance"), so no code names these keys in full.
@@ -194,9 +256,9 @@ L["OPTIONS_ITEM_FACTOR_LEVEL_DESC"] = "當你的交易對象未達到該物品�
 L["OPTIONS_ITEM_RESERVE"] = "啟用保留數量"
 L["OPTIONS_ITEM_RESERVE_DESC"] =
 	"永遠在背包中至少保留這麼多，而分發、你的玩家提示和喊話巨集會把超出這個數量的部分視為可以送出的。"
-L["OPTIONS_ITEM_SESSION_CAP"] = "啟用每次登入上限"
-L["OPTIONS_ITEM_SESSION_CAP_DESC"] =
-	"當某人從你這裡拿到這麼多之後就不再給他這個物品，跨所有交易累計，直到你登出或重新載入為止，而修改此物品的任何數量都會讓所有人的計數重新開始。"
+L["OPTIONS_ITEM_PLAYER_CAP"] = "啟用每位玩家上限"
+L["OPTIONS_ITEM_PLAYER_CAP_DESC"] =
+	"當某人已從你這裡獲得這麼多後，停止向其送出此物品。登出、重新載入介面或變更此物品的數量後，計數會重新開始。"
 -- The label carries the meaning on its own; the tooltip only says why you'd switch it off.
 L["OPTIONS_ITEM_INCLUDE_QUANTITY"] = "在玩家提示和喊話巨集中顯示數量"
 L["OPTIONS_ITEM_INCLUDE_QUANTITY_DESC"] =
@@ -245,17 +307,9 @@ L["ANNOUNCEMENTS_AND"] = "和"
 --------------------------------------------------------------------------------
 
 L["OPTIONS_SUPPORT"] = "意見與支援"
--- Precedes the version number on the General panel's last line.
-L["VERSION"] = "版本"
+-- The General panel's last line. %s is the version.
+L["OPTIONS_VERSION"] = "版本 %s"
 L["SUPPORT_CURSEFORGE"] = "CurseForge"
 L["SUPPORT_GITHUB"] = "GitHub"
 L["SUPPORT_DISCORD"] = "Discord"
 L["SUPPORT_WAGO"] = "Wago"
-
---------------------------------------------------------------------------------
--- Built-in Collections
---------------------------------------------------------------------------------
-
-L["ITEM_MAGE_WATER"] = "製造的水"
-L["ITEM_MAGE_FOOD"] = "製造的食物"
-L["ITEM_WARLOCK_HEALTHSTONE"] = "治療石"

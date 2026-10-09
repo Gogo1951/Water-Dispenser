@@ -111,10 +111,10 @@ end
 --------------------------------------------------------------------------------
 
 --[[
-	The only place the master Dispense switch is written. The options toggle and
-	the mini-map button both route through here, so neither can pick up a step the
-	other forgets: telling the group what is on offer, and repainting an options
-	panel that is already open on the toggle the mini-map button just flipped.
+	The only place the master Dispense switch is written. The Dispense panel's toggle,
+	the front page's Features switch and the mini-map button all route through here, so
+	none can pick up a step another forgets: telling the group what is on offer, and
+	repainting whichever options panel is already open on the switch just flipped.
 ]]
 function ns.SetDispense(value)
 	if not ns.db then
@@ -123,7 +123,88 @@ function ns.SetDispense(value)
 	value = value and true or false
 	ns.db.profile.Dispense = value
 	ns.RefreshGiveaways()
+	-- The conjure buttons hide with Dispense, so nothing acts from behind a switch that is off.
+	ns.RefreshConjureButtons()
 	AceConfigRegistry:NotifyChange(ns.OPTIONS_REGISTRY.Dispenser)
+	AceConfigRegistry:NotifyChange(ns.OPTIONS_REGISTRY.General)
+end
+
+--------------------------------------------------------------------------------
+-- Trade Status Line
+--------------------------------------------------------------------------------
+
+-- The partner as the status line names them; nil only if the trade opened without one.
+local function PartnerName()
+	return ns.NameWithoutRealm(ns.State.Trade.Partner) or "?"
+end
+
+-- Built-ins in their display order, then user items by key, so the reason shown never depends on pairs().
+local function FirstInItemOrder(byKey)
+	for _, key in ipairs(ns.BUILTIN_ORDER) do
+		if byKey[key] then
+			return byKey[key]
+		end
+	end
+	local keys = {}
+	for key in pairs(byKey) do
+		keys[#keys + 1] = key
+	end
+	table.sort(keys, function(a, b)
+		return tostring(a) < tostring(b)
+	end)
+	return keys[1] and byKey[keys[1]]
+end
+
+--[[
+	"Added" plus what the player's side of the window holds, read from the window
+	itself so a stack dragged in by hand or conjured mid-trade counts too. With the
+	window empty: the trade-wide note, else the first item the fill held back.
+]]
+function ns.RefreshTradeStatus()
+	local trade = ns.State.Trade
+	if not (trade.Active and ns.TradeUI) then
+		return
+	end
+
+	local totals, order = {}, {}
+	for slot = 1, MAX_TRADABLE_ITEMS do
+		local link = GetTradePlayerItemLink(slot)
+		local _, _, slotCount = GetTradePlayerItemInfo(slot)
+		local itemId = link and tonumber(link:match("item:(%d+)"))
+		if itemId and slotCount and slotCount > 0 then
+			if not totals[itemId] then
+				order[#order + 1] = itemId
+				totals[itemId] = 0
+			end
+			totals[itemId] = totals[itemId] + slotCount
+		end
+	end
+
+	local text
+	if #order > 0 then
+		local parts = {}
+		for _, itemId in ipairs(order) do
+			local name = C_Item.GetItemInfo(itemId) or ("item:" .. itemId)
+			parts[#parts + 1] = format(L["FORMAT_ITEM_COUNT"], name, totals[itemId])
+		end
+		text = format(L["TRADE_STATUS_ADDED"], ns.JoinList(parts))
+		local short = FirstInItemOrder(trade.ShortNotes)
+		if short then
+			text = text .. " " .. short
+		end
+	else
+		text = trade.Note or FirstInItemOrder(trade.HoldReasons)
+	end
+	trade.Status = text
+	ns.TradeUI:SetStatus(text)
+end
+
+-- Starts a trade's status from nothing: a fresh trade, or a fill pass about to record its own reasons.
+local function ResetTradeStatus(note)
+	local trade = ns.State.Trade
+	trade.Note = note
+	wipe(trade.HoldReasons)
+	wipe(trade.ShortNotes)
 end
 
 --------------------------------------------------------------------------------
@@ -145,6 +226,8 @@ function ns.ClearTrade()
 		ClickTradeButton(i)
 	end
 	ClearCursor()
+	ResetTradeStatus(L["TRADE_STATUS_CLEARED"])
+	ns.RefreshTradeStatus()
 	--[[
 		The cleared slots stay locked until the server acknowledges, and a locked
 		slot the fill did not place reads as still moving, so the pass after this one
@@ -357,7 +440,7 @@ end
 	not split -- spends the item's whole budget at once, so it is said once and not
 	retried on every bag update.
 ]]
-local function ShapeStack(configId, itemConfig, loose, want)
+local function ShapeStack(configId, loose, want)
 	if #loose == 0 then
 		return false, false
 	end
@@ -424,8 +507,11 @@ local function ShapeStack(configId, itemConfig, loose, want)
 			itself refused a fraction of a second before handing the items over.
 		]]
 		if ns.db.profile.MissingStackWarnings then
-			local name = ns.GetItemConfigName(configId, itemConfig) or "?"
-			ns.PrintMessage(format(L["CHAT_SPLIT_REFUSED"], name, want))
+			local name = ns.GetItemConfigName(configId) or "?"
+			-- The stack size names the amount that would work. The item is in the bags, so its info is cached.
+			local info = C_Container.GetContainerItemInfo(source.Bag, source.Slot)
+			local stackSize = info and select(8, C_Item.GetItemInfo(info.itemID)) or want
+			ns.PrintMessage(format(L["CHAT_SPLIT_NEEDS_FULL_STACK"], name, want, stackSize))
 		end
 		return false, false
 	end
@@ -458,9 +544,9 @@ local function ScheduleSettleCheck()
 	end)
 end
 
-local function ReportMissing(configId, itemConfig, inventoryItem, count)
-	local icon = (inventoryItem and inventoryItem.Icon) or ns.GetItemConfigIcon(configId, itemConfig)
-	local name = (inventoryItem and inventoryItem.Name) or ns.GetItemConfigName(configId, itemConfig) or "?"
+local function ReportMissing(configId, inventoryItem, count)
+	local icon = (inventoryItem and inventoryItem.Icon) or ns.GetItemConfigIcon(configId)
+	local name = (inventoryItem and inventoryItem.Name) or ns.GetItemConfigName(configId) or "?"
 	local iconTag = icon and ("|T" .. icon .. ICON_COORDS .. "|t ") or ""
 	ns.PrintMessage(L["CHAT_MISSING_STACK"], iconTag .. format(L["FORMAT_ITEM_COUNT"], name, count))
 end
@@ -508,6 +594,8 @@ function ns.FillTrade(forced)
 	if forced then
 		ns.ClearTrade()
 	end
+	ResetTradeStatus(nil)
+	local holdReasons, shortNotes = trade.HoldReasons, trade.ShortNotes
 
 	local scope = PickScope()
 
@@ -549,11 +637,22 @@ function ns.FillTrade(forced)
 			and ns.IsItemAllowedForPartner(itemConfig, trade.Guild)
 		-- Every count here is in individual items, the configured amount included.
 		local needed = canDistribute and CountForScope(itemConfig, scope, trade.Class) or 0
+
+		-- The first gate that holds an item back, for the status line when the window stays empty.
+		local name = ns.GetItemConfigName(configId) or "?"
+		if isActive and not ns.IsItemDistributableNow(itemConfig) then
+			holdReasons[configId] = format(L["TRADE_STATUS_INSTANCE_ONLY"], name)
+		elseif isActive and not ns.IsItemAllowedForPartner(itemConfig, trade.Guild) then
+			holdReasons[configId] = format(L["TRADE_STATUS_GUILD_ONLY"], name)
+		elseif canDistribute and needed <= 0 then
+			local className = trade.ClassName or "?"
+			holdReasons[configId] = format(L["TRADE_STATUS_ZERO"], className, name)
+		end
 		-- Items already in the trade window count toward the target.
 		needed = needed - (offeredItems[configId] or 0)
 
 		--[[
-			The per-person session budget is in items too, so it simply clamps the target
+			The Maximum per Player budget is in items too, so it simply clamps the target
 			rather than being tracked alongside it. What is already in the window counts
 			against it: the credit only happens on a completed trade, so without this a
 			re-fill would let the same offer through twice.
@@ -569,6 +668,9 @@ function ns.FillTrade(forced)
 					silence makes the add-on look broken instead of obedient. Latched per item
 					per trade, since a fill re-runs on every bag update.
 				]]
+				if budget <= 0 and needed > 0 then
+					holdReasons[configId] = format(L["TRADE_STATUS_CAPPED"], PartnerName(), name)
+				end
 				if budget <= 0 and needed > 0 and ns.ClaimSessionCapNotice(configId) then
 					--[[
 						Not gated on MissingStackWarnings. That setting ships off, and this is the
@@ -576,8 +678,7 @@ function ns.FillTrade(forced)
 						empty -- hiding it behind an opt-in is how the cap came to look like the
 						add-on being broken. Latched per item per trade, so it is said once.
 					]]
-					local name = ns.GetItemConfigName(configId, itemConfig) or "?"
-					ns.PrintMessage(format(L["CHAT_SESSION_CAP_REACHED"], name, sessionCap))
+					ns.PrintMessage(format(L["CHAT_PLAYER_CAP_REACHED"], name, PartnerName(), sessionCap))
 				end
 				needed = budget
 			end
@@ -605,6 +706,15 @@ function ns.FillTrade(forced)
 				-- The reserve guards only the player's top-tier stash, so it's resolved without the partner-level cap.
 				bestOverallId = ns.BestRankItemId(configId, nil)
 				reportInv = entries[1] or (bestOverallId and ns.GetInventoryItem(bestOverallId)) or nil
+				if #entries == 0 then
+					local best = bestOverallId and ns.GetInventoryItem(bestOverallId)
+					if best and levelLimit and (best.Level or 0) > levelLimit then
+						holdReasons[configId] =
+							format(L["TRADE_STATUS_LEVEL"], PartnerName(), best.Name or name, best.Level)
+					else
+						holdReasons[configId] = format(L["TRADE_STATUS_NONE_HELD"], name)
+					end
+				end
 			else
 				-- User-added item: one concrete ID, no alternate rank, so FactorLevel skips it outright when the partner is too low.
 				local inventoryItem = ns.GetInventoryItem(configId)
@@ -622,6 +732,11 @@ function ns.FillTrade(forced)
 				entries = (inventoryItem and not skip) and { inventoryItem } or {}
 				bestOverallId = configId
 				reportInv = inventoryItem
+				if skip then
+					holdReasons[configId] = format(L["TRADE_STATUS_TOO_LOW"], PartnerName(), name)
+				elseif not inventoryItem then
+					holdReasons[configId] = format(L["TRADE_STATUS_NONE_HELD"], name)
+				end
 			end
 
 			--[[
@@ -748,7 +863,7 @@ function ns.FillTrade(forced)
 							loose[#loose + 1] = bagEntry
 						end
 					end
-					local moved, waiting = ShapeStack(configId, itemConfig, loose, want)
+					local moved, waiting = ShapeStack(configId, loose, want)
 					if moved then
 						shapeSettling[configId] = GetTime() + SHAPE_SETTLE
 						ScheduleSettleCheck()
@@ -787,13 +902,19 @@ function ns.FillTrade(forced)
 			if needed > 0 then
 				-- Always flag so OnBagUpdate retries after a restock, or after a portion settles.
 				ns.State.MissingStack = true
+				if not inFlight and #entries > 0 then
+					local shortKey = ns.GetItemReserve(itemConfig) > 0 and "TRADE_STATUS_SHORT_RESERVE"
+						or "TRADE_STATUS_SHORT"
+					shortNotes[configId] = format(L[shortKey], needed, name)
+					holdReasons[configId] = holdReasons[configId] or shortNotes[configId]
+				end
 				--[[
 					A move in flight is not a shortfall -- the items exist and a slot of the
 					right size is on its way -- so it must not print a warning the next pass
 					will contradict. A refused split has already said its own piece.
 				]]
 				if ns.db.profile.MissingStackWarnings and not inFlight then
-					ReportMissing(configId, itemConfig, reportInv, needed)
+					ReportMissing(configId, reportInv, needed)
 				end
 			end
 		end
@@ -802,9 +923,10 @@ function ns.FillTrade(forced)
 	-- On a forced fill with nothing eligible for the class, explain why (opt-in, latched once per session).
 	if forced and activeForPlayer == 0 and ns.db.profile.MissingStackWarnings and not noneActiveWarned then
 		noneActiveWarned = true
-		local _, playerClass = UnitClass("player")
-		ns.PrintMessage(format(L["CHAT_NONE_ACTIVE_FOR_CLASS"], ns.GetClassName(playerClass)))
+		ns.PrintMessage(format(L["CHAT_NONE_ACTIVE_FOR_CLASS"], (UnitClass("player"))))
 	end
+
+	ns.RefreshTradeStatus()
 end
 
 --------------------------------------------------------------------------------
@@ -888,11 +1010,36 @@ end
 -- Trade Events
 --------------------------------------------------------------------------------
 
+-- The status line's note when auto-fill is off for the partner's scope, keyed by the scope's toggle.
+local SCOPE_OFF_NOTES = {
+	DispenseSolo = "TRADE_STATUS_OFF_STRANGERS",
+	DispenseGroup = "TRADE_STATUS_OFF_PARTY",
+	DispenseRaid = "TRADE_STATUS_OFF_RAID",
+}
+
+--[[
+	Inside a dungeon or raid the master looter's trades are for handing out boss
+	loot, so the automatic fill stands down. Only the automatic one: Fill and a
+	conjure mid-trade still work. Party or raid, never raid-only, since the loot
+	window is instance-wide.
+]]
+local function HoldForMasterLoot()
+	if not ns.db.profile.HoldForMasterLoot then
+		return false
+	end
+	local inInstance, instanceType = IsInInstance()
+	if not inInstance or not (instanceType == "raid" or instanceType == "party") then
+		return false
+	end
+	return ns.IsPlayerMasterLooter()
+end
+
 local function OnTradeShow()
 	local trade = ns.State.Trade
 	trade.Active = true
-	local _, npcClass = UnitClass("NPC")
+	local npcClassName, npcClass = UnitClass("NPC")
 	trade.Class = npcClass
+	trade.ClassName = npcClassName
 	trade.Level = UnitLevel("NPC")
 	-- UnitLevel can be nil, -1, or 0 (unknown/loading); fall back to player level + 10 so the level filter doesn't lock out everything.
 	if not trade.Level or trade.Level <= 0 then
@@ -915,7 +1062,8 @@ local function OnTradeShow()
 	]]
 	ns.State.MissingStack = false
 
-	if ns.TradeUI then
+	-- Dispense off still shows the panel, since Fill is then the manual path.
+	if ns.TradeUI and ns.HasItemsForPlayer() then
 		ns.TradeUI:Attach(TradeFrame)
 	end
 	ns.ClearInventory()
@@ -925,9 +1073,17 @@ local function OnTradeShow()
 		dispenseKey = IsInRaid() and "DispenseRaid" or "DispenseGroup"
 	end
 
-	if ns.db.profile.Dispense and ns.db.profile[dispenseKey] then
+	ResetTradeStatus(nil)
+	if not ns.db.profile.Dispense then
+		ResetTradeStatus(L["TRADE_STATUS_DISPENSE_OFF"])
+	elseif not ns.db.profile[dispenseKey] then
+		ResetTradeStatus(L[SCOPE_OFF_NOTES[dispenseKey]])
+	elseif HoldForMasterLoot() then
+		ResetTradeStatus(L["TRADE_STATUS_MASTER_LOOT"])
+	else
 		ns.FillTrade(false)
 	end
+	ns.RefreshTradeStatus()
 end
 
 --[[
@@ -963,10 +1119,13 @@ local function OnTradeClosed()
 
 	trade.Active = false
 	trade.Class = nil
+	trade.ClassName = nil
 	trade.Level = nil
 	trade.Party = false
 	trade.Guild = false
 	trade.Partner = nil
+	trade.Status = nil
+	ResetTradeStatus(nil)
 	ns.State.MissingStack = false
 
 	wipe(conjureWatch)
@@ -1034,6 +1193,53 @@ local function OnSpellsChanged()
 end
 
 --------------------------------------------------------------------------------
+-- Diagnostics
+--------------------------------------------------------------------------------
+
+--[[
+	The fill's own brakes, copied for the Diagnostic Tools Trade & Fill report: the
+	move ceilings and what this trade has spent of them, the shapes last issued
+	(an unchanged one is a bounce), the items still settling, what the fill has
+	put in the window, and the items a mid-trade conjure is waiting to place.
+	Copies, so a report can never change what the fill reads.
+]]
+function ns.GetFillState()
+	local now = GetTime()
+	local state = {
+		MovesThisTrade = movesThisTrade,
+		MaxMovesPerTrade = MAX_MOVES_PER_TRADE,
+		MaxMovesPerItem = MAX_MOVES_PER_ITEM,
+		MovesPerItem = {},
+		LastShape = {},
+		SettlingSeconds = {},
+		Placed = {},
+		ConjureWatch = {},
+	}
+	for key, moves in pairs(movesPerItem) do
+		state.MovesPerItem[key] = moves
+	end
+	for key, shape in pairs(lastShape) do
+		state.LastShape[key] = shape
+	end
+	for key, giveUpAt in pairs(shapeSettling) do
+		state.SettlingSeconds[key] = giveUpAt - now
+	end
+	for itemId, slots in pairs(placedThisTrade) do
+		local slotCount, itemCount = 0, 0
+		for _, count in pairs(slots) do
+			slotCount = slotCount + 1
+			itemCount = itemCount + count
+		end
+		state.Placed[itemId] = { Slots = slotCount, Items = itemCount }
+	end
+	for itemId in pairs(conjureWatch) do
+		state.ConjureWatch[#state.ConjureWatch + 1] = itemId
+	end
+	table.sort(state.ConjureWatch)
+	return state
+end
+
+--------------------------------------------------------------------------------
 -- Initialization
 --------------------------------------------------------------------------------
 
@@ -1043,6 +1249,8 @@ function ns.InitDispenser()
 	ns.RegisterEvent("TRADE_SHOW", OnTradeShow)
 	ns.RegisterEvent("TRADE_CLOSED", OnTradeClosed)
 	ns.RegisterEvent("TRADE_ACCEPT_UPDATE", OnTradeAcceptUpdate)
+	-- The status line reads the window itself, and a placement only shows there once the server acknowledges it.
+	ns.RegisterEvent("TRADE_PLAYER_ITEM_CHANGED", ns.RefreshTradeStatus)
 	ns.RegisterEvent("BAG_UPDATE", OnBagUpdate)
 	--[[
 		SPELLS_CHANGED alone covers the cache pre-warm: it fires on login and on any

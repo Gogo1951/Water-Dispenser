@@ -15,6 +15,8 @@ L["ADDON_TITLE"] = "Water Dispenser"
 
 -- %s is the item's name or link, %d how many of it. Used by the chat prints and the announcement macro.
 L["FORMAT_ITEM_COUNT"] = "%s x%d"
+-- Stands in for an item's name until the client has loaded it. %d is the item ID.
+L["ITEM_LOADING"] = "Loading ID: %d"
 
 --------------------------------------------------------------------------------
 -- Chat Messages
@@ -33,14 +35,14 @@ L["CHAT_OPTIONS_IN_COMBAT"] = "As a safety precaution, the Options Interface can
 -- The item and its count are appended after the colon by the code.
 L["CHAT_MISSING_STACK"] = "Missing:"
 --[[
-	%s is the item's name, %d the Maximum per Session it has hit.
-	"Maximum per Session" is the label of OPTIONS_ITEM_SESSION_CAP, minus its "Enable".
+	%s is the item's name, then the trade partner's name; %d is the Maximum per
+	Player they have reached.
 ]]
-L["CHAT_SESSION_CAP_REACHED"] =
-	"%s not added: they have already had %d this session. Change Maximum per Session, or reload to reset."
--- %s is the item's name, %d the amount that could not be split off.
-L["CHAT_SPLIT_REFUSED"] =
-	"%s not added: this client would not split %d off a stack, and handing over a whole stack instead would give away far more than you asked for. Set this item's amount to a whole stack to trade it."
+L["CHAT_PLAYER_CAP_REACHED"] =
+	"%s not added: %s has already had %d from you. Counts start over when you log out or reload."
+-- %s is the item's name; the first %d is the amount that could not be split off, the second the item's full stack size.
+L["CHAT_SPLIT_NEEDS_FULL_STACK"] =
+	"%s not added: the game wouldn't split %d off a stack. Set the amount to a full stack (%d) to hand it over."
 -- %s is the player's class name. "Dispensed Items" must match TAB_DISPENSED_ITEMS.
 L["CHAT_NONE_ACTIVE_FOR_CLASS"] =
 	"No items are set to dispense while you're playing a %s. Open Options > AddOns > Water Dispenser > Dispensed Items to enable items for this class."
@@ -52,19 +54,16 @@ L["CHAT_MACRO_FULL"] = "Could not create the announcement macro: all character m
 -- Player Tooltips
 --------------------------------------------------------------------------------
 
-L["TOOLTIP_OPEN_TRADE"] = "Open Trade!"
--- %d/%d is the warlock's Improved Healthstone rank out of its maximum.
-L["TOOLTIP_HEALTHSTONE"] = "Healthstone (Rank %d/%d)"
+L["TOOLTIP_OPEN_TRADE"] = "Open trade!"
+-- %s is the Improved Healthstone talent's name from the client, then the warlock's rank out of its maximum.
+L["TOOLTIP_HEALTHSTONE_TALENT"] = "%s %d/%d"
 
 --------------------------------------------------------------------------------
 -- Bag Item Tooltips
 --------------------------------------------------------------------------------
 
 -- Shown on a carried bag item the player has set up to give away.
-L["TOOLTIP_WILL_DISPENSE"] = "This item will be dispensed."
--- The same line for a stacking item while OPTIONS_RESTACK is on, which tidies it back together once a trade ends.
-L["TOOLTIP_WILL_DISPENSE_STACKED"] =
-	"This item will be dispensed. Partial stacks of it are combined when a trade closes."
+L["TOOLTIP_WILL_DISPENSE"] = "Given out in trades."
 
 --------------------------------------------------------------------------------
 -- Trade Side Panel
@@ -72,6 +71,41 @@ L["TOOLTIP_WILL_DISPENSE_STACKED"] =
 
 L["BUTTON_CLEAR"] = "Clear Trade Window"
 L["BUTTON_FILL"] = "Fill Trade Window"
+
+--[[
+	The silver status line under the trade panel's buttons. "Fill Trade Window" must
+	match BUTTON_FILL. ADDED's %s is the window's contents, each FORMAT_ITEM_COUNT,
+	joined like the announcement's list. In the rest, %s is an item or collection
+	name unless noted.
+]]
+L["TRADE_STATUS_ADDED"] = "Added %s."
+-- %d is how many short.
+L["TRADE_STATUS_SHORT"] = "Short %d %s: not enough in your bags."
+L["TRADE_STATUS_SHORT_RESERVE"] = "Short %d %s: your reserve keeps the rest."
+L["TRADE_STATUS_DISPENSE_OFF"] = "Auto-fill is off. Fill Trade Window still adds your usual amounts."
+L["TRADE_STATUS_OFF_STRANGERS"] = "Auto-fill is off for strangers. Fill Trade Window still adds your usual amounts."
+L["TRADE_STATUS_OFF_PARTY"] = "Auto-fill is off for party members. Fill Trade Window still adds your usual amounts."
+L["TRADE_STATUS_OFF_RAID"] = "Auto-fill is off for raid members. Fill Trade Window still adds your usual amounts."
+L["TRADE_STATUS_MASTER_LOOT"] = "Held back while you're master looter. Fill Trade Window still adds your usual amounts."
+-- The first %s is the partner's class name.
+L["TRADE_STATUS_ZERO"] = "Set to 0 for %s: %s."
+L["TRADE_STATUS_INSTANCE_ONLY"] = "%s is only handed out in instances."
+L["TRADE_STATUS_GUILD_ONLY"] = "%s only goes to your guild."
+-- The partner's name, then the rank they can't use yet and its level.
+L["TRADE_STATUS_LEVEL"] = "%s can't use your %s until level %d."
+-- The partner's name first.
+L["TRADE_STATUS_TOO_LOW"] = "%s is too low level for %s."
+-- The partner's name first.
+L["TRADE_STATUS_CAPPED"] = "%s has had all the %s you give one player."
+L["TRADE_STATUS_NONE_HELD"] = "You have no %s to give."
+L["TRADE_STATUS_CLEARED"] = "Cleared."
+--[[
+	A conjure button's tooltip, under the spell's name. MAKES: the item it makes,
+	then the trade partner's name and level. LOWEST, when no rank fits the partner:
+	the item only.
+]]
+L["TRADE_CONJURE_MAKES"] = "Makes %s, the best %s (level %d) can use."
+L["TRADE_CONJURE_MAKES_LOWEST"] = "Makes %s, the lowest rank you know."
 
 --------------------------------------------------------------------------------
 -- Minimap Button
@@ -87,18 +121,22 @@ L["UI_LEFT_CLICK"] = "Left-Click"
 L["UI_TOGGLE"] = "Toggle"
 L["MINIMAP_OPTIONS"] = "Water Dispenser Options"
 L["MINIMAP_OPTIONS_KEYBIND"] = "Shift + Middle-Click"
+-- Heads the tooltip section listing what the player can give right now.
+L["MINIMAP_DISPENSE_REPORT"] = "Dispense Report"
 
 --------------------------------------------------------------------------------
 -- Options — General
 --------------------------------------------------------------------------------
 
 L["OPTIONS_DESCRIPTION"] =
-	"Effortless consumable distribution for mages and warlocks. Auto-fill the trade window with conjured water, food, and healthstones, the right rank and amount for every player, plus any item you add, like Hourglass Sand. Hand out a raid's worth in seconds."
+	"Effortless consumable distribution. Auto-fill trade windows with conjured water, food, and healthstones at the right rank and amount for each player. Add any item, from Hourglass Sand to Resistance Potions, and distribute a raid's worth in seconds."
 
 L["OPTIONS_WELCOME_MESSAGE"] = "Enable Welcome Message"
 L["OPTIONS_WELCOME_MESSAGE_DESC"] = "Prints a one-line greeting in your chat frame when Water Dispenser loads."
 L["OPTIONS_MINIMAP"] = "Enable Mini-map Button"
 L["OPTIONS_MINIMAP_DESC"] = "Shows the Water Dispenser mini-map button."
+
+L["OPTIONS_FEATURES_HEADER"] = "Features"
 
 L["OPTIONS_COMMANDS_HEADER"] = "/Commands"
 L["OPTIONS_COMMAND"] = "/wd"
@@ -124,15 +162,25 @@ L["OPTIONS_DISPENSE_RAID_DESC"] = "Fills the trade window automatically when tra
 L["OPTIONS_RESTACK"] = "Combine Partial Stacks After a Trade"
 L["OPTIONS_RESTACK_DESC"] =
 	"Conjured water and food land in a new bag slot every cast and the game never puts them back together, so Water Dispenser merges them once, just after a trade window closes, and never at any other time, in combat, or while you are holding something on your cursor."
+L["OPTIONS_HOLD_MASTER_LOOT"] = "Hold Off While You're Master Looter"
+-- "Fill Trade Window" must match BUTTON_FILL.
+L["OPTIONS_HOLD_MASTER_LOOT_DESC"] =
+	"Leaves the trade window empty while you're master looter in an instance, since those trades are for handing out loot. Fill Trade Window still adds your usual amounts."
+L["OPTIONS_CONJURE_BUTTONS"] = "Show Conjure Buttons Beside Trades"
+-- "Fill Trade Window" must match BUTTON_FILL.
+L["OPTIONS_CONJURE_BUTTONS_DESC"] =
+	"Adds buttons under Fill Trade Window that conjure water, food, or a healthstone your trade partner can use at their level, and what you make goes straight into the open trade."
 L["OPTIONS_MISSING_STACK_WARNINGS"] = "Enable Warnings When You Run Short"
 L["OPTIONS_MISSING_STACK_WARNINGS_DESC"] =
 	"Prints a note in your chat frame when you don't have enough of a configured item in your bags to give the amount you set."
 
+-- Leads the silver line under a setting that shows the exact chat line it prints.
+L["OPTIONS_EXAMPLE"] = "Example:"
+
 L["OPTIONS_COMBAT_HEADER"] = "Combat"
 L["OPTIONS_COMBAT_DESC"] = "WoW blocks add-ons from moving items into a trade during combat."
 L["OPTIONS_COMBAT_NOTIFY"] = "Enable Notifications When Dispensing Is Blocked"
-L["OPTIONS_COMBAT_NOTIFY_DESC"] =
-	"Prints a note in your chat frame when combat stops a trade from filling, and with it off Water Dispenser stays quiet about why the trade stayed empty."
+L["OPTIONS_COMBAT_NOTIFY_DESC"] = "Prints a note in your chat frame when combat stops a trade from filling."
 
 --------------------------------------------------------------------------------
 -- Options — Inventory Tooltips
@@ -149,7 +197,7 @@ L["OPTIONS_BAG_TOOLTIPS_DESC"] =
 	"Adds a Water Dispenser line to a bag item's tooltip when that item is set to be given out, so you can tell at a glance what the add-on will hand over."
 L["OPTIONS_SHARE_INVENTORY"] = "Share My Inventory"
 L["OPTIONS_SHARE_INVENTORY_DESC"] =
-	"Tells your party and raid what you have to give away so your inventory appears when they hover you, never posting to chat or telling anyone outside your group, and turning it off still lets you read theirs."
+	"Tells your party or raid what you have to give away, so it shows when they hover you. Never posts to chat or reaches anyone outside your group. Turning it off still lets you see theirs."
 
 --------------------------------------------------------------------------------
 -- Options — Dispensed Items
@@ -162,6 +210,14 @@ L["OPTIONS_ITEMS_DESC"] =
 L["OPTIONS_ITEMS_EMPTY"] =
 	'No items configured. Select "Add an Item" in the list to add anything tradable from your bags.'
 
+--[[
+	The silver line opening an item's page while nothing of it would go out. In
+	OTHER_CLASS, %s is the player's class twice, then OPTIONS_ITEM_PLAYER_CLASSES;
+	in ALL_ZERO, %s is OPTIONS_ITEM_EVERYONE.
+]]
+L["OPTIONS_ITEM_STATUS_OTHER_CLASS"] = "Not handed out while you're playing a %s. Tick %s under %s."
+L["OPTIONS_ITEM_STATUS_ALL_ZERO"] = "Nothing goes out yet: every amount is 0. Type a number into %s to start."
+
 L["OPTIONS_ITEM_AMOUNTS"] = "Amounts"
 L["OPTIONS_ITEM_AMOUNTS_DESC"] =
 	"Pick how many each class gets when you trade them, depending on whether they're a stranger, in your party, or in your raid. Counted in individual items, not stacks. Zero means they never get this item."
@@ -172,13 +228,13 @@ L["OPTIONS_ITEM_EVERYONE_DESC"] =
 -- The accept button inside every number box in this panel.
 L["OPTIONS_ITEM_APPLY"] = "Apply"
 -- %d is the highest amount this item accepts, which is 1 for anything unique.
-L["OPTIONS_ITEM_COUNT_TOO_HIGH"] = "That's more than this item can dispense. The most it takes is %d."
+L["OPTIONS_ITEM_COUNT_TOO_HIGH"] = "That's more than you can give of this item. The most is %d."
 L["OPTIONS_ITEM_COUNT_INVALID"] = "Enter a number of items."
 L["OPTIONS_ITEM_SETTINGS"] = "Item Settings"
 L["OPTIONS_ITEM_DISTRIBUTE"] = "Distribute"
--- "In Instance" must match the dropdown entry below.
+-- "In Instance" must match OPTIONS_ITEM_DISTRIBUTE_INSTANCE.
 L["OPTIONS_ITEM_DISTRIBUTE_DESC"] =
-	"Sets where this item is handed out at all, with In Instance covering dungeons, raids, battlegrounds, and arenas, and anywhere else it is never traded, announced, or shown on your tooltip."
+	"Sets where this item is handed out. In Instance covers dungeons, raids, battlegrounds, and arenas. Anywhere else, the item is never traded, announced, or shown on your tooltip."
 --[[
 	Dropdown entries, looked up as OPTIONS_ITEM_DISTRIBUTE_ plus the stored value in
 	capitals ("Always", "Instance"), so no code names these keys in full.
@@ -195,9 +251,9 @@ L["OPTIONS_ITEM_FACTOR_LEVEL_DESC"] = "Skips this item when your trade partner i
 L["OPTIONS_ITEM_RESERVE"] = "Enable Reserves"
 L["OPTIONS_ITEM_RESERVE_DESC"] =
 	"Keeps at least this many in your bags, with dispensing, your player tooltip, and the announcement macro treating anything beyond that number as available to give away."
-L["OPTIONS_ITEM_SESSION_CAP"] = "Enable Maximum per Session"
-L["OPTIONS_ITEM_SESSION_CAP_DESC"] =
-	"Stops giving this item to someone once they have had this many from you across every trade until you log out or reload, and changing any of this item's amounts starts everyone's count over."
+L["OPTIONS_ITEM_PLAYER_CAP"] = "Enable Maximum per Player"
+L["OPTIONS_ITEM_PLAYER_CAP_DESC"] =
+	"Stops giving this item to someone once they've had this many from you. Counts start over when you log out or reload, or change this item's amounts."
 -- The label carries the meaning on its own; the tooltip only says why you'd switch it off.
 L["OPTIONS_ITEM_INCLUDE_QUANTITY"] = "Include Quantity in Player Tooltip & Announcement Macro"
 L["OPTIONS_ITEM_INCLUDE_QUANTITY_DESC"] =
@@ -246,17 +302,9 @@ L["ANNOUNCEMENTS_AND"] = "and"
 --------------------------------------------------------------------------------
 
 L["OPTIONS_SUPPORT"] = "Feedback & Support"
--- Precedes the version number on the General panel's last line.
-L["VERSION"] = "Version"
+-- The General panel's last line. %s is the version.
+L["OPTIONS_VERSION"] = "Version %s"
 L["SUPPORT_CURSEFORGE"] = "CurseForge"
 L["SUPPORT_GITHUB"] = "GitHub"
 L["SUPPORT_DISCORD"] = "Discord"
 L["SUPPORT_WAGO"] = "Wago"
-
---------------------------------------------------------------------------------
--- Built-in Collections
---------------------------------------------------------------------------------
-
-L["ITEM_MAGE_WATER"] = "Conjured Water"
-L["ITEM_MAGE_FOOD"] = "Conjured Food"
-L["ITEM_WARLOCK_HEALTHSTONE"] = "Healthstone"

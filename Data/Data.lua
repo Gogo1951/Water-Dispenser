@@ -2,6 +2,8 @@ local ADDON_NAME, ns = ...
 
 ns.LOCALE_NAME = "WaterDispenser"
 ns.L = LibStub("AceLocale-3.0"):GetLocale(ns.LOCALE_NAME)
+ns.ADDON_TITLE = ns.L["ADDON_TITLE"]
+ns.SAVED_VARIABLES_NAME = "WaterDispenserDB"
 
 --------------------------------------------------------------------------------
 -- AceConfig Registry Names
@@ -180,19 +182,17 @@ ns.BUILTIN_ORDER = { "MageWater", "MageFood", "WarlockHealthstone" }
 --[[
 	Virtual items the user configures in options; they resolve to a real item ID
 	at trade time from the partner's level. Keys match ns.COLLECTIONS, which each
-	flavor's Data/<Flavor>/Collections.lua declares.
+	flavor's Data/<Folder>/Collections-<Folder>.lua declares. Their names come from
+	the client (ns.GetItemConfigName), so only the icon lives here.
 ]]
 ns.COLLECTION_META = {
 	MageWater = {
-		NameKey = "ITEM_MAGE_WATER",
 		Icon = "Interface\\ICONS\\INV_Drink_18",
 	},
 	MageFood = {
-		NameKey = "ITEM_MAGE_FOOD",
 		Icon = "Interface\\ICONS\\INV_Misc_Food_09",
 	},
 	WarlockHealthstone = {
-		NameKey = "ITEM_WARLOCK_HEALTHSTONE",
 		Icon = "Interface\\ICONS\\INV_Stone_04",
 		-- Healthstones are unique, so a trade can only ever carry 0 or 1.
 		Unique = true,

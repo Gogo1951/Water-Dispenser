@@ -15,6 +15,8 @@ L["ADDON_TITLE"] = "Water Dispenser"
 
 -- %s is the item's name or link, %d how many of it. Used by the chat prints and the announcement macro.
 L["FORMAT_ITEM_COUNT"] = "%s x%d"
+-- Stands in for an item's name until the client has loaded it. %d is the item ID.
+L["ITEM_LOADING"] = "불러오는 중: ID %d"
 
 --------------------------------------------------------------------------------
 -- Chat Messages
@@ -33,14 +35,14 @@ L["CHAT_OPTIONS_IN_COMBAT"] = "안전을 위해 전투 중에는 설정 창을 �
 -- The item and its count are appended after the colon by the code.
 L["CHAT_MISSING_STACK"] = "부족:"
 --[[
-	%s is the item's name, %d the Maximum per Session it has hit.
-	"Maximum per Session" is the label of OPTIONS_ITEM_SESSION_CAP, minus its "Enable".
+	%s is the item's name, then the trade partner's name; %d is the Maximum per
+	Player they have reached.
 ]]
-L["CHAT_SESSION_CAP_REACHED"] =
-	"%s은(는) 추가되지 않았습니다: 이번 세션에 이미 %d개를 받았습니다. 세션당 최대량을 변경하거나, 다시 불러와 초기화하세요."
--- %s is the item's name, %d the amount that could not be split off.
-L["CHAT_SPLIT_REFUSED"] =
-	"%s은(는) 추가되지 않았습니다: 이 클라이언트가 묶음에서 %d개를 나누지 못했고, 대신 묶음 전체를 건네면 요청한 것보다 훨씬 많이 주게 됩니다. 이 아이템의 수량을 묶음 전체로 설정하면 거래할 수 있습니다."
+L["CHAT_PLAYER_CAP_REACHED"] =
+	"%s 추가 안 됨: %s님은 이미 당신에게서 %d개를 받았습니다. 로그아웃하거나 UI를 다시 불러오면 횟수가 초기화됩니다."
+-- %s is the item's name; the first %d is the amount that could not be split off, the second the item's full stack size.
+L["CHAT_SPLIT_NEEDS_FULL_STACK"] =
+	"%s 추가 안 됨: 게임이 묶음에서 %d개를 나누지 못했습니다. 건네주려면 수량을 한 묶음 전체(%d개)로 설정하세요."
 -- %s is the player's class name. "Dispensed Items" must match TAB_DISPENSED_ITEMS.
 L["CHAT_NONE_ACTIVE_FOR_CLASS"] =
 	"%s(으)로 플레이하는 동안 분배하도록 설정된 아이템이 없습니다. 옵션 > 애드온 > Water Dispenser > 분배 아이템을 열어 이 직업에 대한 아이템을 활성화하세요."
@@ -53,18 +55,15 @@ L["CHAT_MACRO_FULL"] = "캐릭터 전용 매크로 슬롯이 꽉 차서 알림 �
 --------------------------------------------------------------------------------
 
 L["TOOLTIP_OPEN_TRADE"] = "거래를 거세요!"
--- %d/%d is the warlock's Improved Healthstone rank out of its maximum.
-L["TOOLTIP_HEALTHSTONE"] = "생명석 (등급 %d/%d)"
+-- %s is the Improved Healthstone talent's name from the client, then the warlock's rank out of its maximum.
+L["TOOLTIP_HEALTHSTONE_TALENT"] = "%s %d/%d"
 
 --------------------------------------------------------------------------------
 -- Bag Item Tooltips
 --------------------------------------------------------------------------------
 
 -- Shown on a carried bag item the player has set up to give away.
-L["TOOLTIP_WILL_DISPENSE"] = "이 아이템은 분배됩니다."
--- The same line for a stacking item while OPTIONS_RESTACK is on, which tidies it back together once a trade ends.
-L["TOOLTIP_WILL_DISPENSE_STACKED"] =
-	"이 아이템은 분배됩니다. 남은 묶음은 거래가 끝나면 합쳐집니다."
+L["TOOLTIP_WILL_DISPENSE"] = "거래 시 나눠 줍니다."
 
 --------------------------------------------------------------------------------
 -- Trade Side Panel
@@ -72,6 +71,46 @@ L["TOOLTIP_WILL_DISPENSE_STACKED"] =
 
 L["BUTTON_CLEAR"] = "거래 창 비우기"
 L["BUTTON_FILL"] = "거래 창 채우기"
+
+--[[
+	The silver status line under the trade panel's buttons. "Fill Trade Window" must
+	match BUTTON_FILL. ADDED's %s is the window's contents, each FORMAT_ITEM_COUNT,
+	joined like the announcement's list. In the rest, %s is an item or collection
+	name unless noted.
+]]
+L["TRADE_STATUS_ADDED"] = "%s 추가됨."
+-- %d is how many short.
+L["TRADE_STATUS_SHORT"] = "%d개 부족 (%s): 가방에 충분하지 않습니다."
+L["TRADE_STATUS_SHORT_RESERVE"] = "%d개 부족 (%s): 나머지는 예비 수량으로 남겨 둡니다."
+L["TRADE_STATUS_DISPENSE_OFF"] =
+	"자동 채우기가 꺼져 있습니다. 거래 창 채우기는 여전히 평소 수량을 추가합니다."
+L["TRADE_STATUS_OFF_STRANGERS"] =
+	"모르는 사람에 대한 자동 채우기가 꺼져 있습니다. 거래 창 채우기는 여전히 평소 수량을 추가합니다."
+L["TRADE_STATUS_OFF_PARTY"] =
+	"파티원에 대한 자동 채우기가 꺼져 있습니다. 거래 창 채우기는 여전히 평소 수량을 추가합니다."
+L["TRADE_STATUS_OFF_RAID"] =
+	"공격대원에 대한 자동 채우기가 꺼져 있습니다. 거래 창 채우기는 여전히 평소 수량을 추가합니다."
+L["TRADE_STATUS_MASTER_LOOT"] =
+	"전리품 담당자인 동안 보류합니다. 거래 창 채우기는 여전히 평소 수량을 추가합니다."
+-- The first %s is the partner's class name.
+L["TRADE_STATUS_ZERO"] = "%s에 대해 0으로 설정됨: %s."
+L["TRADE_STATUS_INSTANCE_ONLY"] = "%s은(는) 인스턴스에서만 나눠 줍니다."
+L["TRADE_STATUS_GUILD_ONLY"] = "%s은(는) 길드원에게만 줍니다."
+-- The partner's name, then the rank they can't use yet and its level.
+L["TRADE_STATUS_LEVEL"] = "%s님은 %s을(를) %d레벨부터 사용할 수 있습니다."
+-- The partner's name first.
+L["TRADE_STATUS_TOO_LOW"] = "%s님은 %s을(를) 받기에 레벨이 너무 낮습니다."
+-- The partner's name first.
+L["TRADE_STATUS_CAPPED"] = "%s님은 이미 %s의 플레이어당 최대량을 받았습니다."
+L["TRADE_STATUS_NONE_HELD"] = "나눠 줄 %s이(가) 없습니다."
+L["TRADE_STATUS_CLEARED"] = "비웠습니다."
+--[[
+	A conjure button's tooltip, under the spell's name. MAKES: the item it makes,
+	then the trade partner's name and level. LOWEST, when no rank fits the partner:
+	the item only.
+]]
+L["TRADE_CONJURE_MAKES"] = "%s 생성: %s님(레벨 %d)이 사용할 수 있는 최상급입니다."
+L["TRADE_CONJURE_MAKES_LOWEST"] = "%s 생성: 알고 있는 가장 낮은 등급입니다."
 
 --------------------------------------------------------------------------------
 -- Minimap Button
@@ -87,19 +126,23 @@ L["UI_LEFT_CLICK"] = "좌클릭"
 L["UI_TOGGLE"] = "켜기/끄기"
 L["MINIMAP_OPTIONS"] = "Water Dispenser 설정"
 L["MINIMAP_OPTIONS_KEYBIND"] = "Shift + 가운데 클릭"
+-- Heads the tooltip section listing what the player can give right now.
+L["MINIMAP_DISPENSE_REPORT"] = "분배 현황"
 
 --------------------------------------------------------------------------------
 -- Options — General
 --------------------------------------------------------------------------------
 
 L["OPTIONS_DESCRIPTION"] =
-	"손쉬운 소비 아이템 분배. 거래 창을 물, 음식, 생명석으로 자동으로 채웁니다. 모래시계 모래나 저항력 물약처럼 원하는 아이템을 무엇이든 추가해 공격대에 나눠 주세요."
+	"손쉬운 소모품 분배. 창조된 물, 음식, 생명석을 각 플레이어에게 맞는 등급과 수량으로 거래 창에 자동으로 채웁니다. 모래시계 모래부터 저항 물약까지 어떤 아이템이든 추가해 공격대 전체에 필요한 양을 몇 초 만에 나눠 주세요."
 
 L["OPTIONS_WELCOME_MESSAGE"] = "환영 메시지 사용"
 L["OPTIONS_WELCOME_MESSAGE_DESC"] =
 	"Water Dispenser를 불러올 때 대화창에 한 줄짜리 인사말을 출력합니다."
 L["OPTIONS_MINIMAP"] = "미니맵 버튼 사용"
 L["OPTIONS_MINIMAP_DESC"] = "Water Dispenser 미니맵 버튼을 표시합니다."
+
+L["OPTIONS_FEATURES_HEADER"] = "기능"
 
 L["OPTIONS_COMMANDS_HEADER"] = "/명령어"
 L["OPTIONS_COMMAND"] = "/wd"
@@ -125,16 +168,27 @@ L["OPTIONS_DISPENSE_RAID_DESC"] = "공격대원과 거래할 때 거래 창을 �
 L["OPTIONS_RESTACK"] = "거래 후 남은 묶음 합치기"
 L["OPTIONS_RESTACK_DESC"] =
 	"창조된 물과 음식은 시전할 때마다 새 가방 칸에 들어가고 게임은 이를 다시 합쳐 주지 않으므로, Water Dispenser가 거래 창이 닫힌 직후 한 번만 합쳐 주며, 그 외의 때나 전투 중, 커서에 무언가를 들고 있을 때는 절대 합치지 않습니다."
+L["OPTIONS_HOLD_MASTER_LOOT"] = "전리품 담당자일 때 보류"
+-- "Fill Trade Window" must match BUTTON_FILL.
+L["OPTIONS_HOLD_MASTER_LOOT_DESC"] =
+	"인스턴스에서 전리품 담당자인 동안에는 거래 창을 비워 둡니다. 그런 거래는 전리품을 나눠 주기 위한 것이기 때문입니다. 거래 창 채우기는 여전히 평소 수량을 추가합니다."
+L["OPTIONS_CONJURE_BUTTONS"] = "거래 옆에 창조 버튼 표시"
+-- "Fill Trade Window" must match BUTTON_FILL.
+L["OPTIONS_CONJURE_BUTTONS_DESC"] =
+	"거래 창 채우기 아래에 거래 상대가 자기 레벨에서 사용할 수 있는 물, 음식, 생명석을 창조하는 버튼을 추가하며, 만든 것은 열린 거래에 바로 들어갑니다."
 L["OPTIONS_MISSING_STACK_WARNINGS"] = "수량이 부족할 때 경고 사용"
 L["OPTIONS_MISSING_STACK_WARNINGS_DESC"] =
 	"설정한 수량을 줄 만큼 해당 아이템이 가방에 없을 때 대화창에 알림을 출력합니다."
+
+-- Leads the silver line under a setting that shows the exact chat line it prints.
+L["OPTIONS_EXAMPLE"] = "예시:"
 
 L["OPTIONS_COMBAT_HEADER"] = "전투"
 L["OPTIONS_COMBAT_DESC"] =
 	"WoW는 전투 중 애드온이 거래 창으로 아이템을 옮기는 것을 차단합니다."
 L["OPTIONS_COMBAT_NOTIFY"] = "분배가 차단되었을 때 알림 사용"
 L["OPTIONS_COMBAT_NOTIFY_DESC"] =
-	"전투로 인해 거래를 채우지 못했을 때 대화창에 알림을 출력하며, 이 옵션을 끄면 Water Dispenser는 거래가 비어 있는 이유를 알려 주지 않습니다."
+	"전투 때문에 거래를 채우지 못하면 대화창에 알림을 출력합니다."
 
 --------------------------------------------------------------------------------
 -- Options — Inventory Tooltips
@@ -151,7 +205,7 @@ L["OPTIONS_BAG_TOOLTIPS_DESC"] =
 	"가방 속 아이템이 나눠 주도록 설정되어 있으면 그 아이템 툴팁에 Water Dispenser 줄을 추가해, 애드온이 무엇을 건네줄지 한눈에 알 수 있게 합니다."
 L["OPTIONS_SHARE_INVENTORY"] = "내 보유 목록 공유"
 L["OPTIONS_SHARE_INVENTORY_DESC"] =
-	"파티와 공격대에 자신이 무엇을 나눠 줄 수 있는지 알려 상대가 마우스를 올렸을 때 보유 목록이 나타나게 하되, 대화창에는 아무것도 게시하지 않고 파티 밖의 누구에게도 전달하지 않으며, 이 옵션을 꺼도 다른 사람의 목록은 계속 볼 수 있습니다."
+	"파티나 공격대에 내가 나눠 줄 수 있는 것을 알려, 그들이 나에게 마우스를 올리면 표시되게 합니다. 대화창에 글을 올리지 않으며 그룹 밖의 누구에게도 전달되지 않습니다. 꺼도 다른 사람의 목록은 계속 볼 수 있습니다."
 
 --------------------------------------------------------------------------------
 -- Options — Dispensed Items
@@ -164,6 +218,16 @@ L["OPTIONS_ITEMS_DESC"] =
 L["OPTIONS_ITEMS_EMPTY"] =
 	'설정된 아이템이 없습니다. 목록에서 "아이템 추가"를 선택하여 가방에 있는 거래 가능한 아이템을 무엇이든 추가하세요.'
 
+--[[
+	The silver line opening an item's page while nothing of it would go out. In
+	OTHER_CLASS, %s is the player's class twice, then OPTIONS_ITEM_PLAYER_CLASSES;
+	in ALL_ZERO, %s is OPTIONS_ITEM_EVERYONE.
+]]
+L["OPTIONS_ITEM_STATUS_OTHER_CLASS"] =
+	"%s(으)로 플레이하는 동안에는 나눠 주지 않습니다. %s을(를) %s에서 선택하세요."
+L["OPTIONS_ITEM_STATUS_ALL_ZERO"] =
+	"아직 아무것도 나가지 않습니다: 모든 수량이 0입니다. 시작하려면 %s에 숫자를 입력하세요."
+
 L["OPTIONS_ITEM_AMOUNTS"] = "수량"
 L["OPTIONS_ITEM_AMOUNTS_DESC"] =
 	"거래 상대가 모르는 사람인지, 파티원인지, 공격대원인지에 따라 각 직업이 얼마나 받을지 정하세요. 묶음이 아니라 개수로 셉니다. 0이면 이 아이템을 절대 주지 않습니다."
@@ -174,14 +238,13 @@ L["OPTIONS_ITEM_EVERYONE_DESC"] =
 -- The accept button inside every number box in this panel.
 L["OPTIONS_ITEM_APPLY"] = "적용"
 -- %d is the highest amount this item accepts, which is 1 for anything unique.
-L["OPTIONS_ITEM_COUNT_TOO_HIGH"] =
-	"이 아이템이 분배할 수 있는 양보다 많습니다. 최대 %d개까지 가능합니다."
+L["OPTIONS_ITEM_COUNT_TOO_HIGH"] = "이 아이템으로 줄 수 있는 양보다 많습니다. 최대 %d개입니다."
 L["OPTIONS_ITEM_COUNT_INVALID"] = "아이템 개수를 입력하세요."
 L["OPTIONS_ITEM_SETTINGS"] = "아이템 설정"
 L["OPTIONS_ITEM_DISTRIBUTE"] = "분배 범위"
--- "In Instance" must match the dropdown entry below.
+-- "In Instance" must match OPTIONS_ITEM_DISTRIBUTE_INSTANCE.
 L["OPTIONS_ITEM_DISTRIBUTE_DESC"] =
-	"이 아이템을 어디에서 나눠 줄지 정하며, 인스턴스에서만 옵션은 던전, 공격대, 전장, 투기장을 포함하고, 그 밖의 장소에서는 거래되지도, 알림에 오르지도, 툴팁에 표시되지도 않습니다."
+	"이 아이템을 나눠 줄 장소를 정합니다. 인스턴스에서만은 던전, 공격대, 전장, 투기장을 포함합니다. 그 외의 곳에서는 이 아이템을 거래하거나 알리거나 툴팁에 표시하지 않습니다."
 --[[
 	Dropdown entries, looked up as OPTIONS_ITEM_DISTRIBUTE_ plus the stored value in
 	capitals ("Always", "Instance"), so no code names these keys in full.
@@ -200,9 +263,9 @@ L["OPTIONS_ITEM_FACTOR_LEVEL_DESC"] =
 L["OPTIONS_ITEM_RESERVE"] = "예비 수량 사용"
 L["OPTIONS_ITEM_RESERVE_DESC"] =
 	"가방에 항상 최소 이만큼은 남겨 두며, 분배와 플레이어 툴팁, 알림 매크로는 그 수를 넘는 수량만 나눠 줄 수 있는 것으로 취급합니다."
-L["OPTIONS_ITEM_SESSION_CAP"] = "세션당 최대량 사용"
-L["OPTIONS_ITEM_SESSION_CAP_DESC"] =
-	"상대가 이만큼을 받고 나면 접속을 종료하거나 다시 불러올 때까지 모든 거래를 통틀어 이 아이템을 더 주지 않으며, 이 아이템의 수량을 하나라도 바꾸면 모두의 누적이 초기화됩니다."
+L["OPTIONS_ITEM_PLAYER_CAP"] = "플레이어당 최대량 사용"
+L["OPTIONS_ITEM_PLAYER_CAP_DESC"] =
+	"누군가 나에게서 이만큼 받으면 그 사람에게 이 아이템을 더 이상 주지 않습니다. 로그아웃하거나, UI를 다시 불러오거나, 이 아이템의 수량을 바꾸면 횟수가 초기화됩니다."
 -- The label carries the meaning on its own; the tooltip only says why you'd switch it off.
 L["OPTIONS_ITEM_INCLUDE_QUANTITY"] = "플레이어 툴팁과 알림 매크로에 수량 포함"
 L["OPTIONS_ITEM_INCLUDE_QUANTITY_DESC"] =
@@ -251,17 +314,9 @@ L["ANNOUNCEMENTS_AND"] = "및"
 --------------------------------------------------------------------------------
 
 L["OPTIONS_SUPPORT"] = "피드백 및 지원"
--- Precedes the version number on the General panel's last line.
-L["VERSION"] = "버전"
+-- The General panel's last line. %s is the version.
+L["OPTIONS_VERSION"] = "버전 %s"
 L["SUPPORT_CURSEFORGE"] = "CurseForge"
 L["SUPPORT_GITHUB"] = "GitHub"
 L["SUPPORT_DISCORD"] = "Discord"
 L["SUPPORT_WAGO"] = "Wago"
-
---------------------------------------------------------------------------------
--- Built-in Collections
---------------------------------------------------------------------------------
-
-L["ITEM_MAGE_WATER"] = "창조된 물"
-L["ITEM_MAGE_FOOD"] = "창조된 음식"
-L["ITEM_WARLOCK_HEALTHSTONE"] = "생명석"

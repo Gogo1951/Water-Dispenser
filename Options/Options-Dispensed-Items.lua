@@ -18,6 +18,9 @@ local Spacer = ns.OptionsSpacer
 
 local selectedItemToAdd
 
+-- Item IDs a build labelled with the Loading placeholder; their arrival rebuilds the tree with the real names.
+local pendingNames = {}
+
 --------------------------------------------------------------------------------
 -- Class Ordering (alphabetical by localized name)
 --------------------------------------------------------------------------------
@@ -62,16 +65,14 @@ end
 -- Display Helpers
 --------------------------------------------------------------------------------
 
-local function ItemDisplayName(itemId, itemConfig)
-	local icon = ns.GetItemConfigIcon(itemId, itemConfig)
-	local name = ns.GetItemConfigName(itemId, itemConfig)
-	if not name then
-		local itemName, _, _, _, _, _, _, _, _, itemIcon = C_Item.GetItemInfo(itemId)
-		name = itemName or tostring(itemId)
-		icon = icon or itemIcon
+local function ItemDisplayName(itemKey)
+	local nameItemId = ns.GetItemConfigNameItemId(itemKey)
+	if nameItemId and not C_Item.GetItemInfo(nameItemId) then
+		pendingNames[nameItemId] = true
 	end
+	local icon = ns.GetItemConfigIcon(itemKey)
 	local iconTag = icon and ("|T" .. icon .. ":16|t ") or ""
-	return iconTag .. name
+	return iconTag .. (ns.GetItemConfigName(itemKey) or "?")
 end
 
 local function ClassLabel(class)
@@ -330,7 +331,7 @@ local function CountCell(itemKey, scopeKey, class, maxCount)
 end
 
 --[[
-	The reserve and the session cap are the same shape: a toggle that arms the
+	The reserve and the per-player maximum are the same shape: a toggle that arms the
 	feature and the amount it applies. One builder for both, so the two rows cannot
 	drift apart, and the amount survives being switched off and comes back as the
 	player left it.
@@ -528,9 +529,6 @@ local function BuildScopeTable(itemKey, maxCount)
 		the counts above rather than under Item Settings, which is where the item is
 		described rather than dispensed.
 	]]
-	args.spaceAmounts = Spacer(17)
-	args.rowSessionCap =
-		AmountRow(18, "SessionCapEnabled", "SessionCap", "OPTIONS_ITEM_SESSION_CAP", "OPTIONS_ITEM_SESSION_CAP_DESC")
 	args.spaceReserve = Spacer(19)
 	args.rowReserve =
 		AmountRow(20, "KeepAtLeastEnabled", "KeepAtLeast", "OPTIONS_ITEM_RESERVE", "OPTIONS_ITEM_RESERVE_DESC")
@@ -563,9 +561,9 @@ local function AddItemSettings(args, itemKey, itemConfig)
 	args.spaceSettings1 = Spacer(32)
 
 	--[[
-		First, because it decides whether any of the rest applies: an item gated to
-		instances is not dispensed, announced or shown on a tooltip out in the world,
-		whatever its per-class amounts say.
+		First, with the class picker under it, because the two decide whether any of
+		the rest applies: an item gated to instances is not dispensed, announced or
+		shown on a tooltip out in the world, whatever its per-class amounts say.
 
 		The caption and the dropdown are two flat args rather than one inline group.
 		A group would be the natural way to pin them to a line, and it is exactly
@@ -589,60 +587,8 @@ local function AddItemSettings(args, itemKey, itemConfig)
 	}
 	args.spaceDistribute = Spacer(35)
 
-	--[[
-		Directly under Distribute because it is the same kind of rule read from the
-		other end: that one is about where the player is, this one about who is in
-		front of them.
-	]]
-	args.GuildiesOnly = {
-		type = "toggle",
-		width = "full",
-		name = L["OPTIONS_ITEM_GUILDIES_ONLY"],
-		desc = L["OPTIONS_ITEM_GUILDIES_ONLY_DESC"],
-		order = 36,
-		get = GetGuildiesOnly,
-		set = SetGuildiesOnly,
-	}
-	--[[
-		Shown whether or not the toggle is on, so the player can read which guild
-		this would mean before committing to it, and so clicking the box does not
-		reflow every row beneath it -- the same reason the amount rows gray their
-		number boxes instead of hiding them.
-	]]
-	args.descGuildiesOnly = { type = "description", name = GuildiesOnlyHelp, fontSize = "medium", order = 37 }
-	args.spaceGuildiesOnly = Spacer(38)
-
-	args.FactorLevel = {
-		type = "toggle",
-		width = "full",
-		name = L["OPTIONS_ITEM_FACTOR_LEVEL"],
-		desc = L["OPTIONS_ITEM_FACTOR_LEVEL_DESC"],
-		order = 39,
-		hidden = isBuiltIn,
-		get = GetFactorLevel,
-		set = SetFactorLevel,
-	}
-
-	--[[
-		Hides with the toggle above it. ns.OptionsSpacer takes no `hidden`, so a gated
-		spacer is inlined: left showing on a built-in collection it would be the only
-		thing between the header and the next toggle.
-	]]
-	args.spaceFactorLevel = { type = "description", name = " ", order = 40, hidden = isBuiltIn }
-
-	args.IncludeQuantity = {
-		type = "toggle",
-		width = "full",
-		name = L["OPTIONS_ITEM_INCLUDE_QUANTITY"],
-		desc = L["OPTIONS_ITEM_INCLUDE_QUANTITY_DESC"],
-		order = 41,
-		get = GetIncludeQuantity,
-		set = SetIncludeQuantity,
-	}
-
-	args.spaceClasses0 = Spacer(42)
-	args.descClasses = Desc(L["OPTIONS_ITEM_PLAYER_CLASSES_DESC"], 43)
-	args.spaceClasses1 = Spacer(44)
+	args.descClasses = Desc(L["OPTIONS_ITEM_PLAYER_CLASSES_DESC"], 36)
+	args.spaceClasses = Spacer(37)
 
 	local classArgs = {}
 	for index, class in ipairs(GetSortedClasses()) do
@@ -658,17 +604,68 @@ local function AddItemSettings(args, itemKey, itemConfig)
 		type = "group",
 		name = L["OPTIONS_ITEM_PLAYER_CLASSES"],
 		inline = true,
-		order = 45,
+		order = 38,
 		args = classArgs,
+	}
+	args.spacePlayerClasses = Spacer(39)
+
+	--[[
+		The same kind of rule as Distribute read from the other end: that one is about
+		where the player is, this one about who is in front of them.
+	]]
+	args.GuildiesOnly = {
+		type = "toggle",
+		width = "full",
+		name = L["OPTIONS_ITEM_GUILDIES_ONLY"],
+		desc = L["OPTIONS_ITEM_GUILDIES_ONLY_DESC"],
+		order = 40,
+		get = GetGuildiesOnly,
+		set = SetGuildiesOnly,
+	}
+	--[[
+		Shown whether or not the toggle is on, so the player can read which guild
+		this would mean before committing to it, and so clicking the box does not
+		reflow every row beneath it -- the same reason the amount rows gray their
+		number boxes instead of hiding them.
+	]]
+	args.descGuildiesOnly = { type = "description", name = GuildiesOnlyHelp, fontSize = "medium", order = 41 }
+	args.spaceGuildiesOnly = Spacer(42)
+
+	-- Another rule about who is in front of the player, and it ships off, so it sits here rather than with the amounts.
+	args.rowPlayerCap =
+		AmountRow(43, "SessionCapEnabled", "SessionCap", "OPTIONS_ITEM_PLAYER_CAP", "OPTIONS_ITEM_PLAYER_CAP_DESC")
+	args.spacePlayerCap = Spacer(44)
+
+	args.FactorLevel = {
+		type = "toggle",
+		width = "full",
+		name = L["OPTIONS_ITEM_FACTOR_LEVEL"],
+		desc = L["OPTIONS_ITEM_FACTOR_LEVEL_DESC"],
+		order = 45,
+		hidden = isBuiltIn,
+		get = GetFactorLevel,
+		set = SetFactorLevel,
+	}
+
+	args.spaceFactorLevel = Spacer(46, isBuiltIn)
+
+	args.IncludeQuantity = {
+		type = "toggle",
+		width = "full",
+		name = L["OPTIONS_ITEM_INCLUDE_QUANTITY"],
+		desc = L["OPTIONS_ITEM_INCLUDE_QUANTITY_DESC"],
+		order = 47,
+		get = GetIncludeQuantity,
+		set = SetIncludeQuantity,
 	}
 
 	-- Built-in collections can't be removed (NoRemove), so they carry no button.
 	if not itemConfig.NoRemove then
-		args.spaceRemove = Spacer(46)
+		args.spaceRemove = Spacer(48)
 		args.remove = {
 			type = "execute",
 			name = L["OPTIONS_ITEM_REMOVE"],
-			order = 47,
+			order = 49,
 			confirm = true,
 			confirmText = L["OPTIONS_ITEM_REMOVE_CONFIRM"],
 			func = function()
@@ -684,6 +681,35 @@ local function AddItemSettings(args, itemKey, itemConfig)
 			end,
 		}
 	end
+end
+
+--------------------------------------------------------------------------------
+-- Item Status Line
+--------------------------------------------------------------------------------
+
+--[[
+	Why nothing of this item would go out, or nil when something would. Only the two
+	cases the page itself can fix: the item is off for the class being played, or
+	every amount is 0, which is how a newly added item starts.
+]]
+local function ItemStatus(itemKey)
+	local config = ns.db.profile.Items[itemKey]
+	if not config then
+		return nil
+	end
+	if not ns.IsItemActiveForPlayer(config) then
+		local className = UnitClass("player")
+		return format(L["OPTIONS_ITEM_STATUS_OTHER_CLASS"], className, className, L["OPTIONS_ITEM_PLAYER_CLASSES"])
+	end
+	for _, column in ipairs(SCOPE_COLUMNS) do
+		local counts = config[column.Key]
+		for _, class in ipairs(ns.CLASSES) do
+			if counts and (counts[class] or 0) > 0 then
+				return nil
+			end
+		end
+	end
+	return format(L["OPTIONS_ITEM_STATUS_ALL_ZERO"], L["OPTIONS_ITEM_EVERYONE"])
 end
 
 --------------------------------------------------------------------------------
@@ -703,9 +729,23 @@ local function BuildItemPanel(itemKey, itemConfig, order)
 	local args = BuildScopeTable(itemKey, maxCount)
 	AddItemSettings(args, itemKey, itemConfig)
 
+	local function NoStatus()
+		return ItemStatus(itemKey) == nil
+	end
+	args.status = {
+		type = "description",
+		name = function()
+			return GetColor("HELP") .. (ItemStatus(itemKey) or "") .. "|r"
+		end,
+		fontSize = "medium",
+		order = 0,
+		hidden = NoStatus,
+	}
+	args.spaceStatus = Spacer(0.5, NoStatus)
+
 	return {
 		type = "group",
-		name = ItemDisplayName(itemKey, itemConfig),
+		name = ItemDisplayName(itemKey),
 		order = order,
 		args = args,
 	}
@@ -748,14 +788,14 @@ local function NoAddableItems()
 end
 
 local function BuildAddItemPanel(order)
-	-- The picker is hidden when nothing qualifies, showing the empty notice instead. Spacers are inlined here because Spacer() has no `hidden`.
+	-- The picker is hidden when nothing qualifies, showing the empty notice instead.
 	return {
 		type = "group",
 		name = L["OPTIONS_ADD_ITEM"],
 		order = order,
 		args = {
 			desc = Desc(L["OPTIONS_ADD_DESC"], 1),
-			spaceSelect = { type = "description", name = " ", order = 2, hidden = NoAddableItems },
+			spaceSelect = Spacer(2, NoAddableItems),
 			-- Same label-beside-control row as Distribute, and the same pane width.
 			selectItemLabel = ns.OptionsRowLabel(L["OPTIONS_ADD_SELECT"], 3, PANEL_LABEL_WIDTH, NoAddableItems),
 			selectItem = {
@@ -774,7 +814,7 @@ local function BuildAddItemPanel(order)
 					selectedItemToAdd = value
 				end,
 			},
-			spaceAdd = { type = "description", name = " ", order = 5, hidden = NoAddableItems },
+			spaceAdd = Spacer(5, NoAddableItems),
 			--[[
 				A whole row wide. An execute with no width gets AceConfig's single
 				column, which is narrower than this button's own caption -- the label
@@ -796,10 +836,7 @@ local function BuildAddItemPanel(order)
 						return
 					end
 
-					local itemName, _, _, _, _, _, _, _, _, itemIcon = C_Item.GetItemInfo(id)
 					ns.db.profile.Items[id] = {
-						Name = itemName or ("Item " .. id),
-						Icon = itemIcon,
 						Distribute = "Always",
 						GuildiesOnly = false,
 						FactorLevel = false,
@@ -824,7 +861,7 @@ local function BuildAddItemPanel(order)
 					AceConfigDialog:SelectGroup(ns.OPTIONS_REGISTRY.DispensedItems, EncodeItemKey(id))
 				end,
 			},
-			spaceEmpty = { type = "description", name = " ", order = 7, hidden = HasAddableItems },
+			spaceEmpty = Spacer(7, HasAddableItems),
 			emptyNotice = {
 				type = "description",
 				fontSize = "medium",
@@ -867,7 +904,7 @@ local function BuildItemList()
 		end
 	end
 	table.sort(custom, function(a, b)
-		return (ns.GetItemConfigName(a.DBKey, a.Config) or "") < (ns.GetItemConfigName(b.DBKey, b.Config) or "")
+		return (ns.GetItemConfigName(a.DBKey) or "") < (ns.GetItemConfigName(b.DBKey) or "")
 	end)
 	for _, entry in ipairs(custom) do
 		table.insert(list, entry)
@@ -939,4 +976,26 @@ function ns.RebuildDispensedItemsOptions()
 	local appName = ns.OPTIONS_REGISTRY.DispensedItems
 	AceConfig:RegisterOptionsTable(appName, ns.BuildDispensedItemsOptions())
 	AceConfigRegistry:NotifyChange(appName)
+end
+
+--------------------------------------------------------------------------------
+-- Initialization
+--------------------------------------------------------------------------------
+
+-- Rebuilt rather than repainted: the tree is sorted by name, so a name arriving can move its entry.
+local function OnItemInfoReceived(_, itemId)
+	if not pendingNames[itemId] then
+		return
+	end
+	pendingNames[itemId] = nil
+	ns.RebuildDispensedItemsOptions()
+end
+
+-- Whether the tree is waiting on this item's name; the Diagnostic Tools event log keeps these firings and counts the rest.
+function ns.IsItemNamePending(itemId)
+	return pendingNames[itemId] ~= nil
+end
+
+function ns.InitDispensedItemsOptions()
+	ns.RegisterEvent("GET_ITEM_INFO_RECEIVED", OnItemInfoReceived)
 end

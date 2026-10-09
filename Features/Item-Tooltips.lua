@@ -10,16 +10,18 @@ local GetColor = ns.GetColor
 --[[
 	Appends one branded line to a carried bag item's tooltip when that item is set
 	to be given out, so the player can see what the add-on will hand over without
-	opening the panel. An item that stacks says so too while the post-trade tidy-up
-	is switched on, since that pass is what puts it back together.
+	opening the panel.
 
 	Read-only. Nothing here decides anything the fill does; it reports the same two
 	answers the fill reads, through the same helpers.
 
-	Two hook paths, because the tooltip API differs across the flavors we target.
-	A client with TooltipDataProcessor (Forever, and TBC Anniversary) takes the
-	post-call; Era has none, so there the live path is a hooksecurefunc on
-	GameTooltip:SetBagItem. Only one is ever active, so the line can never double up.
+	Two hook paths, picked by what GameTooltip itself does. Where it still has the
+	OnTooltipSetItem script (Era and TBC Anniversary) its setters never pass through
+	TooltipDataProcessor -- TBC ships that table, but its GameTooltip ignores it --
+	so the live path is a hooksecurefunc on GameTooltip:SetBagItem. Forever's Retail
+	engine has no such script and builds every tooltip through TooltipDataProcessor,
+	so it takes the post-call. Only one is ever active, so the line can never double
+	up.
 
 	Hooking the setter rather than the shared OnTooltipSetItem script is what keeps
 	the line: a heavy tooltip add-on that clears and re-fills the tooltip on
@@ -82,18 +84,7 @@ local function BuildLine(itemId)
 		return nil
 	end
 
-	--[[
-		Only a stacking item mentions the tidy-up, and only while it is armed: this is
-		a statement about what will happen to the player's bags, so it reads the same
-		RestackBags key CanRestack does rather than promising a pass that has been
-		switched off. A cold cache reads as non-stacking rather than guessing, since
-		the shorter line is true either way, where promising to combine stacks of
-		something that cannot stack is not.
-	]]
-	local _, _, _, _, _, _, _, maxStack = C_Item.GetItemInfo(itemId)
-	local stacked = maxStack and maxStack > 1 and ns.db.profile.RestackBags
-	local body = stacked and L["TOOLTIP_WILL_DISPENSE_STACKED"] or L["TOOLTIP_WILL_DISPENSE"]
-	return ns.BuildBrandedLine(GetColor("TEXT") .. body .. "|r")
+	return ns.BuildBrandedLine(GetColor("TEXT") .. L["TOOLTIP_WILL_DISPENSE"] .. "|r")
 end
 
 -- Adds the line under a blank spacer so it reads as a footer. True when something was added.
@@ -113,7 +104,7 @@ end
 
 -- Records the path taken in ns.bagTooltipPath, which the Diagnostic Tools context report prints.
 function ns.SetupItemTooltips()
-	if TooltipDataProcessor and TooltipDataProcessor.AddTooltipPostCall then
+	if not GameTooltip:HasScript("OnTooltipSetItem") then
 		--[[
 			Fires for every item tooltip, so gate it to carried bag slots. data.id is
 			the item ID (Enum.TooltipDataType.Item).

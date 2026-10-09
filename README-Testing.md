@@ -1,99 +1,25 @@
-# Water Dispenser // Manual Test Plan
+# Water Dispenser // Test Plan
 
-This is the manual test plan for Water Dispenser, the steps to confirm it works before a release is tagged. For what it does, see [README.md](https://github.com/Gogo1951/Water-Dispenser/blob/main/README.md); for how it works, see [README-Technical.md](https://github.com/Gogo1951/Water-Dispenser/blob/main/README-Technical.md).
+Water Dispenser fills the trade window with the water, food, healthstones and other items you set up to give. This time we most want you to try the new panel beside the trade window: its status line and its conjure buttons.
 
-## Before you start
+**Play on Classic Era, Season of Discovery, TBC Anniversary, and WoW Forever.** If something looks wrong, tell us the check number and what you saw on [Discord](https://discord.gg/eh8hKq992Q).
 
-**Run the whole list on each flavor in turn: Classic Era, Season of Discovery on the Classic Era client, TBC Anniversary, and WoW Forever.** Steps are numbered continuously so you can report "failed on step N."
+## What's New
 
-Gather these once on each flavor so you are not caught short mid-run:
+1. Open a trade and read the line under **Fill Trade Window**: it should say what went in, or why the window stayed empty.
+2. As a mage or warlock, open a trade with a lower-level player and click a conjure button under **Fill Trade Window**: it should make a rank they can use and drop it straight into the trade.
+3. As master looter in a dungeon or raid, open a trade: it should stay empty until you click **Fill Trade Window**.
+4. Turn on **Enable Maximum per Player** for an item and trade the same player past that amount: the item should stop going over, with a note in chat.
+5. Hover the mini-map button while carrying things to give: the tooltip should list what you can give right now.
+6. Hover a warlock in your group: their tooltip should show their Improved Healthstone rank, such as *Improved Healthstone 2/2*.
+7. Under **Dispensed Items**, set every amount on an item to 0: a line at the top of its page should say nothing goes out yet.
 
-- **A mage**, high enough to conjure water and food. Most steps use this character.
-- **A warlock**, able to create a healthstone, for the healthstone and diagnostics steps.
-- **A second player** running the add-on themselves, whom you can trade with, party with, and raid with. Several steps need a real trade window, and some need them leaving and rejoining your party or taking over as party leader.
-- **Trade partners of these shapes**, which the second player can cover by switching characters: a mana user who is not a mage or warlock (priest, paladin, druid, shaman, or hunter), a warrior or rogue, a mage, a warlock, and someone far below your level.
-- **Bags with room**, including at least two genuinely empty slots, which is where a split lands. On the mage, enough conjured water to carry 40 of your best rank at once, plus a few loose part-stacks.
-- **Two part-stacks of one potion that add up to five**, a 3 and a 2 in separate bag slots, not merged.
-- **A tradable item you have never configured**, such as a stack of cloth, for the tooltip and add-an-item steps.
-- **A bank you can reach**, for one hover in step 5.
-- **Four or more different giveable consumables** in bags, for the macro step.
-- **A free macro slot** on the character running the macro steps.
-- **Somewhere safe to fight**, a target dummy or an open-world mob, for the combat steps.
-- **Another add-on in the group that talks to the group behind the scenes**, such as a boss mod, a damage meter, or a quest-sharing add-on, for part of step 9. Optional: without one, that part has nothing to show.
-- **A non-English client**, only for the optional last step.
+## Everything Else
 
-Unless a step says otherwise you are out of combat, and the settings start where they ship.
-
-This plan covers the riskiest paths rather than every control. It deliberately skips the per-item **Distribute** dropdown, **Guildies Only**, **Factor in the Item's Required Level**, how **Enable Reserves** trims your player tooltip and the macro, **Include Quantity in Player Tooltip & Announcement Macro**, **Enable Maximum per Session**, the **Show Bag Tooltips for Dispensed Items** and **Share My Inventory** switches, hiding and showing the mini-map button, the Profiles panel, and the welcome-message toggle. Test those by hand if this release touched them.
-
-## Verify this release's changes
-
-This release adds WoW Forever as a third game client, gives each client its own add-on file and its own copy of the conjured item and spell lists, keeps the add-on steady on Forever in combat, where the game hides some details from add-ons, waits for a split to land before the trade carries on filling, opens the right page after you add or remove an item, and sharpens the Diagnostic Tools reports. These steps run first because they are the ones this release can have broken.
-
-**One add-on file per game client**
-
-**1.** On each client, open the **AddOns** list from the character-select screen. Water Dispenser must appear **once**, ticked, with its icon beside the name and no *Out of date* or *Incompatible* warning. WoW Forever has never had the add-on before, so check it there first. Failure is the add-on missing from a client's list, listed twice, flagged out of date, or shown with a blank or green square for its icon.
-
-**Each client's own item and spell lists**
-
-**2.** Open **Diagnostic Tools** and turn on **Enable Diagnostic Tools**. The **Validate Data** section's title and button must name the list this client loaded: `Era/Collections.lua` on Classic Era, `SoD/Collections.lua` on a Season of Discovery realm, `TBC/Collections.lua` on TBC Anniversary, and `Forever/Collections.lua` on WoW Forever. Press the button and let the count finish. The report's first line must end `Flavor Era // Data Era` on Classic Era, `Flavor Era // Data SoD` on Season of Discovery, `Flavor TBC // Data TBC` on TBC Anniversary, or `Flavor Forever // Data Forever` on WoW Forever, and its last line must read *"All 50 IDs resolved on this client."*, or 60 on TBC Anniversary, with no row flagged `NOT ON CLIENT` or `TABLE MISSING`. **Season of Discovery has never had this run**, so it is the likeliest to flag something. Failure is any flagged row (copy it into your report, with the flavor), a title naming another client's list, a `nil` in the first line, or a count that never finishes.
-
-**Announcement marker on WoW Forever**
-
-**3.** On the mage, carrying water to spare, open **Announcements** and read the **Live Preview**, then party up and click the `- Dispenser` macro. On Classic Era, Season of Discovery, and TBC Anniversary, the preview must start with `{rt6}` and the posted line with the blue square raid marker, followed by *Water Dispenser // I have ...*. On **WoW Forever**, which blocks raid markers in chat, both must start straight at *Water Dispenser // I have ...*, with no `{rt6}` and no marker, and the line must still post. Failure on Forever is a line that never reaches chat or shows a literal `{rt6}`; failure elsewhere is the marker missing.
-
-**Player and bag tooltips on every client**
-
-**4.** Party with your partner and hover yourself, then your partner, both in the world and on the party frames. Each tooltip must carry one **Water Dispenser // Open Trade!** line with the items to give listed beneath it, exactly once. Hover an NPC and a player outside your group: no block on either. **TBC Anniversary and WoW Forever** take a new route into the player tooltip this release, so give them the closest look. Failure is a missing block, the block printed twice, a block on an NPC or a stranger, or a Lua error on hover.
-
-**5.** On the mage, hover a stack of conjured water in your bags. The tooltip must end with one **Water Dispenser //** line reading *"This item will be dispensed. Partial stacks of it are combined when a trade closes."* Now hover the same water in two places that are not your bags: in your bank, and as a link you shift-click into chat. Neither may show the line, and neither may the item you have never configured. Failure is a missing line in your bags, the line twice, the line spilling past the bottom edge of the tooltip frame, or the line on the banked water, the chat link, or the unconfigured item.
-
-**Staying steady in combat on WoW Forever**
-
-**6.** Party with your partner and hover each other so both blocks show. Now fight a target dummy and, while still in combat: hover your partner, cast a few spells (conjure water on the mage), and have whoever leads the party hand leadership to the other. No block may draw while you are in combat, and no Lua error may appear at any point. Leave combat and, without either of you touching your bags, hover each other again: within a few seconds both blocks must be back. **WoW Forever is the flavor that breaks here**, since the game hides names and spell details from add-ons in combat there, but run the step on every flavor. Failure is any Lua error, a block drawn mid-fight, or a partner's block that never comes back after the fight.
-
-**Splits settle before the trade carries on**
-
-**7.** On **Conjured Water**, turn **Enable Reserves** off and set the **Everyone** row's **Strangers** box to `3`, then press **Apply**. Carry at least two full stacks of your best water plus a single loose one in a slot of its own (split one off another stack by hand), with two bag slots empty. Trade a stranger who drinks water and keep your hands off your bags: **one** trade slot holding exactly 3 must arrive by itself within a second or two, and the loose single must not go over. Close the window and repeat twice more, splitting off a fresh single if the post-trade tidy-up has absorbed it. **WoW Forever is the flavor to watch**: its bags take a moment to catch up after a split, and that gap is where the single went over in place of the 3. On Classic Era, where the game has been seen refusing a split, nothing arriving at all passes only if, with **Enable Warnings When You Run Short** on, chat then says this client would not split the stack. Failure is the single going over, 6 arriving in one slot, two slots arriving, the red *"Couldn't split those items"* error, or a window that only finishes filling once you move something in your bags.
-
-**Dispensed Items opens the right page**
-
-**8.** Open **Dispensed Items**, select **Add an Item**, pick the item you have never configured from **Available Items**, and click **Add to Dispensed Items**. The panel must jump straight to that item's own page, with every amount reading 0. Now click **Remove Item** on that page and confirm: the item must leave the list and the panel must land on **Add an Item**. Failure is the panel staying on Add an Item after adding, landing on Conjured Water or a blank page after removing, or the item still in the list.
-
-**Diagnostic Tools reports**
-
-**9.** Party with your partner, turn on **Enable Diagnostic Tools**, and press **Start Event Log**. Have your partner leave the party and rejoin, wait a few seconds, then press **Stop Event Log** and **Show Captured Events**. The group messages the add-on sends must appear as full lines containing `CHAT_MSG_ADDON(WaterDispenser, ...`. Traffic from any other add-on in the group must **not** appear as lines of its own: it is counted in one block at the very end headed *Suppressed (counted, not logged):*, one line per add-on with the biggest count first, like `CHAT_MSG_ADDON(BigWigs) x469`. Read that block rather than hunting through the log. On **WoW Forever**, run it once more with a fight against a target dummy in the middle: the log must still show, any detail the game hid reading `<secret>`, with no Lua error. Failure is another add-on's traffic logged line by line, Water Dispenser's own messages missing or only counted, or a Lua error.
-
-**10.** Still in **Diagnostic Tools**, press **Probe Trade Context** on the mage. Under *Spells*, **MageWater** and **MageFood** must each name the highest rank you have trained, **WarlockHealthstone** must read *none known*, and *Improved Healthstone rank sent to the group* must read *n/a*. On the warlock, **WarlockHealthstone** must name your best Create Healthstone rank, and *Improved Healthstone rank sent to the group* must match the **Healthstone (Rank N/2)** row your partner sees on your tooltip. At the bottom, **Unit tooltip hook** and **Bag tooltip hook** must each name a route, never *not hooked*. Then press **Test WoW API Endpoints**: a `FAIL` is allowed only on a line marked *modern tooltip path* or *fallback ... tooltip path*, and only for the route the hook lines did **not** name (Classic Era names the fallback routes, WoW Forever the modern one). Finally press **List Installed Add-ons**: Water Dispenser must read `[loaded]`, and an add-on you have disabled must read `[not loaded]` with its reason beside it. Failure is `TABLE MISSING`, a rank you have not trained or one below your best, a talent rank that disagrees with your tooltip, *not hooked*, any other `FAIL`, or Water Dispenser listed as not loaded.
-
-When steps 1-10 pass on every flavor, this release's changes are verified. Proceed to `4 - Pre-Launch Review Prompt.md`.
-
-## Core checks
-
-**11.** Log in with the add-on freshly enabled. No Lua error may appear, and a single greeting line must print naming the version. Type `/reload`: it must come back the same way, one greeting and no error. On **WoW Forever**, also confirm the mini-map button is on screen: a problem partway through loading there can leave the greeting printed and the rest of the add-on missing. Failure is an error on login or reload, no message, a doubled message, a version reading as a literal `%s`, or a missing mini-map button.
-
-**12.** Type `/wd`. The settings must appear **docked inside the Blizzard Options window**, with Water Dispenser selected in the category list and six children beneath it: **Dispense**, **Dispensed Items**, **Announcements**, **Inventory Tooltips**, **Profiles**, **Diagnostic Tools**, in that order. Close it and reach the same panel two more ways: Shift + Middle-Click on the mini-map button, and clicking Water Dispenser in the Options category list yourself. All three must land on the same docked panel, and each child must open its own page. Failure is nothing happening at all, a standalone window floating free of the Options frame, or a child missing or out of order. **TBC Anniversary is the flavor that historically breaks this**, so an Era-only run has not tested it.
-
-**13.** Get into combat, then type `/wd`, then Shift + Middle-Click the mini-map button. Each must print *"As a safety precaution, the Options Interface cannot be opened during combat."* and the panel must stay shut. Leave combat and wait: it must not open by itself. Failure is the panel opening, silence with no message, or a red `ADDON_ACTION_BLOCKED` error naming the add-on.
-
-**14.** Hover the mini-map button. The tooltip must show the add-on name and version, a **Dispense** row with its current state, the line *"Automatically fills the trade window when a trade opens, based on your settings."*, a **Left-Click** / **Toggle** row, and the **Shift + Middle-Click** hint at the bottom. Left-Click it: the Dispense state must flip **while you are still hovering**. Open the **Dispense** panel, whose first line must read the same as that tooltip line, and Left-Click the button again: **Enable Dispense** on the open page must flip to match, with the toggles under it appearing or disappearing at the same moment. Failure is a missing tooltip line, a state that only updates once you move away and back, or a panel still showing the old state until you switch pages.
-
-**15.** With **Enable Dispense** on, trade someone who is not in your group. The right consumables must drop into the window on their own. Turn **Enable for Strangers** off and trade them again: nothing must be added. Party up and check **Enable for Party** the same way, then convert to a raid and check **Enable for Raid**, where the defaults must hand over 40 water instead of 20. Failure is a window that fills with its toggle off, stays empty with it on, or uses party amounts in a raid.
-
-**16.** Trade one partner of each shape and check what arrives: a mana user who is not a mage or warlock must get water and food; a warrior or rogue must get food and **no** water; as a mage, another mage must get neither; as a warlock, another warlock must get no healthstone. Then trade the partner far below your level: the water and food handed over must be a rank they can actually use, so check the item tooltips against their level. Failure is any of those getting the wrong list, or your top-rank water going to someone too low to drink it. **Check this on every flavor**: TBC Anniversary has conjured ranks and healthstone tiers the others do not, so confirm the rank handed over is one that exists on the client you are on.
-
-**17.** Add the potion you are carrying as a 3 and a 2, set its **Everyone** row's **Strangers** box to `5`, and press **Apply**. Trade someone outside your group. **One** trade slot holding 5 must go over, the two part-stacks having been combined in your bags first, and your bags must be left holding none of that potion. Failure is two trade slots of 3 and 2, or only one of the part-stacks going over. Then fill every bag slot so a split has nowhere to land and ask for an amount that needs one, 5 water while carrying only a full stack of 20: nothing may be lost, nothing may be left stuck to your cursor, and no Lua error may appear, with a *Missing:* line naming conjured water the expected outcome when warnings are on.
-
-**18.** With a trade open, click **Clear Trade Window** on the side panel beside the trade frame. Every slot you filled must empty, with nothing left on your cursor. Click **Fill Trade Window**: it must repopulate with the same amounts. Now get into combat with the trade window open and click **Fill Trade Window** again: a chat line must say the game blocks automated trades during combat, and nothing may enter the window then or once the fight ends. While still in combat with the window open, conjure water on the mage: nothing may be added and no Lua error may appear, **WoW Forever** especially, since it hides your casts from add-ons in combat. Turn **Enable Notifications When Dispensing Is Blocked** off and try the blocked fill once more: it must stay completely silent. Failure is items staying put on a clear, an item stuck to your cursor, anything filling mid-combat, a blocked fill landing after combat, a message with the notification off, or a Lua error.
-
-**19.** On the mage, out of combat, open a trade and conjure water. Within about a second the water that cast produced must appear in the trade window, and a small part-stack is the correct result: a mid-trade cast deliberately ignores your reserve, your session cap, and the per-class amounts. Cast two or three more times, and each must add its own part-stack with nothing merging them while the window is open. Repeat once with conjured food, and once on the warlock with a healthstone. Failure is a cast adding nothing, the same stack being offered twice, or a Lua error once all six slots are full.
-
-**20.** On the mage, with no trade open, make a row of loose part-stacks of conjured water by splitting stacks by hand into empty slots. Watch your bags for ten seconds: they must **stay** as separate part-stacks. Open a trade with your partner and close it without trading: within about a second the part-stacks must pull together into full stacks, leaving at most one partial behind, and everything must be still within two or three seconds. Split a few part-stacks off again, open a trade, pick a stack up onto your cursor, and close the trade while still holding it: nothing may merge, and the item must stay on your cursor. Failure is stacks merging while you stand idle, nothing happening after a trade closes, bags still shuffling ten seconds later, or the held item leaving your cursor.
-
-**21.** Under **Announcements**, turn **Enable Announcement Macro** on and drag the `- Dispenser` macro to your action bar. With exactly one giveable item in your bags, click it: the message must read as one complete sentence, with the item as a working link you can shift-click and hover. Now carry four or more different giveable consumables and click again: the message must end in ` ...` with the last item complete, never a half-rendered link, a stray `|`, or a name cut mid-word. Check the **Live Preview** on the panel against what actually posted, and check the channel: Say when ungrouped, Party in a party, Raid in a raid. Failure is a dangling fragment, a literal `%s`, a broken link, a message that fails to send, a preview that disagrees, or the wrong channel.
-
-**22.** Log out and back in, then open **Diagnostic Tools**. **Enable Diagnostic Tools** must be **off**, with everything below it hidden. Turn it on, press **Start Event Log**, open and close a trade, press **Stop Event Log**, then **Show Captured Events**: the trade's events must still be listed after stopping, and where the report ends in a *Suppressed* block, read that block rather than hunting individual lines. Then press **Test Event Registration**, **Dump Saved Variables**, and **List Library Versions**, and each must fill its box. Finally switch **Enable Diagnostic Tools** off and back on: every output box must be empty again, with the event log reading as nothing captured. Failure is the toggle remembering being on from a previous session, a box left empty when you first press its button, an old report still showing after the switch off and on, or a `FAIL` line in Event Registration. Note which one, and on which flavor.
-
-**23.** *(Optional, and only on a non-English client.)* Log in on another locale, open the settings, trigger the welcome message, hover a bag item set to be dispensed, and click the announcement macro. Every label and message must read in that language with no raw keys like `OPTIONS_BAG_TOOLTIPS` or `TOOLTIP_WILL_DISPENSE_STACKED` showing through, and no literal `%s`, `nil`, or number in the wrong place. Try **Russian** in particular: it is the longest locale here and the first to overflow the macro's limit, so its message must still end cleanly in ` ...` with the last item whole. Failure is a raw key, a broken placeholder, or a Russian message that fails to send.
-
-When every step passes on Classic Era, Season of Discovery, TBC Anniversary, and WoW Forever, manual testing is complete. Proceed to `4 - Pre-Launch Review Prompt.md`.
+8. Trade a stranger, a party member and a raid member: each should get the right items, with 40 water in a raid instead of 20.
+9. Trade a warrior or rogue, then a much lower-level player: the warrior or rogue gets food but no water, and the low-level player gets water they can drink.
+10. As a mage, conjure water with a trade open: the new water should go straight into the window.
+11. Hover a group member who runs the add-on: their tooltip should list what they have to give.
+12. Turn on the `- Dispenser` macro under **Announcements** and click it: it should post your leftovers to Say, Party or Raid with clickable item links.
+13. Type `/wd`, then Shift + Middle-Click the mini-map button, first out of combat and then in combat: the options should open only out of combat.
+14. On WoW Forever, fight something while hovering group members and conjuring with a trade open: no errors, and the tooltips come back once the fight ends.
