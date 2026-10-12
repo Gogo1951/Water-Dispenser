@@ -5,16 +5,16 @@
 ## Exceptions
 
 ### Mini-map Dispense Report
+
 - **Departs from:** MINIMAP BUTTON → Tooltip Structure, the feature blocks followed directly by the options block.
 - **Instead:** a Dispense Report section between the Dispense block and the options block lists what the player can give right now, each item's icon and name with its amount, and is left out when there is nothing to give.
 - **Why:** how much a dispenser has left to give is the question its button is hovered for.
 
 ## Decisions
 
-- Group inventory sharing ships with both toggles on — Show Inventory in Player Tooltips and Share My Inventory (`ShareInventory`) — so hovering a groupmate shows what they have to give. Share My Inventory is gated by Show Inventory in Player Tooltips; the broadcast travels on the add-on channel to the player's own party or raid only, never posts to chat, carries just the configured giveaway items and their counts, and the panel carries the off switch.
-- Combine Partial Stacks After a Trade (`RestackBags`) ships on by default as a sub-option of Enable Dispense: conjured water and food land in a fresh bag slot on every cast and the game never merges them, so without it the dispenser regularly has no full stack to hand over. It runs on `TRADE_CLOSED` and nothing else, never off a bag event, touches only the add-on's own configured items, and stands down in combat and with anything on the cursor.
+- Show Inventory in Player Tooltips and Share My Inventory ship on, so hovering a groupmate shows what they have to give; the broadcast goes on the add-on channel to the player's own party or raid only, carrying just the configured giveaway items and counts.
+- Combine Partial Stacks After a Trade ships on, as a sub-option of Enable Dispense, because the game never merges fresh conjured stacks; it runs on `TRADE_CLOSED` alone and touches only the add-on's configured items.
 - The announcement macro defaults on and is created silently, with no "macro is ready" print.
-- The AceDB conversion shipped with no migration bridge, so a pre-conversion mini-map position and reserve amount fall back to defaults; no bridge is added for it.
 - Conjuring during an open trade places the slot the new items landed in straight into the trade window, partial or not, with no restack step and no reserve, session-cap or per-class check on that slot; there is no restack or full-stack wait.
 - The default 20-water reserve on Conjured Water stays.
 - The announcement macro and the player tooltip count only the best rank of a conjured collection on hand, while a trade cascades to lower ranks when the best runs short; giveable ranks are never summed.
