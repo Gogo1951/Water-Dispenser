@@ -4,9 +4,9 @@ Effortless consumable distribution. Auto-fill trade windows with conjured water,
 
 **TL;DR**: For the mage or warlock the whole raid lines up to trade. Stop counting stacks and digging through bags, just open the trade and it's already filled.
 
-## Features
+<img width="800" src="https://github.com/user-attachments/assets/c147d00f-a753-4e08-b316-94735f276b8d" />
 
-🎯 **Right Item, Right Amount** // Every trade gets the best water, food, or healthstone your partner can actually use, counted to the single item.
+## Features
 
 ⚙️ **Your Rules, Your Stash** // Pick how much each class gets, and keep a reserve so you never trade away your own last stack.
 
@@ -35,20 +35,17 @@ Effortless consumable distribution. Auto-fill trade windows with conjured water,
 | Food        | Mage        | 20 / 20 / 40 to everyone but mages |
 | Healthstone | Warlock     | 1 to everyone but warlocks         |
 
-* Amounts are single items, so 20 is one conjured stack.
-* Mages keep 20 water for themselves out of the box.
+* Counts are single items, so 20 is one conjured stack. Mages keep 20 water for themselves.
 
 ### In the Trade Window
 
-* **Fill** and **Clear** buttons sit beside the trade, so you can redo it by hand anytime.
-* A short line tells you what went in, or why nothing did.
-* **Conjure** buttons cast the best rank your partner can use. A level 38 hunter gets Mineral Water, not water they can't drink yet.
-* Loose conjured stacks get combined after each trade.
+* **Fill** and **Clear** buttons let you redo any trade by hand.
+* **Conjure** buttons make the best rank your partner can use, so a level 38 hunter gets Mineral Water.
+* A short line says what went in, or why nothing did.
 
 ### Seeing What Everyone Has
 
-* Hover a party or raid member to see what they're carrying to give out, including a warlock's Improved Healthstone rank.
-* Click the `- Dispenser` macro to post your leftovers to Say, Party, or Raid, with shift-clickable item links.
+Hover a groupmate to see what they can give out, or click the `- Dispenser` macro to post your leftovers to Say, Party, or Raid.
 
 <img width="300" src="https://github.com/user-attachments/assets/6771d79f-8415-4fff-8731-06f095c2bbee" />
 
@@ -117,23 +114,24 @@ Effortless consumable distribution. Auto-fill trade windows with conjured water,
 
 ### 🟢 Pairs With
 
-* Gogo1951's [Connoisseur & Restocker](https://www.curseforge.com/wow/addons/consumable-connoisseur)
-* kakaroch's [EatTheStone TBC](https://www.curseforge.com/wow/addons/eatthestone-tbc)
+* artscout375's [Broker_Portals](https://www.curseforge.com/wow/addons/broker-portals)
+* Gogo1951's [Connoisseur & Restocker](https://www.curseforge.com/wow/addons/connoisseur-restocker)
+* Venomisto's [Nova Consumes Helper](https://www.curseforge.com/wow/addons/nova-consumes-helper)
 * Gogo1951's [Play It Forward](https://www.curseforge.com/wow/addons/play-it-forward)
-* 0x29a's [Portal Pro](https://www.curseforge.com/wow/addons/portal-pro)
+* Vampyr7887's [Portal Mage](https://www.curseforge.com/wow/addons/portal-mage)
 
 ### 🟡 Overlaps
 
-* shimoro's [MageAssistant](https://www.curseforge.com/wow/addons/mage-assist)
 * afrugalpenguin's [MageTools](https://www.curseforge.com/wow/addons/magetools)
 * lanscetre's [Necrosis all version](https://www.curseforge.com/wow/addons/necrosis-tbc-classic-bcc-for)
 * Shadrizz's [Necrosis TBC Anniversary](https://www.curseforge.com/wow/addons/necrosis-tbc-anniversary)
+* Vatik's [Shard Grid](https://www.curseforge.com/wow/addons/shard-grid)
 * luvaboyy's [Thic-Portals](https://www.curseforge.com/wow/addons/thic-portals-your-portal-shop-helper)
 
 ### 🔴 Alternatives
 
+* Vatik's [Conjurer](https://www.curseforge.com/wow/addons/conjurer)
 * Loyftwa's [ForeverConsumables](https://www.curseforge.com/wow/addons/foreverconsumables)
 * HazeSuite's [HazeWaterBoy](https://www.curseforge.com/wow/addons/hazewaterboy)
-* Codermik's [tradeDispenser](https://www.curseforge.com/wow/addons/tradedispenser)
-* haagnus's [TradeFill](https://addons.wago.io/addons/tradefill)
+* Mafkees's [TradeFill](https://www.curseforge.com/wow/addons/tradefill)
 * enshadowed\_'s [Water Dispenser BCC](https://www.curseforge.com/wow/addons/water-dispenser-bcc)
