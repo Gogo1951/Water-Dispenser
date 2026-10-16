@@ -6,9 +6,9 @@ body:
   - type: markdown
     attributes:
       value: |
-        > 🙌 **Thanks for taking the time to help improve this add-on!**
+        > 💖 **Thanks for helping make this add-on better!**
         >
-        > What you put in shapes what comes out: a clear, detailed write-up lets us work through it quickly without a lot of back-and-forth. And if you'd like to fix it yourself, pull requests are always welcome. Thanks!
+        > The more details you share, the easier it is to track down bugs and get them fixed. A little clarity goes a long way! Pull requests are always welcome, too.
 
   - type: textarea
     id: your-request
