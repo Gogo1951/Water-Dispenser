@@ -6,7 +6,9 @@ body:
   - type: markdown
     attributes:
       value: |
-        Have a suggestion for something new, an idea to change something that exists, or feedback on how things are working? This is the place. Just three quick fields, all required.
+        > 🙌 **Thanks for taking the time to help improve this add-on!**
+        >
+        > What you put in shapes what comes out: a clear, detailed write-up lets us work through it quickly without a lot of back-and-forth. And if you'd like to fix it yourself, pull requests are always welcome. Thanks!
 
   - type: textarea
     id: your-request
