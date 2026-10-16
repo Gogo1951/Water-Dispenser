@@ -135,9 +135,13 @@ function ns.InitMinimap()
 		return
 	end
 	LDBIcon:Register(ns.LOCALE_NAME, ldbObject, ns.db.profile.minimap)
-	if ns.FLAVOR == "Camelot" or ns.FLAVOR == "Mainline" then
-		LDBIcon:SetButtonIcon(ns.LOCALE_NAME, nil, 20, "CENTER", 1, -0.35)
-		local button = LDBIcon:GetMinimapButton(ns.LOCALE_NAME)
+	-- Fitted by hand, not SetButtonIcon: its ResetButtonIcon calls icon:UpdateCoord(),
+	-- which errors when another add-on has replaced the button's icon.
+	local button = LDBIcon:GetMinimapButton(ns.LOCALE_NAME)
+	if (ns.FLAVOR == "Camelot" or ns.FLAVOR == "Mainline") and button and button.icon then
+		button.icon:SetSize(20, 20)
+		button.icon:ClearAllPoints()
+		button.icon:SetPoint("CENTER", 1, -0.35)
 		local mask = button:CreateMaskTexture()
 		mask:SetTexture(130924, "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE") -- Interface\CharacterFrame\TempPortraitAlphaMask
 		mask:SetAllPoints(button.icon)
