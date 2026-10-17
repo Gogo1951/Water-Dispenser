@@ -19,9 +19,9 @@ local GetColor = ns.GetColor
     rebuilds it and the toggle takes effect on the next one.
 
     Run Tests holds the live tools: the Event Log, the Taint Log, and pointers
-    to the game's own tools and Funkeh's. Settings, Code, Data and Localization each
-    have a Run All, a row per report, and one box that shows whatever ran last on that
-    tab. The runner lives in Diagnostics/Report-Runner.lua; everything here reads
+    to the game's own tools and Funkeh's. Settings, Code, Data and Localization
+    each have a Run All, a row per report, and one box that shows whatever ran
+    last on that tab. The runner lives in Diagnostics/Report-Runner.lua; everything here reads
     ns.diagnostics as it draws, and the runner repaints the panel as it goes.
 ]]
 
@@ -45,7 +45,7 @@ end
     Row budgets. AceGUI's TabGroup insets its pane 60px narrower than a plain
     panel's, and a titled box (an inline group with a name) insets another
     20px, so rows here spend less than ns.OPTIONS_ROW_WIDTH. Each budget keeps a
-    little slack under what fits, for the reason ns.OptionsSubRow gives: a row
+    little slack under what fits: a row
     summing exactly to the pane sits on the wrap boundary and can drop its last
     control onto a line of its own.
 ]]
@@ -82,8 +82,9 @@ local function Box(name, order, args)
 end
 
 --[[
-    One line of cells in an unnamed inline group, so it pins its own row (see
-    ns.OptionsSubRow): a label on the left, its controls on the right. Each
+    One line of cells in an unnamed inline group, which AceGUI always gives a
+    line to itself, so it pins its own row: a label on the left, its controls
+    on the right. Each
     cell's order is set here.
 ]]
 local function Row(order, cells)
@@ -149,15 +150,23 @@ local function NoEventLogReport()
 	return ns.diagnostics.eventLogReport == nil
 end
 
+-- A CHAT_MSG_* event puts message bodies, whispers included, into the log.
+local function LogsChat()
+	for _, event in ipairs(ns.EVENT_NAMES or {}) do
+		if string.sub(event, 1, 9) == "CHAT_MSG_" then
+			return true
+		end
+	end
+	return false
+end
+
 local function BuildEventLogBox(order)
 	return Box(D.EVENT_LOG_TITLE, order, {
 		descIntro = HelpDesc(
 			D.EVENT_LOG_EXAMPLES and (D.EVENT_LOG_INTRO .. " " .. D.EVENT_LOG_EXAMPLES) or D.EVENT_LOG_INTRO,
 			1
 		),
-		-- Set by an add-on whose log carries other players' words or names, such as one registering CHAT_MSG_* events.
-		descPrivacy = D.EVENT_LOG_PRIVACY and HelpDesc(D.EVENT_LOG_PRIVACY, 2) or nil,
-		rowControls = Row(3, {
+		rowControls = Row(2, {
 			Desc(EventLogState, nil, nil, BOX_ROW_WIDTH - 3 * LOG_BUTTON_WIDTH - ROW_SLACK),
 			Button(D.EVENT_LOG_START, D.EVENT_LOG_START_DESCRIPTION, LOG_BUTTON_WIDTH, function()
 				ns:StartEventLog()
@@ -178,8 +187,9 @@ local function BuildEventLogBox(order)
 		}),
 		outputEventLog = ReportOutput(function()
 			return ns.diagnostics.eventLogReport
-		end, 4, 8, NoEventLogReport),
-		descCopy = HelpDesc(D.COPY_HINT, 5, NoEventLogReport),
+		end, 3, 8, NoEventLogReport),
+		descCopy = HelpDesc(D.COPY_HINT, 4, NoEventLogReport),
+		descPrivacy = LogsChat() and HelpDesc(D.EVENT_LOG_PRIVACY, 5) or nil,
 	})
 end
 
@@ -197,7 +207,7 @@ local function BuildTaintBox(order)
 				ns:SetTaintLog(true)
 				Refresh()
 			end, function()
-				return ns:GetTaintLogState() > 0
+				return ns:GetTaintLogState() >= 2
 			end),
 			Button(D.TAINT_OFF, D.TAINT_OFF_DESCRIPTION, TAINT_BUTTON_WIDTH, function()
 				ns:SetTaintLog(false)
@@ -249,7 +259,7 @@ end
 local SECTION_TEXT = {
 	settings = { tab = D.TAB_SETTINGS, intro = D.SETTINGS_INTRO, runAll = D.SETTINGS_RUN_ALL },
 	code = { tab = D.TAB_CODE, intro = D.CODE_INTRO, runAll = D.CODE_RUN_ALL },
-	data = { tab = D.TAB_DATA, intro = D.DATA_INTRO, runAll = D.DATA_RUN_ALL, hint = D.VALIDATE_HINT },
+	data = { tab = D.TAB_DATA, intro = D.DATA_INTRO, runAll = D.DATA_RUN_ALL },
 	localization = { tab = D.TAB_LOCALIZATION, intro = D.LOCALIZATION_INTRO, runAll = D.LOCALIZATION_RUN_ALL },
 }
 
@@ -369,9 +379,6 @@ local function BuildSectionGroup(section, order)
 
 	for index, id in ipairs(section.reports) do
 		args["row" .. index] = ReportRow(section, id, 6 + index)
-	end
-	if text.hint then
-		args.descHint = HelpDesc(text.hint, 53)
 	end
 
 	return { type = "group", name = text.tab, order = order, args = args }

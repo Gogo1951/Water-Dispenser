@@ -8,12 +8,8 @@ local GetClientHeader = ns.GetDiagnosticClientHeader
 
 --[[
     Answers "the mini-map button is gone / off-screen" reports: screen size, UI
-    scale, and the button's saved placement. Read-only. Which button, and which
-    settings table holds its placement, come from the add-on's own
-    ns.DIAGNOSTIC_MINIMAP manifest: name is its LibDBIcon name, settings returns
-    the table handed to LibDBIcon, and savedPath the keys that reach that table
-    inside the SavedVariables global, so the report reads whichever scope and
-    identity the add-on uses.
+    scale, and the button's saved placement. Read-only. The button is registered
+    with LibDBIcon under ns.LOCALE_NAME, and its placement lives in the profile.
 ]]
 function ns:BuildDisplayContextReport()
 	local lines = { GetClientHeader(), "" }
@@ -23,34 +19,32 @@ function ns:BuildDisplayContextReport()
 	lines[#lines + 1] = string.format("UIParent scale: %s", tostring(UIParent and UIParent:GetScale()))
 	lines[#lines + 1] = string.format("uiScale CVar: %s", tostring(GetCVar("uiScale")))
 
-	local manifest = ns.DIAGNOSTIC_MINIMAP
-	if not manifest then
-		return table.concat(lines, "\n")
-	end
-
 	lines[#lines + 1] = ""
+	local LDB = LibStub("LibDataBroker-1.1", true)
 	local LibDBIcon = LibStub("LibDBIcon-1.0")
-	local button = LibDBIcon:GetMinimapButton(manifest.name)
+	local button = LibDBIcon:GetMinimapButton(ns.LOCALE_NAME)
+	-- Without the data object, login never registers a button.
 	lines[#lines + 1] = string.format(
-		"Mini-map button %s registered: %s",
-		manifest.name,
-		tostring(LibDBIcon:IsRegistered(manifest.name))
+		"Data broker object: %s",
+		(LDB and LDB:GetDataObjectByName(ns.LOCALE_NAME)) and "present" or "MISSING"
 	)
-	lines[#lines + 1] = string.format("Mini-map button created: %s", button and "yes" or "no")
+	lines[#lines + 1] = string.format("Minimap button registered: %s", tostring(LibDBIcon:IsRegistered(ns.LOCALE_NAME)))
+	lines[#lines + 1] = string.format("Minimap button created: %s", button and "yes" or "no")
 
-	local minimap = manifest.settings()
+	local minimap = ns.db and ns.db.profile.minimap
 	if type(minimap) == "table" then
-		lines[#lines + 1] = string.format("Mini-map button hidden: %s", tostring(minimap.hide or false))
-		lines[#lines + 1] = string.format("Mini-map saved angle: %s", tostring(minimap.minimapPos))
+		lines[#lines + 1] = string.format("Minimap button hidden: %s", tostring(minimap.hide or false))
+		lines[#lines + 1] = string.format("Minimap saved angle: %s", tostring(minimap.minimapPos))
 	else
-		lines[#lines + 1] = "Mini-map saved position: (none yet)"
+		lines[#lines + 1] = "Minimap saved position: (none yet)"
 	end
 
 	--[[
 	    Where a dragged position lives, link by link: LibDBIcon's drag handler
 	    computes the angle with math.atan2 every frame and writes it into the
 	    button's db, which has to be the very table AceDB saves, and the raw
-	    SavedVariables value is what the client writes at logout.
+	    SavedVariables value is what the client writes at logout. A profile
+	    switch re-points the button at the new profile's table (ns:ApplyProfile).
 	]]
 	lines[#lines + 1] = ""
 	lines[#lines + 1] = string.format("math.atan2 present: %s", tostring(type(math.atan2) == "function"))
@@ -58,21 +52,21 @@ function ns:BuildDisplayContextReport()
 	if button then
 		lines[#lines + 1] = string.format("Button db present: %s", tostring(button.db ~= nil))
 		lines[#lines + 1] = string.format(
-			"Button db is the add-on's settings table: %s",
+			"Button db is ns.db.profile.minimap: %s",
 			tostring(button.db ~= nil and minimap ~= nil and button.db == minimap)
 		)
 		lines[#lines + 1] = string.format("Button db.minimapPos: %s", tostring(button.db and button.db.minimapPos))
 	end
-	local value = _G[ns.SAVED_VARIABLES_NAME]
-	local path = { ns.SAVED_VARIABLES_NAME }
-	for _, key in ipairs(manifest.savedPath()) do
-		path[#path + 1] = tostring(key)
-		value = type(value) == "table" and value[key] or nil
-	end
+	local profileName = ns.db and ns.db:GetCurrentProfile()
+	local saved = _G[ns.SAVED_VARIABLES_NAME]
+	local profiles = type(saved) == "table" and saved.profiles
+	local savedProfile = type(profiles) == "table" and profileName and profiles[profileName]
+	local savedMinimap = type(savedProfile) == "table" and savedProfile.minimap
 	lines[#lines + 1] = string.format(
-		"%s.minimapPos: %s",
-		table.concat(path, "."),
-		tostring(type(value) == "table" and value.minimapPos or nil)
+		"%s.profiles[%s].minimap.minimapPos: %s",
+		ns.SAVED_VARIABLES_NAME,
+		tostring(profileName),
+		tostring(type(savedMinimap) == "table" and savedMinimap.minimapPos or nil)
 	)
 
 	return table.concat(lines, "\n")
@@ -124,7 +118,8 @@ end
 --[[
     Dumps the single AceDB-managed table (profiles, profileKeys, char, global)
     so a player can paste their exact configuration: every setting in each
-    profile, and every Protect List and Erase List row in both scopes.
+    profile, every Dispensed Items row with its per-class counts, and the
+    mini-map button's placement.
 ]]
 function ns:BuildSavedVariablesReport()
 	local lines = { GetClientHeader(), "", ns.SAVED_VARIABLES_NAME .. " = {" }

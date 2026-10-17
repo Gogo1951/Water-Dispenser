@@ -16,9 +16,12 @@ local STATUS_OK = ns.DIAGNOSTIC_STATUS_OK
     ns.DIAGNOSTIC_DATA_SOURCES, so a new data file reaches every list by its
     manifest row alone.
 
-    note, where a report has one, turns its text into the few words its status
-    row shows. API Endpoints has none on purpose: a [FAIL] on one half of a
-    modern/legacy pair is the report working, so counting them would cry wolf.
+    A report either builds its text at once (build) or runs over several frames
+    (start, handed a callback taking the text, its note and any problem, with
+    stop to cancel it). note, where a built report has one, turns its text into
+    the few words its status row shows. API Endpoints has none on purpose: a
+    [FAIL] on one half of a modern/legacy pair is the report working, so
+    counting them would cry wolf.
 ]]
 local D = ns.DiagnosticsStrings
 
@@ -28,6 +31,25 @@ local function EventsNote(text)
 		return D.EVENTS_ALL_PASS
 	end
 	return string.format(D.EVENTS_SOME_FAIL, failures)
+end
+
+-- A data report's status note: OK first, then every other STATUS alphabetically, each with its count.
+local function DataNote(counts)
+	local parts = {}
+	if counts[STATUS_OK] then
+		parts[1] = ns:FormatCommaNumber(counts[STATUS_OK]) .. " " .. STATUS_OK
+	end
+	local others = {}
+	for status in pairs(counts) do
+		if status ~= STATUS_OK then
+			others[#others + 1] = status
+		end
+	end
+	table.sort(others)
+	for _, status in ipairs(others) do
+		parts[#parts + 1] = ns:FormatCommaNumber(counts[status]) .. " " .. tostring(status)
+	end
+	return parts[1] and table.concat(parts, ", ") or nil
 end
 
 ns.DIAGNOSTIC_REPORTS = {
@@ -95,6 +117,13 @@ ns.DIAGNOSTIC_REPORTS = {
 			return ns:RunApiChecks()
 		end,
 	},
+	libs = {
+		title = D.LIBS_TITLE,
+		description = D.LIBS_DESCRIPTION,
+		build = function()
+			return ns:BuildLibraryReport()
+		end,
+	},
 	locale = {
 		title = D.LOCALE_TITLE,
 		description = D.LOCALE_DESCRIPTION,
@@ -106,24 +135,17 @@ ns.DIAGNOSTIC_REPORTS = {
 		title = D.NAMES_TITLE,
 		description = D.NAMES_DESCRIPTION,
 		start = function(onFinish)
-			ns:StartGameNamesReport(onFinish)
+			ns:StartNameLookupReport(onFinish)
 		end,
 		stop = function()
-			ns:StopGameNamesReport()
+			ns:StopNameLookupReport()
 		end,
 	},
-	length = {
-		title = D.LENGTH_TITLE,
-		description = D.LENGTH_DESCRIPTION,
+	messages = {
+		title = D.MESSAGES_TITLE,
+		description = D.MESSAGES_DESCRIPTION,
 		build = function()
 			return ns:BuildMessageLengthReport()
-		end,
-	},
-	libs = {
-		title = D.LIBS_TITLE,
-		description = D.LIBS_DESCRIPTION,
-		build = function()
-			return ns:BuildLibraryReport()
 		end,
 	},
 }
@@ -132,6 +154,7 @@ ns.DIAGNOSTIC_SECTIONS = {
 	{
 		key = "settings",
 		label = D.SECTION_SETTINGS,
+		-- One context report per feature rather than one combined probe, so a player pastes only the one matching their problem.
 		reports = {
 			"tradeFill",
 			"conjureRestack",
@@ -144,14 +167,8 @@ ns.DIAGNOSTIC_SECTIONS = {
 	},
 	{ key = "code", label = D.SECTION_CODE, reports = { "events", "api", "libs" } },
 	{ key = "data", label = D.SECTION_DATA, reports = {} },
-	{ key = "localization", label = D.SECTION_LOCALIZATION, reports = { "locale", "names", "length" } },
+	{ key = "localization", label = D.SECTION_LOCALIZATION, reports = { "locale", "names", "messages" } },
 }
-
-for index in ipairs(ns.DIAGNOSTIC_DATA_SOURCES) do
-	local id = "data" .. index
-	ns.DIAGNOSTIC_REPORTS[id] = { dataIndex = index, description = D.VALIDATE_DESCRIPTION }
-	table.insert(ns.DIAGNOSTIC_SECTIONS[3].reports, id)
-end
 
 function ns:GetDiagnosticSection(key)
 	for _, section in ipairs(ns.DIAGNOSTIC_SECTIONS) do
@@ -160,6 +177,25 @@ function ns:GetDiagnosticSection(key)
 		end
 	end
 	return nil
+end
+
+local function StopDataValidation()
+	ns:StopDataValidation()
+end
+
+for index in ipairs(ns.DIAGNOSTIC_DATA_SOURCES) do
+	local id = "data" .. index
+	ns.DIAGNOSTIC_REPORTS[id] = {
+		dataIndex = index,
+		description = D.VALIDATE_DESCRIPTION,
+		start = function(onFinish)
+			ns:StartDataValidation(index, function(text, counts, problem)
+				onFinish(text, counts and DataNote(counts) or nil, problem)
+			end)
+		end,
+		stop = StopDataValidation,
+	}
+	table.insert(ns:GetDiagnosticSection("data").reports, id)
 end
 
 -- A data report is titled by the file it checks, which depends on the folder this client loaded.
@@ -206,25 +242,6 @@ local STATUS_LABELS = {
 
 function ns:GetDiagnosticStatusLabel(state)
 	return STATUS_LABELS[state]
-end
-
--- A data report's status note: OK first, then every other STATUS alphabetically, each with its count.
-local function DataNote(counts)
-	local parts = {}
-	if counts[STATUS_OK] then
-		parts[1] = ns:FormatCommaNumber(counts[STATUS_OK]) .. " " .. STATUS_OK
-	end
-	local others = {}
-	for status in pairs(counts) do
-		if status ~= STATUS_OK then
-			others[#others + 1] = status
-		end
-	end
-	table.sort(others)
-	for _, status in ipairs(others) do
-		parts[#parts + 1] = ns:FormatCommaNumber(counts[status]) .. " " .. tostring(status)
-	end
-	return parts[1] and table.concat(parts, ", ") or nil
 end
 
 --[[
@@ -277,12 +294,10 @@ end
 
 --[[
     One report at a time, a frame apart, so the panel repaints between them and
-    a long run never stalls one frame. A data report hands over to the batched
-    validation, and a report with a start function (one that waits on the
-    client, such as items loading) to that function; either resumes the chain
-    from its callback, start's as onFinish(text, note) or onFinish(nil, nil,
-    problem), and Stop calls the report's stop. Every step checks the
-    run's generation, so Stop, or the panel being switched off, ends the chain.
+    a long run never stalls one frame. A report with start (a data file's
+    batched validation, or Game Names) hands over and resumes the chain from its
+    callback. Every step checks the run's generation, so Stop, or the panel
+    being switched off, ends the chain.
     A report that throws is written into the box as an error and the run goes
     on, so one broken report never costs the rest.
 ]]
@@ -317,27 +332,6 @@ function RunNext(run)
 	NotifyPanel()
 
 	local report = ns.DIAGNOSTIC_REPORTS[id]
-	if report.dataIndex then
-		local answered = false
-		local function OnData(text, counts, problem)
-			if answered or run.generation ~= runGeneration then
-				return
-			end
-			answered = true
-			if problem then
-				Complete(run, id, string.format(D.REPORT_ERROR, problem), D.REPORT_ERROR_NOTE)
-			else
-				Complete(run, id, text, DataNote(counts))
-			end
-		end
-		local ok, problem = pcall(ns.StartDataValidation, ns, report.dataIndex, OnData)
-		if not ok then
-			ns:StopDataValidation()
-			OnData(nil, nil, tostring(problem))
-		end
-		return
-	end
-
 	if report.start then
 		local answered = false
 		local function OnFinish(text, note, problem)
@@ -404,18 +398,21 @@ function ns:RunDiagnosticReport(key, id)
 	StartRun(key, { id })
 end
 
--- Keeps every report that finished, marks the rest stopped, and says so at the foot of the box.
+--[[
+    Keeps every report that finished, marks the rest stopped, and says so at
+    the foot of the box. The report at the run's index is the one in flight, or
+    the next one if the chain is between reports, so stopping it is safe either
+    way.
+]]
 function ns:StopDiagnosticRun()
 	local run = currentRun
 	if not run then
 		return
 	end
 	runGeneration = runGeneration + 1
-	ns:StopDataValidation()
-	for _, report in pairs(ns.DIAGNOSTIC_REPORTS) do
-		if report.stop then
-			report.stop()
-		end
+	local active = ns.DIAGNOSTIC_REPORTS[run.ids[run.index]]
+	if active and active.stop then
+		active.stop()
 	end
 	currentRun = nil
 	ns.diagnostics.running = nil
