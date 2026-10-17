@@ -37,13 +37,18 @@ ns.DATABASE_DEFAULTS = {
 		DispenseGroup = true,
 		DispenseRaid = true,
 		CombatNotifications = true,
+		-- Ships on: conjured water and food land in a fresh slot every cast and are never merged, so without it there is often no full stack to hand over.
 		RestackBags = true,
+		-- Ships on: a master looter's instance trades are for boss loot. It holds only the automatic fill; Fill and a mid-trade conjure still work.
 		HoldForMasterLoot = true,
+		-- Ships on; the buttons only ever show beside an open trade, for a class that knows a built-in collection's spell.
 		ConjureButtons = true,
+		-- Both ship on, so hovering a groupmate shows what they have to give. Sharing rides the group's own add-on channel, never chat.
 		ShowInventoryTooltips = true,
 		ShowBagTooltips = true,
 		ShareInventory = true,
 		Announcements = {
+			-- Ships on, and the macro is created silently: only a delete or full macro slots print.
 			Enabled = true,
 		},
 		Items = {
@@ -52,7 +57,7 @@ ns.DATABASE_DEFAULTS = {
 				Distribute = "Always",
 				GuildiesOnly = false,
 				FactorLevel = false,
-				-- Mages reserve a personal stash; everything beyond it is giveable.
+				-- Mages reserve a personal stash of 20 by default, deliberately; everything beyond it is giveable.
 				KeepAtLeastEnabled = true,
 				KeepAtLeast = 20,
 				SessionCapEnabled = false,

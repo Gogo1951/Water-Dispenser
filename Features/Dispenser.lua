@@ -28,54 +28,6 @@ local acceptedOffer = nil
 local conjureWatch = {}
 
 --[[
-	Bag moves issued during this trade, and the ceilings on them.
-
-	A move -- a split, or a merge -- is driven by the bag update it causes: move,
-	re-fill, place. That is self-limiting while the server cooperates, but a move
-	the server accepts and then bounces back is *also* a bag change, so a bouncing
-	item would re-enter the fill forever, shuffling the bags on every pass. The
-	counters are what stop that; ShapeStack is where they are spent.
-
-	Per item, eight covers one merge and one split with room for a handful of loose
-	scraps to be worked through. Per trade,
-	twenty-four is deliberately generous, so a legitimate fill can never reach it.
-	Both reset on TRADE_SHOW, because the ceilings are meant to catch one wedged
-	trade, not to ration the day.
-]]
-local MAX_MOVES_PER_TRADE = 24
-local MAX_MOVES_PER_ITEM = 8
-local movesThisTrade = 0
-local movesPerItem = {}
-
---[[
-	The loose slot counts of each item as they stood when its last move was issued,
-	as a sorted string. A move that lands always changes them -- a split adds a
-	slot, a merge removes one -- so finding them unchanged once the move's settle
-	window (below) has closed means it bounced: on Classic Era the split call has been seen moving the whole
-	stack to a fresh slot instead, which leaves the same counts in different
-	places. One bounce ends shaping for that item this trade, where the ceilings
-	alone would let it reshuffle the bags several more times first.
-]]
-local lastShape = {}
-
---[[
-	Items whose last shaping move is still settling, as shapeSettling[configId] =
-	the GetTime() it is given up on.
-
-	On Forever a split can take several bag updates to land: the portion reads as
-	an empty slot until the server confirms it, and the source slot can unlock with
-	its old count first. A pass in that gap sees the bags short, so it would split
-	again into the same slot, or read the unchanged counts as a bounce and hand the
-	loose scraps over instead. While an item is settling, a slot that already
-	matches is still placed whole, but the item is neither shaped again nor handed
-	over loose; the bag update the move causes, or the settle check after the
-	window, comes back here.
-]]
-local SHAPE_SETTLE = 1
-local shapeSettling = {}
-local settleTimer
-
---[[
 	Bag slots this trade's fill has put in the window, as
 	placedThisTrade[itemId][bag:slot] = count.
 
@@ -130,84 +82,6 @@ function ns.SetDispense(value)
 end
 
 --------------------------------------------------------------------------------
--- Trade Status Line
---------------------------------------------------------------------------------
-
--- The partner as the status line names them; nil only if the trade opened without one.
-local function PartnerName()
-	return ns.NameWithoutRealm(ns.State.Trade.Partner) or "?"
-end
-
--- Built-ins in their display order, then user items by key, so the reason shown never depends on pairs().
-local function FirstInItemOrder(byKey)
-	for _, key in ipairs(ns.BUILTIN_ORDER) do
-		if byKey[key] then
-			return byKey[key]
-		end
-	end
-	local keys = {}
-	for key in pairs(byKey) do
-		keys[#keys + 1] = key
-	end
-	table.sort(keys, function(a, b)
-		return tostring(a) < tostring(b)
-	end)
-	return keys[1] and byKey[keys[1]]
-end
-
---[[
-	"Added" plus what the player's side of the window holds, read from the window
-	itself so a stack dragged in by hand or conjured mid-trade counts too. With the
-	window empty: the trade-wide note, else the first item the fill held back.
-]]
-function ns.RefreshTradeStatus()
-	local trade = ns.State.Trade
-	if not (trade.Active and ns.TradeUI) then
-		return
-	end
-
-	local totals, order = {}, {}
-	for slot = 1, MAX_TRADABLE_ITEMS do
-		local link = GetTradePlayerItemLink(slot)
-		local _, _, slotCount = GetTradePlayerItemInfo(slot)
-		local itemId = link and tonumber(link:match("item:(%d+)"))
-		if itemId and slotCount and slotCount > 0 then
-			if not totals[itemId] then
-				order[#order + 1] = itemId
-				totals[itemId] = 0
-			end
-			totals[itemId] = totals[itemId] + slotCount
-		end
-	end
-
-	local text
-	if #order > 0 then
-		local parts = {}
-		for _, itemId in ipairs(order) do
-			local name = C_Item.GetItemInfo(itemId) or ("item:" .. itemId)
-			parts[#parts + 1] = format(L["FORMAT_ITEM_COUNT"], name, totals[itemId])
-		end
-		text = format(L["TRADE_STATUS_ADDED"], ns.JoinList(parts))
-		local short = FirstInItemOrder(trade.ShortNotes)
-		if short then
-			text = text .. " " .. short
-		end
-	else
-		text = trade.Note or FirstInItemOrder(trade.HoldReasons)
-	end
-	trade.Status = text
-	ns.TradeUI:SetStatus(text)
-end
-
--- Starts a trade's status from nothing: a fresh trade, or a fill pass about to record its own reasons.
-local function ResetTradeStatus(note)
-	local trade = ns.State.Trade
-	trade.Note = note
-	wipe(trade.HoldReasons)
-	wipe(trade.ShortNotes)
-end
-
---------------------------------------------------------------------------------
 -- Trade Filling
 --------------------------------------------------------------------------------
 
@@ -226,7 +100,7 @@ function ns.ClearTrade()
 		ClickTradeButton(i)
 	end
 	ClearCursor()
-	ResetTradeStatus(L["TRADE_STATUS_CLEARED"])
+	ns.ResetTradeStatus(L["TRADE_STATUS_CLEARED"])
 	ns.RefreshTradeStatus()
 	--[[
 		The cleared slots stay locked until the server acknowledges, and a locked
@@ -321,7 +195,8 @@ end
 --[[
 	PickupWhole lifts a bag slot's entire contents and PlaceStack drops all of it
 	into the next free trade slot. This is the path for an amount a whole slot
-	already matches; anything smaller goes through PortionIntoBag below.
+	already matches; anything smaller is portioned first by ns.ShapeStack
+	(Features/Stack-Shaping.lua).
 ]]
 local function PickupWhole(bag, slot)
 	C_Container.PickupContainerItem(bag, slot)
@@ -390,160 +265,6 @@ local function PlaceStack(bag, slot, expectedCount)
 	return true, false
 end
 
---[[
-	Splits `portion` off (bag, slot) into a free bag slot, so the pass that follows
-	can hand that slot over whole. True if a move was issued.
-
-	The trade window is deliberately not involved. Dropping a just-split stack
-	straight into it would save a round trip but stakes everything on the cursor
-	holding the amount that was asked for, which nothing can verify -- and getting
-	it wrong put a whole stack in front of a partner who was owed two. Landing in a
-	bag first means the next scan reports what actually happened, and the whole-slot
-	rule refuses to place anything larger than what is still owed.
-]]
-local function PortionIntoBag(source, portion)
-	if not ns.SplitToCursor(source.Bag, source.Slot, portion) then
-		return false
-	end
-	-- Never leaves the cursor holding anything, whatever the client did with the split.
-	ns.StowCursorItem()
-	return true
-end
-
---[[
-	Shapes one bag slot holding exactly `want` of an item out of `loose`: the slots
-	of that item the fill has not used this pass, sorted biggest first. The partner
-	then receives one stack, where handing the loose slots over as they are gave
-	them a trade slot per scrap -- two Runecloth as two slots of one.
-
-	Returns moved, waiting. `moved` means a bag move was issued and the bag update it
-	causes re-enters the fill, where the shaped slot is an exact match for the
-	whole-slot rule. `waiting` means nothing was issued but nothing should be placed
-	either: the player is holding something on the cursor, and their next drop is a
-	bag update of its own. Both false means the bags cannot be shaped and the caller
-	hands the loose slots over as they are.
-
-	Cheapest move first, since every one is a server round trip:
-
-	  1. Two loose slots that add up to exactly `want` merge into one. One move, and
-	     it leaves no scrap behind.
-	  2. A slot larger than `want` has `want` split off it into an empty bag slot --
-	     the smallest such slot, so breaking a 7 to find 5 leaves a full 20 intact.
-	     One move; the scrap it leaves stays where it falls.
-	  3. Otherwise every loose slot is smaller than `want`, so they merge pairwise,
-	     smallest onto largest, and the pass after finds one big enough for step 2
-	     or an exact match.
-
-	Every move is retried implicitly by the bag update it causes, so each is charged
-	against the per-item and per-trade ceilings declared at the top. A refused split
-	-- nothing reached the cursor, the one unambiguous signal that this client will
-	not split -- spends the item's whole budget at once, so it is said once and not
-	retried on every bag update.
-]]
-local function ShapeStack(configId, loose, want)
-	if #loose == 0 then
-		return false, false
-	end
-	if (movesPerItem[configId] or 0) >= MAX_MOVES_PER_ITEM or movesThisTrade >= MAX_MOVES_PER_TRADE then
-		return false, false
-	end
-	-- Something already held is the player's; a merge or split would drop it.
-	if GetCursorInfo() then
-		return false, true
-	end
-
-	local counts = {}
-	for index, bagEntry in ipairs(loose) do
-		counts[index] = bagEntry.Count
-	end
-	local shape = table.concat(counts, ",")
-	local logging = ns.diagnostics and ns.diagnostics.logging
-	if shape == lastShape[configId] then
-		movesPerItem[configId] = MAX_MOVES_PER_ITEM
-		if logging then
-			ns:LogEventNow("SHAPE", configId, "want=" .. want, "loose=" .. shape, "bounced")
-		end
-		return false, false
-	end
-
-	local function Spend(moves, how)
-		movesPerItem[configId] = (movesPerItem[configId] or 0) + moves
-		movesThisTrade = movesThisTrade + moves
-		lastShape[configId] = shape
-		if logging then
-			ns:LogEventNow("SHAPE", configId, "want=" .. want, "loose=" .. shape, how)
-		end
-	end
-
-	-- 1. An exact pair. Sorted biggest first, so the later slot is the smaller and moves onto the earlier.
-	for i = 1, #loose - 1 do
-		for j = i + 1, #loose do
-			if loose[i].Count + loose[j].Count == want then
-				Spend(1, "pair")
-				ns.MergeSlots(loose[j], loose[i])
-				return true, false
-			end
-		end
-	end
-
-	-- 2. The smallest slot larger than `want`.
-	local source
-	for index = #loose, 1, -1 do
-		if loose[index].Count > want then
-			source = loose[index]
-			break
-		end
-	end
-	if source then
-		Spend(1, "split")
-		if PortionIntoBag(source, want) then
-			return true, false
-		end
-		movesPerItem[configId] = MAX_MOVES_PER_ITEM
-		--[[
-			Opt-in, since by then the player has usually seen the trade work. Never
-			inferred from a fill that is still short on a later pass: a pass running
-			before the move settles is also still short, so a good split would report
-			itself refused a fraction of a second before handing the items over.
-		]]
-		if ns.db.profile.MissingStackWarnings then
-			local name = ns.GetItemConfigName(configId) or "?"
-			-- The stack size names the amount that would work. The item is in the bags, so its info is cached.
-			local info = C_Container.GetContainerItemInfo(source.Bag, source.Slot)
-			local stackSize = info and select(8, C_Item.GetItemInfo(info.itemID)) or want
-			ns.PrintMessage(format(L["CHAT_SPLIT_NEEDS_FULL_STACK"], name, want, stackSize))
-		end
-		return false, false
-	end
-
-	-- 3. Everything is smaller than `want`: combine, and let the next pass look again.
-	local merges = ns.MergePartials(loose)
-	if merges > 0 then
-		Spend(merges, "combine")
-		return true, false
-	end
-	return false, false
-end
-
---[[
-	One fill pass after the newest move's settle window closes. The move's own bag
-	update normally re-enters the fill first; this covers the move whose last bag
-	update came while it was still settling. Dropping the inventory cache makes the
-	scan report a change, so the non-forced pass runs.
-]]
-local function ScheduleSettleCheck()
-	if settleTimer then
-		settleTimer:Cancel()
-	end
-	settleTimer = C_Timer.NewTimer(SHAPE_SETTLE, function()
-		settleTimer = nil
-		if ns.State.Trade.Active and ns.State.MissingStack and not ns.IsInCombat() then
-			ns.ClearInventory()
-			ns.FillTrade(false)
-		end
-	end)
-end
-
 local function ReportMissing(configId, inventoryItem, count)
 	local icon = (inventoryItem and inventoryItem.Icon) or ns.GetItemConfigIcon(configId)
 	local name = (inventoryItem and inventoryItem.Name) or ns.GetItemConfigName(configId) or "?"
@@ -594,7 +315,7 @@ function ns.FillTrade(forced)
 	if forced then
 		ns.ClearTrade()
 	end
-	ResetTradeStatus(nil)
+	ns.ResetTradeStatus(nil)
 	local holdReasons, shortNotes = trade.HoldReasons, trade.ShortNotes
 
 	local scope = PickScope()
@@ -669,16 +390,16 @@ function ns.FillTrade(forced)
 					per trade, since a fill re-runs on every bag update.
 				]]
 				if budget <= 0 and needed > 0 then
-					holdReasons[configId] = format(L["TRADE_STATUS_CAPPED"], PartnerName(), name)
+					holdReasons[configId] = format(L["TRADE_STATUS_CAPPED"], ns.TradePartnerName(), name)
 				end
 				if budget <= 0 and needed > 0 and ns.ClaimSessionCapNotice(configId) then
 					--[[
 						Not gated on MissingStackWarnings. That setting ships off, and this is the
-						one line explaining why a trade window the player expected to fill sat
-						empty -- hiding it behind an opt-in is how the cap came to look like the
-						add-on being broken. Latched per item per trade, so it is said once.
+						one line explaining why a trade window the player expected to fill sits
+						empty -- behind an opt-in, the cap looks like the add-on being broken.
+						Latched per item per trade, so it is said once.
 					]]
-					ns.PrintMessage(format(L["CHAT_PLAYER_CAP_REACHED"], name, PartnerName(), sessionCap))
+					ns.PrintMessage(format(L["CHAT_PLAYER_CAP_REACHED"], name, ns.TradePartnerName(), sessionCap))
 				end
 				needed = budget
 			end
@@ -710,7 +431,7 @@ function ns.FillTrade(forced)
 					local best = bestOverallId and ns.GetInventoryItem(bestOverallId)
 					if best and levelLimit and (best.Level or 0) > levelLimit then
 						holdReasons[configId] =
-							format(L["TRADE_STATUS_LEVEL"], PartnerName(), best.Name or name, best.Level)
+							format(L["TRADE_STATUS_LEVEL"], ns.TradePartnerName(), best.Name or name, best.Level)
 					else
 						holdReasons[configId] = format(L["TRADE_STATUS_NONE_HELD"], name)
 					end
@@ -733,7 +454,7 @@ function ns.FillTrade(forced)
 				bestOverallId = configId
 				reportInv = inventoryItem
 				if skip then
-					holdReasons[configId] = format(L["TRADE_STATUS_TOO_LOW"], PartnerName(), name)
+					holdReasons[configId] = format(L["TRADE_STATUS_TOO_LOW"], ns.TradePartnerName(), name)
 				elseif not inventoryItem then
 					holdReasons[configId] = format(L["TRADE_STATUS_NONE_HELD"], name)
 				end
@@ -849,24 +570,22 @@ function ns.FillTrade(forced)
 				if entry.StackSize and entry.StackSize > 0 and want > entry.StackSize then
 					want = entry.StackSize
 				end
-				local settling = (shapeSettling[configId] or 0) > GetTime()
+				local settling = ns.IsShapeSettling(configId)
 				if want > 0 and not aborted and settling then
 					inFlight = true
 					if ns.diagnostics and ns.diagnostics.logging then
 						ns:LogEventNow("SHAPE", configId, "want=" .. want, "settling")
 					end
 				elseif want > 0 and not aborted and next(conjureWatch) == nil then
-					shapeSettling[configId] = nil
 					local loose = {}
 					for index, bagEntry in ipairs(slots) do
 						if not spent[index] then
 							loose[#loose + 1] = bagEntry
 						end
 					end
-					local moved, waiting = ShapeStack(configId, loose, want)
+					local moved, waiting = ns.ShapeStack(configId, loose, want)
 					if moved then
-						shapeSettling[configId] = GetTime() + SHAPE_SETTLE
-						ScheduleSettleCheck()
+						ns.MarkShapeSettling(configId)
 					end
 					if moved or waiting then
 						inFlight = true
@@ -1049,10 +768,7 @@ local function OnTradeShow()
 	-- Read here with the unit still around, like Class and Level above it.
 	trade.Guild = UnitIsInMyGuild("NPC") and true or false
 	trade.Partner = ns.TradePartnerKey()
-	movesThisTrade = 0
-	wipe(movesPerItem)
-	wipe(lastShape)
-	wipe(shapeSettling)
+	ns.ResetShaping()
 	wipe(placedThisTrade)
 	ns.ResetSessionCapNotices()
 	--[[
@@ -1073,13 +789,13 @@ local function OnTradeShow()
 		dispenseKey = IsInRaid() and "DispenseRaid" or "DispenseGroup"
 	end
 
-	ResetTradeStatus(nil)
+	ns.ResetTradeStatus(nil)
 	if not ns.db.profile.Dispense then
-		ResetTradeStatus(L["TRADE_STATUS_DISPENSE_OFF"])
+		ns.ResetTradeStatus(L["TRADE_STATUS_DISPENSE_OFF"])
 	elseif not ns.db.profile[dispenseKey] then
-		ResetTradeStatus(L[SCOPE_OFF_NOTES[dispenseKey]])
+		ns.ResetTradeStatus(L[SCOPE_OFF_NOTES[dispenseKey]])
 	elseif HoldForMasterLoot() then
-		ResetTradeStatus(L["TRADE_STATUS_MASTER_LOOT"])
+		ns.ResetTradeStatus(L["TRADE_STATUS_MASTER_LOOT"])
 	else
 		ns.FillTrade(false)
 	end
@@ -1125,15 +841,11 @@ local function OnTradeClosed()
 	trade.Guild = false
 	trade.Partner = nil
 	trade.Status = nil
-	ResetTradeStatus(nil)
+	ns.ResetTradeStatus(nil)
 	ns.State.MissingStack = false
 
 	wipe(conjureWatch)
-	wipe(shapeSettling)
-	if settleTimer then
-		settleTimer:Cancel()
-		settleTimer = nil
-	end
+	ns.StopShapeSettling()
 	ns.ClearInventory()
 	if ns.TradeUI then
 		ns.TradeUI:Detach()
@@ -1198,32 +910,14 @@ end
 
 --[[
 	The fill's own brakes, copied for the Diagnostic Tools Trade & Fill report: the
-	move ceilings and what this trade has spent of them, the shapes last issued
-	(an unchanged one is a bounce), the items still settling, what the fill has
-	put in the window, and the items a mid-trade conjure is waiting to place.
-	Copies, so a report can never change what the fill reads.
+	shaping state from ns.GetShapingState (Features/Stack-Shaping.lua), what the
+	fill has put in the window, and the items a mid-trade conjure is waiting to
+	place. Copies, so a report can never change what the fill reads.
 ]]
 function ns.GetFillState()
-	local now = GetTime()
-	local state = {
-		MovesThisTrade = movesThisTrade,
-		MaxMovesPerTrade = MAX_MOVES_PER_TRADE,
-		MaxMovesPerItem = MAX_MOVES_PER_ITEM,
-		MovesPerItem = {},
-		LastShape = {},
-		SettlingSeconds = {},
-		Placed = {},
-		ConjureWatch = {},
-	}
-	for key, moves in pairs(movesPerItem) do
-		state.MovesPerItem[key] = moves
-	end
-	for key, shape in pairs(lastShape) do
-		state.LastShape[key] = shape
-	end
-	for key, giveUpAt in pairs(shapeSettling) do
-		state.SettlingSeconds[key] = giveUpAt - now
-	end
+	local state = ns.GetShapingState()
+	state.Placed = {}
+	state.ConjureWatch = {}
 	for itemId, slots in pairs(placedThisTrade) do
 		local slotCount, itemCount = 0, 0
 		for _, count in pairs(slots) do
