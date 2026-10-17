@@ -96,7 +96,7 @@ ns.HEALTHSTONE_TALENT_SPELLS = {
 How We Got the Data
 
 Last Validated
-	2026-10-08, TBC Anniversary 2.5.6.69795
+	2026-10-16, TBC Anniversary 2.5.6.70006
 
 Notes
 	- The class-made supplies Water Dispenser hands out in trades: a mage's conjured water and food, and a warlock's healthstones. Each collection lists every item its conjure spell makes on this client, and every rank of that spell.
@@ -106,6 +106,8 @@ Notes
 	- Each healthstone rank has three items: the stones a warlock makes with 0, 1 and 2 points in Improved Healthstone. They share rank and use level, and each point adds 10% to the heal.
 	- HEALTHSTONE_TALENT_SPELLS holds Improved Healthstone's two ranks, as the passive spells the talent grants, lowest first. The highest one a warlock knows is the rank they took (HealthstoneTalentRank in Features/Group-Spares.lua).
 	- On this client the stones made at 0, 1 and 2 points are three different unique items, so a raid can carry one of each at once and coordinates around which rank each warlock took. That's why the player tooltip states a warlock's rank even when they carry no stone.
+	- Spells holds only the ranks a mage or warlock learns (SkillLineAbility lines 237 and 354). Left out: 8736 Conjure Food and 20018 Create Healthstone (Major), which make class items but no class learns; Conjure Water 29975 and 36879 and Create Healthstone 28023, which make no item; and Ritual of Souls (29893) and Ritual of Refreshment (43987), which summon a Soulwell and a refreshment table rather than conjuring into the caster's bags.
+	- Items left out: 34062 Conjured Manna Biscuit, which the refreshment table hands out (Conjure Refreshment, 43988) and no Conjure Water or Conjure Food rank makes, so it has no rank to pair with; 30347 Alexander's Test Healthstone and 3249 Conjured test Item, which are test items; and 2071 Deprecated Mountain Spring Water, which isn't a conjured item.
 
 SQL (CMaNGOS)
 	tbc-db
@@ -179,5 +181,13 @@ Wowhead
 	None.
 
 wago.tools
+	https://wago.tools/db2/SpellName?build=2.5.6.70006
+	https://wago.tools/db2/SpellEffect?build=2.5.6.70006
+	https://wago.tools/db2/SpellLevels?build=2.5.6.70006
+	https://wago.tools/db2/SkillLineAbility?build=2.5.6.70006
+	https://wago.tools/db2/Item?build=2.5.6.70006
+	https://wago.tools/db2/ItemSparse?build=2.5.6.70006
+
+QuestieDB
 	None.
 ]]

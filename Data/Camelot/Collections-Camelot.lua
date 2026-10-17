@@ -23,7 +23,7 @@ ns.COLLECTIONS = {
 			[10138] = 5, -- Conjure Water (Rank 5)
 			[10139] = 6, -- Conjure Water (Rank 6)
 			[10140] = 7, -- Conjure Water (Rank 7)
-			[468766] = 8, -- Conjure Water
+			[468766] = 8, -- Conjure Water (Rank 8)
 		},
 	},
 	MageFood = {
@@ -88,7 +88,7 @@ ns.HEALTHSTONE_TALENT_SPELLS = {
 How We Got the Data
 
 Last Validated
-	2026-10-08, WoW Forever 1.60.1.70291
+	2026-10-16, WoW Forever 1.60.1.70425
 
 Notes
 	- This file started as a copy of Data/Vanilla/'s, the rows the Forever client loaded before it had a folder of its own.
@@ -96,10 +96,12 @@ Notes
 	- Rank is an item's tier within its collection, 1 the lowest. A spell's rank is the rank of the items it makes, which is how Features/Utilities.lua pairs each conjure spell with its items (SPELL_TO_ITEMS). Items sharing a rank are one tier, like the three healthstones made at each rank.
 	- Use Level is the level a player needs to use the item, as its tooltip states. Trades and the conjure buttons (Features/Conjure-Buttons.lua) read it to pick the best rank the partner can use. It's stored rather than read from C_Item.GetItemInfo, whose minimum level comes back 0 or stale for some conjured items.
 	- Heal, on healthstones only, is the health the stone restores, as its tooltip states. Only Diagnostic Tools reads it.
-	- Mountain Spring Water (231778) and the Conjure Water spell that makes it (468766) were added from wago.tools' tables for build 1.60.1.70291, not from a Validate Data run. Their IDs look like Season of Discovery's, so they stay only if the next Validate Data run on Forever reports them OK. They're rank 8 because the water restores more than rank 7's Conjured Crystal Water at the same use level.
+	- Mountain Spring Water (231778) and the Conjure Water spell that makes it (468766) were added from wago.tools' tables for build 1.60.1.70291, not from a Validate Data run. Their IDs look like Season of Discovery's, but the Validate Data run on 1.60.1.70425 reported both OK, so they belong on this client. They're rank 8 because the water restores more than rank 7's Conjured Crystal Water at the same use level.
 	- Each healthstone rank has three items: the stones a warlock makes with 0, 1 and 2 points in Improved Healthstone, sharing rank and use level. On this client the 0-point stone restores as much as the 2-point one, more than the 1-point stone, as their tooltips state, so the 0-point stones' Heal is the client's figure rather than the query's.
 	- HEALTHSTONE_TALENT_SPELLS holds Improved Healthstone's two ranks, as the passive spells the talent grants, lowest first. The highest one a warlock knows is the rank they took (HealthstoneTalentRank in Features/Group-Spares.lua).
 	- On this client the stones made at 0, 1 and 2 points are three different unique items, so a raid can carry one of each at once and coordinates around which rank each warlock took. That's why the player tooltip states a warlock's rank even when they carry no stone.
+	- Spells holds only the ranks a mage or warlock learns (SkillLineAbility lines 237 and 354). Left out: the Create Healthstone spells 23517 to 23522 and 23813 to 23821, which a rank's spell casts behind the scenes to make the stone matching the warlock's Improved Healthstone points; 8736 Conjure Food and 20018 Create Healthstone (Major), which make class items but no class learns; Conjure Water 10141 to 10143, Conjure Food 1250, 10146 and 10147, and Create Healthstone (Major) 11731, which make no item themselves but cast a learned rank; and Create Healthstone 28023, which makes nothing.
+	- Items left out: 3249 Conjured test Item, a test item, and 2071 Deprecated Mountain Spring Water, which isn't a conjured item.
 
 SQL (CMaNGOS)
 	classic-db
@@ -173,10 +175,15 @@ Wowhead
 	None.
 
 wago.tools
-	https://wago.tools/db2/SpellName?build=1.60.1.70291
-	https://wago.tools/db2/SpellEffect?build=1.60.1.70291
-	https://wago.tools/db2/SkillLineAbility?build=1.60.1.70291
-	https://wago.tools/db2/ItemSparse?build=1.60.1.70291
-	https://wago.tools/db2/ItemXItemEffect?build=1.60.1.70291
-	https://wago.tools/db2/ItemEffect?build=1.60.1.70291
+	https://wago.tools/db2/SpellName?build=1.60.1.70425
+	https://wago.tools/db2/SpellEffect?build=1.60.1.70425
+	https://wago.tools/db2/SpellLevels?build=1.60.1.70425
+	https://wago.tools/db2/SkillLineAbility?build=1.60.1.70425
+	https://wago.tools/db2/Item?build=1.60.1.70425
+	https://wago.tools/db2/ItemSparse?build=1.60.1.70425
+	https://wago.tools/db2/ItemXItemEffect?build=1.60.1.70425
+	https://wago.tools/db2/ItemEffect?build=1.60.1.70425
+
+QuestieDB
+	None.
 ]]

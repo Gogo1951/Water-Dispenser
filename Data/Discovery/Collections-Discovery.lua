@@ -4,45 +4,10 @@ if not ns.IS_DISCOVERY then
 	return
 end
 
---------------------------------------------------------------------------------
--- Built-in Collections
---------------------------------------------------------------------------------
-
---[[
-	Copied from Data/Era/Collections.lua and pruned by the same Classic Era client
-	run, since Season of Discovery shares that client. Not yet run on a Season of
-	Discovery realm.
-]]
-
---[[
-	Each collection: Items[itemId] = {rank, level [, heal]}, Spells[spellId] = rank.
-	  rank   in-collection tier (1 = lowest); horizontal variants share a rank.
-	  level  player level required to use it. Authoritative — GetItemInfo's
-			 itemMinLevel is 0 or stale for some conjured items.
-	  heal   healthstone only; amount restored (informational).
-]]
+-- [collectionKey] = { Items = { [itemId] = { Rank, Use Level, Heal } }, Spells = { [spellId] = Rank } }
 ns.COLLECTIONS = {
 	MageWater = {
-		--[[
-
-		SELECT 
-			CONCAT('	[', entry, '] = {', spell_rank, ', ', req_level, '}, -- ', item_name) AS lua_array_output
-		FROM (
-			SELECT 
-				it.entry AS entry,
-				ROW_NUMBER() OVER(ORDER BY it.RequiredLevel ASC) AS spell_rank,
-				it.RequiredLevel AS req_level,
-				it.name AS item_name
-			FROM item_template it
-			JOIN spell_template st ON st.EffectItemType1 = it.entry
-			WHERE 
-				st.SpellName = 'Conjure Water' 
-				AND st.Effect1 = 24
-		) AS base_data
-		ORDER BY req_level ASC;
-
-		]]
-		-- [itemId] = {rank, level}, -- item name
+		-- [itemId] = { Rank, Use Level }, -- Item Name
 		Items = {
 			[5350] = { 1, 1 }, -- Conjured Water
 			[2288] = { 2, 5 }, -- Conjured Fresh Water
@@ -51,8 +16,9 @@ ns.COLLECTIONS = {
 			[8077] = { 5, 35 }, -- Conjured Mineral Water
 			[8078] = { 6, 45 }, -- Conjured Sparkling Water
 			[8079] = { 7, 55 }, -- Conjured Crystal Water
+			[231778] = { 8, 55 }, -- Mountain Spring Water
 		},
-		-- [spellId] = rank, -- spell name (rank)
+		-- [spellId] = Rank, -- Spell Name (Rank)
 		Spells = {
 			[5504] = 1, -- Conjure Water (Rank 1)
 			[5505] = 2, -- Conjure Water (Rank 2)
@@ -61,32 +27,11 @@ ns.COLLECTIONS = {
 			[10138] = 5, -- Conjure Water (Rank 5)
 			[10139] = 6, -- Conjure Water (Rank 6)
 			[10140] = 7, -- Conjure Water (Rank 7)
+			[468766] = 8, -- Conjure Water (Rank 8)
 		},
 	},
 	MageFood = {
-		--[[
-
-		SELECT 
-			CONCAT('	[', entry, '] = {', spell_rank, ', ', req_level, '}, -- ', item_name) AS lua_array_output
-		FROM (
-			SELECT 
-				it.entry AS entry,
-				ROW_NUMBER() OVER(ORDER BY it.RequiredLevel ASC) AS spell_rank,
-				it.RequiredLevel AS req_level,
-				it.name AS item_name
-			FROM item_template it
-			WHERE EXISTS (
-				SELECT 1 
-				FROM spell_template st 
-				WHERE st.EffectItemType1 = it.entry 
-				  AND st.SpellName = 'Conjure Food' 
-				  AND st.Effect1 = 24
-			)
-		) AS base_data
-		ORDER BY req_level ASC;
-
-		]]
-		-- [itemId] = {rank, level}, -- item name
+		-- [itemId] = { Rank, Use Level }, -- Item Name
 		Items = {
 			[5349] = { 1, 1 }, -- Conjured Muffin
 			[1113] = { 2, 5 }, -- Conjured Bread
@@ -96,7 +41,7 @@ ns.COLLECTIONS = {
 			[8076] = { 6, 45 }, -- Conjured Sweet Roll
 			[22895] = { 7, 55 }, -- Conjured Cinnamon Roll
 		},
-		-- [spellId] = rank, -- spell name (rank)
+		-- [spellId] = Rank, -- Spell Name (Rank)
 		Spells = {
 			[587] = 1, -- Conjure Food (Rank 1)
 			[597] = 2, -- Conjure Food (Rank 2)
@@ -108,34 +53,7 @@ ns.COLLECTIONS = {
 		},
 	},
 	WarlockHealthstone = {
-		--[[
-
-		SELECT 
-			CONCAT('	[', entry, '] = {', item_rank, ', ', req_level, ', ', heal_amount, '}, -- ', item_name, ' (', heal_amount, ')') AS lua_array_output
-		FROM (
-			SELECT 
-				it.entry AS entry,
-				DENSE_RANK() OVER(ORDER BY it.RequiredLevel ASC) AS item_rank,
-				it.RequiredLevel AS req_level,
-				it.name AS item_name,
-				(st.EffectBasePoints1 + 1) AS heal_amount
-			FROM item_template it
-			JOIN spell_template st ON st.Id = COALESCE(
-				NULLIF(it.spellid_1, 0), 
-				NULLIF(it.spellid_2, 0), 
-				NULLIF(it.spellid_3, 0), 
-				NULLIF(it.spellid_4, 0), 
-				NULLIF(it.spellid_5, 0)
-			)
-			WHERE 
-				it.name LIKE '%Healthstone%' 
-				AND it.class = 0 
-				AND it.entry != 30347 -- Explicitly ignores Alexander's Test Healthstone
-		) AS base_data
-		ORDER BY req_level ASC, heal_amount ASC;
-
-		]]
-		-- [itemId] = {rank, level, heal}, -- item name (heal)
+		-- [itemId] = { Rank, Use Level, Heal }, -- Item Name (Heal)
 		Items = {
 			[5512] = { 1, 1, 100 }, -- Minor Healthstone (100)
 			[19004] = { 1, 1, 110 }, -- Minor Healthstone (110)
@@ -153,29 +71,122 @@ ns.COLLECTIONS = {
 			[19012] = { 5, 48, 1320 }, -- Major Healthstone (1320)
 			[19013] = { 5, 48, 1440 }, -- Major Healthstone (1440)
 		},
-		-- [spellId] = rank, -- spell name (rank)
+		-- [spellId] = Rank, -- Spell Name (Rank)
 		Spells = {
-			[6201] = 1, -- Create Healthstone (Rank 1)
-			[6202] = 2, -- Create Healthstone (Rank 2)
-			[5699] = 3, -- Create Healthstone (Rank 3)
-			[11729] = 4, -- Create Healthstone (Rank 4)
-			[11730] = 5, -- Create Healthstone (Rank 5)
+			[6201] = 1, -- Create Healthstone (Minor)
+			[6202] = 2, -- Create Healthstone (Lesser)
+			[5699] = 3, -- Create Healthstone
+			[11729] = 4, -- Create Healthstone (Greater)
+			[11730] = 5, -- Create Healthstone (Major)
 		},
 	},
 }
 
---------------------------------------------------------------------------------
--- Improved Healthstone
---------------------------------------------------------------------------------
+-- spellId, -- Spell Name (Rank)
+ns.HEALTHSTONE_TALENT_SPELLS = {
+	18692, -- Improved Healthstone (Rank 1)
+	18693, -- Improved Healthstone (Rank 2)
+}
 
 --[[
-	The talent's two ranks, as the passive spells they grant, ascending. The highest
-	one the warlock knows is their rank.
+How We Got the Data
 
-	Before Wrath, a stone made at 0, 1 and 2 points was three different unique items,
-	so a raid could carry one of each at once. Which rank a warlock took is therefore
-	something the raid coordinates around, which is why the tooltip states it even
-	when they are carrying nothing. It is also why each rank in ns.COLLECTIONS has
-	three entries with the same rank and level but 10% apart on heal.
+Last Validated
+	2026-10-16, Season of Discovery 1.15.9.70003
+
+Notes
+	- Only Season of Discovery realms build this file, so it returns before declaring anything on any other Classic Era realm, which builds Data/Vanilla/'s copy instead.
+	- This file started as a copy of Data/Vanilla/'s, pruned by the same Classic Era client run, since Season of Discovery shares that client.
+	- The class-made supplies Water Dispenser hands out in trades: a mage's conjured water and food, and a warlock's healthstones. Each collection lists every item its conjure spell makes on this client, and every rank of that spell.
+	- Rank is an item's tier within its collection, 1 the lowest. A spell's rank is the rank of the items it makes, which is how Features/Utilities.lua pairs each conjure spell with its items (SPELL_TO_ITEMS). Items sharing a rank are one tier, like the three healthstones made at each rank.
+	- Use Level is the level a player needs to use the item, as its tooltip states. Trades and the conjure buttons (Features/Conjure-Buttons.lua) read it to pick the best rank the partner can use. It's stored rather than read from C_Item.GetItemInfo, whose minimum level comes back 0 or stale for some conjured items.
+	- Heal, on healthstones only, is the health the stone restores, as its tooltip states. Only Diagnostic Tools reads it.
+	- Each healthstone rank has three items: the stones a warlock makes with 0, 1 and 2 points in Improved Healthstone. They share rank and use level, and each point adds 10% to the heal.
+	- HEALTHSTONE_TALENT_SPELLS holds Improved Healthstone's two ranks, as the passive spells the talent grants, lowest first. The highest one a warlock knows is the rank they took (HealthstoneTalentRank in Features/Group-Spares.lua).
+	- On this client the stones made at 0, 1 and 2 points are three different unique items, so a raid can carry one of each at once and coordinates around which rank each warlock took. That's why the player tooltip states a warlock's rank even when they carry no stone.
+	- Spells holds only the ranks a mage or warlock learns (SkillLineAbility lines 237 and 354). Left out: the Create Healthstone spells 23517 to 23522 and 23813 to 23821, which a rank's spell casts behind the scenes to make the stone matching the warlock's Improved Healthstone points; 8736 Conjure Food and 20018 Create Healthstone (Major), which make class items but no class learns; and every other spell named Conjure Water, Conjure Food or Create Healthstone, which makes no item itself (most only cast a learned rank, like Conjure Water 10141 to 10143) or nothing at all (28023).
+	- Items left out: 3249 Conjured test Item, a test item, and 2071 Deprecated Mountain Spring Water, which isn't a conjured item.
+	- Mountain Spring Water (231778) and the Conjure Water rank that makes it (468766) were added from wago.tools' tables for build 1.15.9.70003, not from a Validate Data run, for the next Season of Discovery run to confirm. The Classic Era client's tables carry Season of Discovery's IDs, and a mage learns this rank at 60 (SkillLineAbility line 237). They're rank 8 because on WoW Forever, which shares these IDs, the water restores more mana than rank 7's Conjured Crystal Water at the same use level.
+
+SQL (CMaNGOS)
+	classic-db
+
+	ns.COLLECTIONS.MageWater
+	SELECT 
+		CONCAT('	[', entry, '] = {', spell_rank, ', ', req_level, '}, -- ', item_name) AS lua_array_output
+	FROM (
+		SELECT 
+			it.entry AS entry,
+			ROW_NUMBER() OVER(ORDER BY it.RequiredLevel ASC) AS spell_rank,
+			it.RequiredLevel AS req_level,
+			it.name AS item_name
+		FROM item_template it
+		JOIN spell_template st ON st.EffectItemType1 = it.entry
+		WHERE 
+			st.SpellName = 'Conjure Water' 
+			AND st.Effect1 = 24
+	) AS base_data
+	ORDER BY req_level ASC;
+
+	ns.COLLECTIONS.MageFood
+	SELECT 
+		CONCAT('	[', entry, '] = {', spell_rank, ', ', req_level, '}, -- ', item_name) AS lua_array_output
+	FROM (
+		SELECT 
+			it.entry AS entry,
+			ROW_NUMBER() OVER(ORDER BY it.RequiredLevel ASC) AS spell_rank,
+			it.RequiredLevel AS req_level,
+			it.name AS item_name
+		FROM item_template it
+		WHERE EXISTS (
+			SELECT 1 
+			FROM spell_template st 
+			WHERE st.EffectItemType1 = it.entry 
+			  AND st.SpellName = 'Conjure Food' 
+			  AND st.Effect1 = 24
+		)
+	) AS base_data
+	ORDER BY req_level ASC;
+
+	ns.COLLECTIONS.WarlockHealthstone
+	SELECT 
+		CONCAT('	[', entry, '] = {', item_rank, ', ', req_level, ', ', heal_amount, '}, -- ', item_name, ' (', heal_amount, ')') AS lua_array_output
+	FROM (
+		SELECT 
+			it.entry AS entry,
+			DENSE_RANK() OVER(ORDER BY it.RequiredLevel ASC) AS item_rank,
+			it.RequiredLevel AS req_level,
+			it.name AS item_name,
+			(st.EffectBasePoints1 + 1) AS heal_amount
+		FROM item_template it
+		JOIN spell_template st ON st.Id = COALESCE(
+			NULLIF(it.spellid_1, 0), 
+			NULLIF(it.spellid_2, 0), 
+			NULLIF(it.spellid_3, 0), 
+			NULLIF(it.spellid_4, 0), 
+			NULLIF(it.spellid_5, 0)
+		)
+		WHERE 
+			it.name LIKE '%Healthstone%' 
+			AND it.class = 0 
+			AND it.entry != 30347 -- Explicitly ignores Alexander's Test Healthstone
+	) AS base_data
+	ORDER BY req_level ASC, heal_amount ASC;
+
+	ns.HEALTHSTONE_TALENT_SPELLS
+	TODO: Add SQL Query
+
+Wowhead
+	None.
+
+wago.tools
+	https://wago.tools/db2/SpellName?build=1.15.9.70003
+	https://wago.tools/db2/SpellEffect?build=1.15.9.70003
+	https://wago.tools/db2/SpellLevels?build=1.15.9.70003
+	https://wago.tools/db2/SkillLineAbility?build=1.15.9.70003
+	https://wago.tools/db2/Item?build=1.15.9.70003
+	https://wago.tools/db2/ItemSparse?build=1.15.9.70003
+
+QuestieDB
+	None.
 ]]
-ns.HEALTHSTONE_TALENT_SPELLS = { 18692, 18693 }
