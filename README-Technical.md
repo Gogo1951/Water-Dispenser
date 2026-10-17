@@ -7,19 +7,24 @@ This document combines architecture notes and contribution guidance for develope
 ```text
 Water-Dispenser/
 ├── .github/
+│   ├── ISSUE_TEMPLATE/
+│   │   ├── config.yml                 Started from Common-Core's starter, edited per add-on; CI never checks it
+│   │   ├── defect.yml                 Shared Common-Core copy: the Defect form
+│   │   └── request.yml                Shared Common-Core copy: the Request form
 │   └── workflows/
-│       ├── ci.yml                     Calls Common-Core: syntax, luacheck, StyLua and shared-file checks on every PR
+│       ├── ci.yml                     Calls Common-Core: shared-file, syntax, luacheck and StyLua checks on every PR
+│       ├── issue-labels.yml           Calls Common-Core: labels a new Defect issue by its Issue Type
 │       └── package.yml                Calls Common-Core: library refresh, then CurseForge and Wago upload on a tag
 ├── .gitattributes                     Shared Common-Core copy
 ├── .gitignore                         Shared Common-Core copy
-├── .luacheckrc                        Lint config, excludes Includes/
+├── .luacheckrc                        Lint config; read_globals lists every WoW API the add-on reads
 ├── .pkgmeta                           Externals and the packager ignore list
 ├── Water-Dispenser_Vanilla.toc        Classic Era, Season of Discovery included
 ├── Water-Dispenser_TBC.toc            TBC Anniversary
 ├── Water-Dispenser_Camelot.toc        WoW Forever
 ├── Data/
 │   ├── Flavor.lua                     Canonical copy: the flavor from the TOC, and the data folder it loaded
-│   ├── Data.lua                       Locale init, identity constants, palette, classes, links, collection metadata
+│   ├── Data.lua                       Locale init, identity constants, registry names, palette, classes, links, collection metadata
 │   ├── Default-Settings.lua           The AceDB defaults table, profile scope only
 │   ├── Vanilla/
 │   │   └── Collections-Vanilla.lua    The built-in collections and the healthstone talent spells
@@ -42,7 +47,9 @@ Water-Dispenser/
 │   ├── Inventory-Scanner.lua          Bag scan and cache, rank resolution, the giveaway snapshots
 │   ├── Bag-Moves.lua                  The only bag writes: merges and splits for the fill, and the post-trade restack
 │   ├── Session-Ledger.lua             Per-partner session totals and the per-trade cap-notice latch
-│   ├── Dispenser.lua                  The fill, stack shaping, conjure placement, trade events, the Dispense switch
+│   ├── Trade-Status.lua               The trade panel's status line
+│   ├── Stack-Shaping.lua              Shaping one exact stack in the bags, with its move ceilings and settle window
+│   ├── Dispenser.lua                  The fill, placement, conjure placement, trade events, the Dispense switch
 │   ├── Trade-UI.lua                   Clear and Fill buttons and the status line, anchored beside the trade window
 │   ├── Conjure-Buttons.lua            Secure conjure buttons under Fill, ranked for the trade partner's level
 │   ├── Group-Spares.lua               Addon-message broadcast of the giveaway list, and the player tooltip block
@@ -55,7 +62,7 @@ Water-Dispenser/
 │   ├── Code-Reports.lua               Event Registration, API Endpoints, Library Versions
 │   ├── Settings-Reports.lua           Display Context, Other Add-ons, Saved Variables
 │   ├── Validate-Data.lua              The batched data validator and its TSV export
-│   ├── Locale-Reports.lua             Locale Context, Game Names, Message Length
+│   ├── Localization-Reports.lua       Locale Context, Game Names, Message Length
 │   ├── Report-Runner.lua              The report and tab manifests, and the run-one-at-a-time runner
 │   └── Options-Diagnostics.lua        The tabbed panel, registered last
 ├── Includes/
@@ -67,21 +74,22 @@ Water-Dispenser/
 │   └── deDE.lua … zhTW.lua            Ten translations
 ├── Options/
 │   ├── Options-Utilities.lua          Widget helpers, sub-option rows, profile accessors, the number box
-│   ├── Options-General.lua            Root panel: welcome, mini-map, Features, /Commands, links, version
+│   ├── Options-General.lua            Root panel: welcome, mini-map, Features, /Commands
 │   ├── Options-Dispenser.lua          Dispense master, its sub-toggles, and the combat notice
 │   ├── Options-Dispensed-Items.lua    Item tree: the per-class grid, Everyone row, settings, Add an Item
 │   ├── Options-Announcements.lua      Macro toggle with live preview
 │   ├── Options-Group-Spares.lua       Inventory Tooltips: the player and bag tooltip toggles, and sharing
 │   ├── Options-Profiles.lua           Stock AceDBOptions-3.0 table, returned unmodified
+│   ├── Options-Feedback-Support.lua   The Level Up note, the four links and the version line
 │   └── Options.lua                    Registration, ns:OpenOptionsPanel, the /wd command
 ├── LICENSE                            MIT
 ├── README.md                          Player-facing documentation
-├── README-Notes.md                    The maintainer's settled exceptions and decisions
+├── README-Notes.md                    The maintainer's settled exceptions to the Style Guide
 ├── README-Technical.md                This document
-└── README-Testing.md                  Manual test plan, run before a release
+└── README-Testing.md                  Player test plan for the current release
 ```
 
-`.github/`, `.gitattributes`, `.gitignore`, `.luacheckrc`, `.pkgmeta` and `LICENSE` are repo-only: the packager strips them, so an installed copy does not carry them. There is no `Tests/` folder, so CI runs no offline tests. There are no deprecated or dead files, and every diagnostics file lives in `Diagnostics/`, its panel included, never in `Features/` or `Options/`. Everything under `Features/`, `Diagnostics/` and `Options/` is listed in all three TOCs, which differ only in their `## Interface`, their `## X-Flavor` and their flavor-folder lines (the Vanilla TOC lists `Vanilla/` and `Discovery/`, the other two one folder each). `Wrath/`, `Mists/` and `Mainline/` are deliberate forward-prep that no TOC loads yet, and `.pkgmeta` keeps all three out of the zip until a TOC for that flavor ships. Each client loads only its own TOC and its own folder, so there is no unsuffixed `Water-Dispenser.toc` and no data file outside the flavor folders. `Includes/Libraries/` is rewritten by the release workflow from `.pkgmeta` on every tag, so a hand edit there is overwritten by the next release.
+`.github/`, `.gitattributes`, `.gitignore`, `.luacheckrc`, `.pkgmeta`, `LICENSE`, `README-Notes.md`, `README-Technical.md` and `README-Testing.md` are repo-only: the `.pkgmeta` ignore list strips them, so an installed copy does not carry them. There is no `Tests/` folder, so CI runs no offline tests. There are no dead files. `Diagnostics/Locale-Reports.lua` is the retired name of `Diagnostics/Localization-Reports.lua`; do not bring it back. Every diagnostics file lives in `Diagnostics/`, its panel included, never in `Features/` or `Options/`. Everything under `Features/`, `Diagnostics/` and `Options/` is listed in all three TOCs, which differ only in their `## Interface`, their `## X-Flavor` and their flavor-folder lines (the Vanilla TOC lists `Vanilla/` and `Discovery/`, the other two one folder each). `Wrath/`, `Mists/` and `Mainline/` are deliberate forward-prep that no TOC loads yet, and `.pkgmeta` keeps all three out of the zip until a TOC for that flavor ships. Each client loads only its own TOC and its own folder, so there is no unsuffixed `Water-Dispenser.toc` and no data file outside the flavor folders. `Includes/Libraries/` is rewritten by the release workflow from `.pkgmeta` on every tag, so a hand edit there is overwritten by the next release.
 
 Every flavor folder holds one `Collections-<Folder>.lua` declaring the same two tables whole, `ns.COLLECTIONS` and `ns.HEALTHSTONE_TALENT_SPELLS`, with the rows true on that client. A row changed in one folder is looked up in the other six (Style Guide → DATA → Flavor Folders).
 
@@ -89,21 +97,21 @@ The TOC load order is `Includes → Locales → Data → Features → Diagnostic
 
 - `Locales` loads before `Data`, because `Data/Data.lua` calls `GetLocale` and needs every `NewLocale` already registered.
 - `Data/Flavor.lua` opens the Data block. The Vanilla TOC lists both `Data/Vanilla/` and `Data/Discovery/`, and each of those files opens with an `ns.IS_DISCOVERY` guard, so exactly one of the pair builds its tables.
-- The TOC's flavor folder loads before `Features/Utilities.lua`, which builds the reverse-lookups (`ns.ITEM_TO_COLLECTION`, `ns.ITEM_RANK`, `ns.ITEM_LEVEL`, `ns.SPELL_TO_COLLECTION`, `ns.SPELL_TO_ITEMS`) from it at file scope.
+- The TOC's flavor folder loads before `Features/Utilities.lua`, which builds the reverse-lookups (`ns.ITEM_TO_COLLECTION`, `ns.ITEM_RANK`, `ns.ITEM_LEVEL`, `ns.SPELL_TO_COLLECTION`, `ns.SPELL_TO_ITEMS`) from it at file scope. `Features/Conjure-Buttons.lua` builds its per-collection rank lists from `ns.SPELL_TO_ITEMS` and `ns.ITEM_LEVEL` at file scope too, so it loads after `Utilities.lua`.
 - Within `Options`, `Options-Utilities.lua` loads first because every panel file aliases its helpers at file scope, and `Options.lua` loads last so `ns.RegisterOptionsPanels` can see every `ns.Build*Options` builder.
-- Two `Init*` calls in the login sequence follow `ns.InitDispenser` on purpose, not because of the TOC. `ns.InitConjureButtons` comes next, because its `TRADE_SHOW` handler anchors to the trade panel the dispenser's handler has just attached. `Features/Bag-Moves.lua`'s `ns.InitRestacker` comes last of all, because both claim `TRADE_CLOSED` and the restack pass reads the `ns.State.Trade.Active` flag the dispenser's handler clears.
+- Two `Init*` calls in the login sequence follow `ns.InitDispenser` on purpose, not because of the TOC. `ns.InitConjureButtons` comes next, because its `TRADE_SHOW` handler anchors to the trade panel the dispenser's handler has just attached. `Features/Bag-Moves.lua`'s `ns.InitRestacker` comes last of the `Init*` calls, because both claim `TRADE_CLOSED` and the restack pass reads the `ns.State.Trade.Active` flag the dispenser's handler clears.
 
 ## Architecture
 
 ### Event Loop
 
-`Features/Core.lua` creates one hidden frame and a `ns.RegisterEvent(event, handler, ...)` dispatcher. Feature files never register an event on a frame of their own. The Event Registration probe's throwaway frame registers and immediately unregisters each name with no handler, which is a test, not a listener. Several handlers may claim the same event: they are stored as a list and called in registration order, which is the order the modules initialize in `Core.lua`. Six register anything, in this order: the Dispensed Items panel, Dispenser, Conjure Buttons, Announcements, Group Spares, then Bag Moves. The other options panels, the item tooltips and the mini-map button register no events at all.
+`Features/Core.lua` creates one hidden frame and a `ns.RegisterEvent(event, handler, ...)` dispatcher. Feature files never register an event on a frame of their own. The Event Registration probe's throwaway frame registers and immediately unregisters each name with no handler, which is a test, not a listener. Several handlers may claim the same event: they are stored as a list and called in registration order, which is the order the modules initialize in `Core.lua`. Six register anything, in this order: the Dispensed Items panel (only while an item name is pending, see `GET_ITEM_INFO_RECEIVED` below), Dispenser, Conjure Buttons, Announcements, Group Spares, then Bag Moves. `ns.UnregisterEvent(event, handler)` drops one handler and the frame's registration once none is left, keeping the name in `ns.EVENT_NAMES`. The other options panels, the item tooltips and the mini-map button register no events at all.
 
-Registration is wrapped in `pcall`, so an event name invalid on one client is skipped rather than erroring at load. The name is appended to `ns.EVENT_NAMES` before that attempt, in first-seen order, so a name this client rejects still reaches the Diagnostic Tools event-registration probe, which reports it as a failure. The probe and the event log both read that one list, so neither can drift from what the add-on registers.
+Registration is wrapped in `pcall`, so an event name invalid on one client is skipped rather than erroring at load. The name is appended to `ns.EVENT_NAMES` before that attempt, in first-seen order, so a name this client rejects still reaches the Diagnostic Tools event-registration probe, which reports it as a failure. The probe reads that one list, so it cannot drift from what the add-on registers; the event log needs no list at all, since it taps the shared frame and so sees exactly what is registered. A name joins the list at its first registration, so `GET_ITEM_INFO_RECEIVED`, registered only once a Dispensed Items name is pending, is missing from it in a session where no name ever was.
 
 Trailing arguments are unit tokens: when present the dispatcher calls `RegisterUnitEvent` instead. **The filter is fixed by the first registration of that event name**, because `RegisterUnitEvent` binds per frame-and-event and every module shares this one frame.
 
-The thirteen registered events:
+The fourteen registered events:
 
 - `PLAYER_LOGIN` (Core) runs `SetupDatabase`, registers the options panels, calls each module's `Init*()`, schedules the bag-item tooltip hook one frame later, and prints the welcome message if opted in. Saved variables are loaded and the item cache is warm enough for a first scan; nothing initializes at file scope.
 - `TRADE_SHOW` (Dispenser, Conjure Buttons) captures the partner's class, level, group state, guild membership and key, resets the per-trade move ceilings, shaping state, placement record and cap-notice latch, attaches the side panel when `ns.HasItemsForPlayer()` finds an item switched on for the player's class, and kicks off the fill when `Dispense` and the matching scope toggle (`DispenseSolo`, `DispenseGroup` or `DispenseRaid`) are both on and the master-loot hold (below) does not apply. Otherwise it leaves the status line saying which of those stopped it. The conjure buttons' handler runs second, once the panel they anchor to is up.
@@ -118,6 +126,7 @@ The thirteen registered events:
 - `PLAYER_ENTERING_WORLD` (Announcements, Group Spares) is the first sync once item names are cached. Nothing that touches saved variables hangs off it, since it refires on every loading screen.
 - `PLAYER_REGEN_ENABLED` (Conjure Buttons, Announcements, Group Spares) replays what combat deferred: hiding the conjure buttons, a macro update, a held broadcast, and a roster change Group Spares would not prune against mid-fight. Nothing in `Dispenser.lua` listens: a fill blocked by combat is abandoned, not queued.
 - `CHAT_MSG_ADDON` (Group Spares) receives another member's giveaway list on `ns.ADDON_MESSAGE_PREFIX`.
+- `GET_ITEM_INFO_RECEIVED` (Dispensed Items panel) rebuilds the item tree when an item whose name was still a placeholder loads. It is registered only while such a name is pending, and unregisters once none is.
 
 There is no `PLAYER_REGEN_DISABLED` handler. Nothing needs to react to combat starting; the protected paths below check `InCombatLockdown` when they run.
 
@@ -198,7 +207,7 @@ If `needed > 0` after the loop, `ns.State.MissingStack` is set so the next out-o
 2. `ns.ITEM_LEVEL` (built in `Features/Utilities.lua` from the flavor folder's `Collections-<Folder>.lua`) overrides `itemMinLevel` for built-in collection items. Some conjured items report 0 even when they have a use level, so the static table keeps the partner-level cap correct regardless of cache state.
 3. `ScanInventory` calls `C_Item.RequestLoadItemDataByID` for any uncached item and refuses to trust the other returns from that pass. A later scan backfills only the fields still missing, so a cold call can never blank out good data. An uncached max stack is treated as "full", so a genuine full stack is not skipped; the next warm scan corrects it.
 
-The options panels read the inventory from several render callbacks in the same frame, so `ScanInventoryForDisplay` coalesces those into one scan per frame (`GetTime` is constant within a frame) while a reopen on a later frame still rescans. Trade and fill paths call `ScanInventory` directly and always scan fresh.
+The options panels read the inventory from several render callbacks in the same frame, so `ScanInventoryForDisplay` coalesces those into one scan per frame (`GetTime` is constant within a frame) while a reopen on a later frame still rescans. Trade and fill paths call `ScanInventory` directly and always scan fresh. Only that scan moves `fillBaseline`, the inventory its change check compares against, so a display read mid-trade (the macro refresh, the group broadcast, a mini-map hover) can rebuild the cache without making the fill's next bag update read no change.
 
 ### Identity Constants
 
@@ -219,7 +228,7 @@ The literal appears in two other places. `Locales/*.lua` has to repeat it: every
 
 `OnTradeShow` calls `ns.TradeUI:Attach(TradeFrame)` only when `ns.HasItemsForPlayer()` finds an item switched on for the player's class; `OnTradeClosed` calls `ns.TradeUI:Detach()`.
 
-**The status line.** A silver `FontString` under Fill says what the window holds, or why it is empty; it never prints to chat. `ns.RefreshTradeStatus` (Dispenser) builds it. With anything in the player's side of the window it reads `TRADE_STATUS_ADDED` over the window's own slots (`GetTradePlayerItemLink` / `GetTradePlayerItemInfo`, summed per item ID), so a stack dragged in by hand or conjured mid-trade counts too, plus the first shortfall note. With the window empty it reads `ns.State.Trade.Note` (Dispense off, auto-fill off for the scope, the master-loot hold, or the window just cleared), else the first entry of `ns.State.Trade.HoldReasons`. Each fill pass that runs wipes and rebuilds `HoldReasons` and `ShortNotes`, recording per item the first gate that held it back: Distribute, Guildies Only, a zero amount for the partner's class, Factor in Required Level, Maximum per Player, no rank the partner can use, nothing held, or a shortfall. Picking "first" walks `ns.BUILTIN_ORDER` and then user keys sorted, never `pairs()` order, so the line is stable. It repaints at the end of every fill pass, on Clear, and on `TRADE_PLAYER_ITEM_CHANGED`, because a placement only appears in the window once the server acknowledges it.
+**The status line.** A silver `FontString` under Fill says what the window holds, or why it is empty; it never prints to chat. `ns.RefreshTradeStatus` (`Features/Trade-Status.lua`) builds it. With anything in the player's side of the window it reads `TRADE_STATUS_ADDED` over the window's own slots (`GetTradePlayerItemLink` / `GetTradePlayerItemInfo`, summed per item ID), so a stack dragged in by hand or conjured mid-trade counts too, plus the first shortfall note. With the window empty it reads `ns.State.Trade.Note` (Dispense off, auto-fill off for the scope, the master-loot hold, or the window just cleared), else the first entry of `ns.State.Trade.HoldReasons`. Each fill pass that runs wipes and rebuilds `HoldReasons` and `ShortNotes`, recording per item the first gate that held it back: Distribute, Guildies Only, a zero amount for the partner's class, Factor in Required Level, Maximum per Player, no rank the partner can use, nothing held, or a shortfall. Picking "first" walks `ns.BUILTIN_ORDER` and then user keys sorted, never `pairs()` order, so the line is stable. It repaints at the end of every fill pass, on Clear, and on `TRADE_PLAYER_ITEM_CHANGED`, because a placement only appears in the window once the server acknowledges it.
 
 **Conjure buttons** (`Features/Conjure-Buttons.lua`). Under Fill, one `SecureActionButtonTemplate` button per built-in collection the player knows a spell for: Conjure Water and Conjure Food for a mage, Create Healthstone for a warlock. `ns.GetConjureSpell(key, partnerLevel)` picks the rank: walking the collection's spells best first (a list built at load from `ns.SPELL_TO_ITEMS` and `ns.ITEM_LEVEL`, sorted by the use level of what each rank makes), it returns the first known rank the trade partner can use, skipping a healthstone tier already carried because healthstones are unique; with none fitting, the lowest rank the player knows, since casting an untrained rank does nothing. The `spell` attribute is the spell ID: every client's `SECURE_ACTIONS.spell` casts a numeric attribute with `CastSpellByID`, so the Classic Era healthstone tiers' distinct spell names never matter. The label is the client's own spell name, and a rank whose name the client has not loaded leaves its button hidden. What each button casts is recorded in `ns.conjureChoices`, which feeds its hover tooltip (`TRADE_CONJURE_MAKES`, or `TRADE_CONJURE_MAKES_LOWEST` when the fallback chose the rank) and the Conjure & Restack report.
 
@@ -266,7 +275,7 @@ A conjure drops its items into a fresh bag slot rather than topping up the stack
 
 ### Portion
 
-Two primitives rather than one call, because where the split lands is the caller's business and the difference is a whole server round trip. `ns.SplitToCursor(bag, slot, count)` asks the client to split `count` off onto the cursor; `ns.StowCursorItem()` parks whatever the cursor ends up holding in an empty bag slot. `PortionIntoBag` in `Dispenser.lua` is the only caller and always runs the pair together. Together they are what lets one potion out of a stack of five go, and the reason every per-class number can be an item count rather than a stack count.
+Two primitives rather than one call, because where the split lands is the caller's business and the difference is a whole server round trip. `ns.SplitToCursor(bag, slot, count)` asks the client to split `count` off onto the cursor; `ns.StowCursorItem()` parks whatever the cursor ends up holding in an empty bag slot. `PortionIntoBag` in `Stack-Shaping.lua` is the only caller and always runs the pair together. Together they are what lets one potion out of a stack of five go, and the reason every per-class number can be an item count rather than a stack count.
 
 **`SplitToCursor` does not promise the cursor holds `count`.** Nothing can: `GetCursorInfo` names the item and never the amount, and the source slot has not reliably updated by the next line. The design does not need the promise. A portion goes into a *bag*, the next scan reports what actually landed, and the whole-slot rule places nothing larger than what is still owed, so a client that hands back the whole stack has only moved a stack between bag slots. The trade window is deliberately not involved: dropping a just-split stack straight into it would save a round trip while staking everything on a count nothing can read, and getting that wrong puts a whole stack in front of a partner who was owed two.
 
@@ -278,7 +287,7 @@ Order of operations: refuse if the source is locked, if `count` is the slot's wh
 
 **A refusal is detected, never inferred.** `SplitToCursor` returns false only when nothing reached the cursor at all. That is the one signal available in the same frame that means anything: a fill that is merely still short proves nothing, because a pass running before the move settles is also still short, and reading the source slot back to decide would report perfectly good splits as refusals. While the event log is running, `SplitToCursor` records one `SPLIT` line through `ns:LogEventNow` carrying `asked`, `before`, `took` and `left`, captured as a clue for a bug report and explicitly not acted on.
 
-**Four brakes, because the retry is implicit.** A move -- split or merge -- is driven by the bag update it causes: move, re-fill, place. That is self-limiting while the server cooperates, but a move the server accepts and then bounces back is *also* a bag change, so a bouncing item would re-enter the fill forever, reshuffling the bags each pass. All four live in `Dispenser.lua` beside `ShapeStack` and reset on `TRADE_SHOW`.
+**Four brakes, because the retry is implicit.** A move -- split or merge -- is driven by the bag update it causes: move, re-fill, place. That is self-limiting while the server cooperates, but a move the server accepts and then bounces back is *also* a bag change, so a bouncing item would re-enter the fill forever, reshuffling the bags each pass. All four live in `Features/Stack-Shaping.lua` beside `ns.ShapeStack` and reset on `TRADE_SHOW` through `ns.ResetShaping`.
 
 - `lastShape[configId]` remembers the item's loose slot counts as they stood when its last move was issued. A move that lands always changes them (a split adds a slot, a merge removes one), so finding them unchanged once the move has had its settle window means the move bounced -- on Classic Era the split call has been seen moving the whole stack to a fresh slot, which leaves the same counts in different places. One bounce ends shaping for that item this trade. A refused split (nothing reached the cursor) does the same, so the notice is said once and not on every bag update.
 - `shapeSettling[configId]` gives each move one second to land before the item is shaped again, handed over loose, or judged for a bounce; a slot that already matches is still placed whole meanwhile. On Forever a split takes several bag updates to land: the portion reads as an empty slot until the server confirms it, and the source slot can unlock with its old count first. Without the window a pass in that gap would split a second portion into the same still-empty-looking slot, or read the unchanged counts as a bounce and trade the loose 1 left over from 20, 20, 1 instead of the 3 on its way. `ScheduleSettleCheck` runs one more pass when the window closes, in case the move's last bag update came while it was still settling, and `StowCursorItem` skips any slot it dropped into within the last second for the same reason.
@@ -301,7 +310,7 @@ The cap is counted in individual items and simply clamps the fill's target, so t
 
 A collection is reported as the best rank on hand, the same item the fill would reach for, so a receiver names and colors the row from `GetItemInfo` without knowing collections exist. Soulbound copies of a user-added item are excluded, since they cannot be traded at all.
 
-**One composed offer, cached.** `ComposeOffer` builds the offer from that snapshot, and `BuildOffer` holds it in `cachedOffer`; the player's own tooltip and the broadcast both read that one table, so they cannot disagree. The cache matters because the client rebuilds a hovered unit tooltip about five times a second, and uncached each refresh walked every bag slot for an answer that had not moved. `ScheduleBroadcast` is the single place it is dropped, ahead of the debounce early-out, since every trigger that schedules a broadcast is one that could have changed the offer.
+**One composed offer, cached.** `ComposeOffer` builds the offer from that snapshot, and `BuildOffer` holds it in `cachedOffer`; the player's own tooltip and the broadcast both read that one table, so they cannot disagree. The cache matters because the client rebuilds a hovered unit tooltip about five times a second, and uncached each refresh would walk every bag slot for an answer that has not moved. `ScheduleBroadcast` is the single place it is dropped, ahead of the debounce early-out, since every trigger that schedules a broadcast is one that could have changed the offer.
 
 **Wire format.** `<chunk>/<total>|<itemId>:<count>;..` on `ns.ADDON_MESSAGE_PREFIX`. An item whose quantity is switched off adds a third field, `<itemId>:<count>:0`, left out otherwise so the common case stays short. A warlock also sends `H:<rank>` (with the same optional `:0`), which is not an item and so cannot collide with an item chunk. The payload budget is `ns.CHAT_MESSAGE_MAX_LENGTH` less 25 bytes of headroom for the header this file prepends; a player with many configured items overruns one message, and a silently truncated list is worse than a slow one. A receiver resets its buffer on chunk 1, so a broadcast that restarts mid-way replaces rather than merges.
 
@@ -311,7 +320,7 @@ A collection is reported as the best rank on hand, the same item the fill would 
 
 **`Dispense` off means nothing is on offer.** `ComposeOffer` returns empty, which drops the block from the player's own tooltip and sends one empty broadcast to clear them from everyone else's. That empty offer is covered by the unchanged-payload rule like any other, so it goes out once and is not repeated. The announcement macro and the bag-item tooltip line follow the same rule, so all three advertising surfaces go quiet together.
 
-**What is kept.** `receivedSpares[playerKey]` is runtime only, so nothing another player sends is ever written to disk, and it is emptied for anyone who leaves the group, along with any half-received broadcast in `incoming`. Player keys are `Name-Realm` throughout, which is how `CHAT_MSG_ADDON` reports its sender; `UnitKey` fills in the local realm from `GetNormalizedRealmName` and strips spaces, hyphens and periods from any realm to match the client's normalized spelling. The prune walks real unit tokens (`party1..4` plus the player, or `raid1..40`) rather than looking players up by a spelled name, so the whole feature rests on one assumption: that `UnitKey`'s output matches the sender spelling.
+**What is kept.** Only messages arriving on `PARTY`, `RAID` or `INSTANCE_CHAT` are accepted; a whisper on the prefix comes from outside the group and is dropped. `receivedSpares[playerKey]` is runtime only, so nothing another player sends is ever written to disk, and it is emptied for anyone who leaves the group, along with any half-received broadcast in `incoming`. Player keys are `Name-Realm` throughout, which is how `CHAT_MSG_ADDON` reports its sender; `UnitKey` fills in the local realm from `GetNormalizedRealmName` and strips spaces, hyphens and periods from any realm to match the client's normalized spelling. The prune walks real unit tokens (`party1..4` plus the player, or `raid1..40`) rather than looking players up by a spelled name, so the whole feature rests on one assumption: that `UnitKey`'s output matches the sender spelling.
 
 **One branded line.** The block's header comes from `ns.BuildBrandedLine` (`Features/Announcements.lua`), the same builder `ns.PrintMessage` uses, so a chat print and a tooltip header can never brand the add-on differently. Rows lead with `ROW_INDENT` and keep the item's quality color, where a plain label elsewhere would be silver.
 
@@ -399,7 +408,7 @@ The macro name is deliberately short: WoW silently truncates macro names past 16
 
 **A new user item gets no AceDB defaults.** Defaults exist only for the three built-in keys, so the `addButton` handler writes a user item's whole entry as a literal table. A new per-item field goes in each built-in block of `Data/Default-Settings.lua` *and* in that literal, and its readers tolerate nil for user items saved before it existed.
 
-`ns.RebuildDispensedItemsOptions` re-registers the rebuilt tree and calls `NotifyChange` on `ns.OPTIONS_REGISTRY.DispensedItems`. It runs after an item is added or removed, on any profile change, reset or copy (through `ns:ApplyProfile`), and on `GET_ITEM_INFO_RECEIVED` for an item whose name was still a placeholder: `ItemDisplayName` records it as pending, and `ns.InitDispensedItemsOptions` registers the handler. That one rebuilds rather than repaints, because a name arriving can change the sort order. After an add, `AceConfigDialog:SelectGroup` opens the new item's page (its arg key, `item_<id>`), since every amount starts at 0 and that page is where the player sets them; after a remove it opens Add an Item (`addItem`), where the tree would otherwise fall back to its first entry. Both calls come after the rebuild, which is what puts the target page in the tree.
+`ns.RebuildDispensedItemsOptions` re-registers the rebuilt tree and calls `NotifyChange` on `ns.OPTIONS_REGISTRY.DispensedItems`. It runs after an item is added or removed, on any profile change, reset or copy (through `ns:ApplyProfile`), and on `GET_ITEM_INFO_RECEIVED` for an item whose name was still a placeholder: `ItemDisplayName` records it as pending and registers the handler if it is not already, and the handler unregisters itself through `ns.UnregisterEvent` once nothing is pending. That one rebuilds rather than repaints, because a name arriving can change the sort order. After an add, `AceConfigDialog:SelectGroup` opens the new item's page (its arg key, `item_<id>`), since every amount starts at 0 and that page is where the player sets them; after a remove it opens Add an Item (`addItem`), where the tree would otherwise fall back to its first entry. Both calls come after the rebuild, which is what puts the target page in the tree.
 
 ## Options Panel Routing
 
@@ -409,41 +418,163 @@ The order is the combat gate, then a silent return if `ns.optionsFrames` does no
 
 **Never resolve the category by display name.** AceConfigDialog aliases `category.ID` to the panel title *only* when `C_SettingsUtil.OpenSettingsPanel` is absent. Classic Era lacks that API, so a name lookup happens to work there and silently returns nil on any client that has it, which is why this failure mode passes casual testing on one flavor and breaks on the others.
 
-Registration is deferred, never at file scope: the Profiles builder calls `AceDBOptions:GetOptionsTable(ns.db)`, and `ns.db` does not exist until `PLAYER_LOGIN`. Child order is fixed by the order of the `AddToBlizOptions` calls: General (root), Dispense, Dispensed Items, Announcements, Inventory Tooltips, Profiles second-to-last, Diagnostic Tools last. The Profiles title comes from AceDBOptions' own table; Diagnostic Tools' is `ns.DiagnosticsStrings.TAB`, unlocalized, and it is registered as its builder function (in `Diagnostics/Options-Diagnostics.lua`) rather than a table.
+Registration is deferred, never at file scope: the Profiles builder calls `AceDBOptions:GetOptionsTable(ns.db)`, and `ns.db` does not exist until `PLAYER_LOGIN`. Child order is fixed by the order of the `AddToBlizOptions` calls: General (root), Dispense, Dispensed Items, Announcements, Inventory Tooltips, Profiles, Feedback & Support, Diagnostic Tools last. The Profiles title comes from AceDBOptions' own table; Diagnostic Tools' is `ns.DiagnosticsStrings.TAB`, unlocalized, and it is registered as its builder function (in `Diagnostics/Options-Diagnostics.lua`) rather than a table.
 
-`Options-Dispenser.lua` carries the `Dispense` master and, hidden while it is off, the Strangers, Party and Raid scope toggles, `HoldForMasterLoot`, `RestackBags` (`Features/Bag-Moves.lua`), `ConjureButtons` (`Features/Conjure-Buttons.lua`) and `MissingStackWarnings` with its Example line, then a Combat section holding `CombatNotifications`. `Options-Dispensed-Items.lua` holds the per-item config the fill reads. `Options-Announcements.lua` pairs with `Announcements.lua`, and `Options-Group-Spares.lua`, titled Inventory Tooltips, carries the toggles for both `Group-Spares.lua` and `Item-Tooltips.lua`.
+`Options-Dispenser.lua` carries the `Dispense` master and, hidden while it is off, the Strangers, Party and Raid scope toggles, `HoldForMasterLoot`, `RestackBags` (`Features/Bag-Moves.lua`), `ConjureButtons` (`Features/Conjure-Buttons.lua`) and `MissingStackWarnings` with its Example line, then a Combat section holding `CombatNotifications` and its own Example line. Both Example lines render through `ns.BuildPrintLine`, the builder `ns.PrintMessage` prints with, so they show the exact chat line. `Options-Dispensed-Items.lua` holds the per-item config the fill reads. `Options-Announcements.lua` pairs with `Announcements.lua`, and `Options-Group-Spares.lua`, titled Inventory Tooltips, carries the toggles for both `Group-Spares.lua` and `Item-Tooltips.lua`.
 
 **Mirrored switches notify each other.** The General panel's Features section repeats four master switches, two to a line: Dispense, the announcement macro, Show Inventory in Player Tooltips and the bag tooltips. Each copy and its twin on the feature's own panel call `AceConfigRegistry:NotifyChange` on the other's registry (Dispense and the macro through `ns.SetDispense` and `ns.SetAnnouncementsEnabled`), so an open panel never shows a stale state. A new mirrored toggle has to do the same.
 
 ## Diagnostic Tools
 
-The **Diagnostic Tools** panel lives in `Diagnostics/`, copied from Magic Eraser's framework (Style Guide → DIAGNOSTIC TOOLS). This add-on's own surface is `Manifests.lua` whole (API checks, the four context reports, data sources, name lookups, spells, the mini-map paths, the event-log filter tables and the `EVENT_LOG_EXAMPLES` and `EVENT_LOG_PRIVACY` strings); the context-report rows and the Settings and Localization tab lists in `Report-Runner.lua`; the context-report and Localization-tab strings in `Diagnostics-Core.lua`; and the Game Names and Message Length builders in `Locale-Reports.lua`, which read the add-on's own item list and macro builder. The rest is the shared framework, so a fix there belongs in Magic Eraser's copy as well. Every report is read-only, builds only on a button press, and opens with a header naming the add-on version, client build, locale, `ns.FLAVOR` (with Season of Discovery marked) and `ns.DATA_FOLDER`.
+The **Diagnostic Tools** panel lives in `Diagnostics/`, copied from Magic Eraser's framework (Style Guide → DIAGNOSTIC TOOLS). This add-on's own surface is:
 
-The panel is gated by `ns.diagnostics`, an in-memory table that is **never persisted**, so it starts off at every login. `Options/Options.lua` registers `ns.BuildDiagnosticsOptions` itself rather than its result, so every repaint rebuilds the panel: while the gate is off only the warning and the toggle exist, and the tabs are left out of the table rather than hidden. **Run Tests** holds the live tools (the Event Log, the Taint Log, and pointers to the game's own tools and to Bug Grabber and Bug Sack); **Settings** (Trade & Fill, Conjure & Restack, Announcement Macro, Inventory Tooltips, Saved Variables, Display Context, Other Add-ons), **Code** (Event Registration, API Endpoints, Library Versions), **Data** (one Validate Data row per data file) and **Localization** (Locale Context, Game Names, Message Length) each hold a Run All, one row per report and one output box. The box prints the report header once and strips it from each report; a report that throws becomes an `ERROR:` block and the run goes on. Reports run one per frame, and every run button is disabled while any run is going. A report waiting on the client (Validate Data, Game Names) is started with an `onFinish` callback it answers through, and Stop calls its stop. Reports and tabs come from `ns.DIAGNOSTIC_REPORTS` and `ns.DIAGNOSTIC_SECTIONS`: a new report is an entry in the first, its id in a tab's list in the second, a builder and its strings, while a new data file's row appears from `ns.DIAGNOSTIC_DATA_SOURCES` alone. The dispatcher's logging tap is one boolean check before any allocation, so diagnostics off costs nothing measurable. The only state the panel ever writes is the `taintLog` CVar, through its explicit button.
+- `Manifests.lua` whole: the API checks, the four context reports, the data sources, the name lookups, the spells and `EVENT_LOG_EXAMPLES`.
+- In `Event-Log.lua`, the three event-filter tables: `ns.DIAGNOSTIC_EVENT_EXCLUDE`, `ns.MESSAGE_ID_FILTERED_EVENTS` and the file-local `CORRELATED_IDS`.
+- In `Report-Runner.lua`, the context-report rows and the Settings and Localization tab lists.
+- In `Diagnostics-Core.lua`, the context-report and Localization-tab strings and `EVENT_LOG_PRIVACY`.
+- Display Context in `Settings-Reports.lua`.
+- The Game Names and Message Length builders in `Localization-Reports.lua`.
+
+The rest is the shared framework, so a fix there belongs in Magic Eraser's copy as well. Every report is read-only and builds only on a button press. Each opens with a header naming the add-on version and TOC version, the client version and build, the locale, `ns.FLAVOR` (with Season of Discovery marked) and `ns.DATA_FOLDER`.
+
+The panel is gated by `ns.diagnostics`, an in-memory table that is **never persisted**, so it starts off at every login. `Options/Options.lua` registers `ns.BuildDiagnosticsOptions` itself rather than its result, so every repaint rebuilds the panel. While the gate is off only the warning and the toggle exist, and the tabs are left out of the table rather than hidden. The panel registers last, after Feedback & Support. It has five tabs:
+
+- **Run Tests** holds the live tools: the Event Log, the Taint Log, and pointers to the game's own tools and to Bug Grabber and Bug Sack.
+- **Settings** holds Trade & Fill, Conjure & Restack, Announcement Macro, Inventory Tooltips, Saved Variables, Display Context and Other Add-ons.
+- **Code** holds Event Registration, API Endpoints and Library Versions.
+- **Data** holds one Validate Data row per data file.
+- **Localization** holds Locale Context, Game Names and Message Length.
+
+The last four each have a Run All, one row per report and one output box. Each row shows its last state (Waiting, Running, Done, Stopped) and a short note: how many events failed to register, Validate Data's per-status counts, Game Names' `NIL` count, or "threw an error". The box prints the report header once and strips it from each report. A report that throws becomes an `ERROR:` block and the run goes on. Reports run one per frame, and every run button is disabled while any run is going. Stop shows only on the tab that is running, and a stopped run ends with a "(stopped before finishing)" footer. A report waiting on the client (Validate Data, Game Names) is started with an `onFinish` callback it answers through, and Stop calls its stop.
+
+Reports and tabs come from `ns.DIAGNOSTIC_REPORTS` and `ns.DIAGNOSTIC_SECTIONS`. A new report is an entry in the first, its id in a tab's list in the second, a builder and its strings. A new data file's row appears from `ns.DIAGNOSTIC_DATA_SOURCES` alone. The dispatcher's logging tap is one boolean check before any allocation, so diagnostics off costs nothing measurable. The only state the panel ever writes is the `taintLog` CVar, through its explicit button.
 
 **Off means off.** `ns:SetDiagnosticsEnabled(false)` stops the log, releases the buffer, stops any run and clears every report. `ns:StopEventLog` deliberately keeps its capture: the Stop button exists so start, reproduce, stop, show returns a report rather than an empty one.
 
-`ns.DIAGNOSTIC_EVENT_EXCLUDE` holds only `BAG_UPDATE`, which fires per slot change; `BAG_UPDATE_DELAYED` is kept because it fires once per settle. The fill writes its own trail through `ns:LogEventNow` instead: `OnBagUpdate` logs each `BAG_UPDATE` it acts on, `PlaceStack` each slot it skips and why (`PLACE`), `ShapeStack` each move it issues or judges bounced (`SHAPE`), `FillTrade` each item it holds while a move settles (`SHAPE`) and its cursor stand-down (`FILL`), and `SplitToCursor` each split (`SPLIT`), so an excluded firehose still leaves the entries the log exists to carry. Entries go into a fixed 500-entry ring, capped at 8 arguments and 255 bytes each, with pipes escaped after the length cut so a truncated argument cannot leave a dangling pipe. Two registered events are firehoses that carry an id, so they are filtered at capture rather than dropped (`ns.MESSAGE_ID_FILTERED_EVENTS`, `ns:SuppressUncorrelatedMessage`). `CHAT_MSG_ADDON` carries every add-on's traffic in the group, and `GET_ITEM_INFO_RECEIVED` fires once per item the client loads, hundreds of times while Validate Data or a bag add-on runs. `ns.DIAGNOSTIC_CORRELATED_IDS` in `Diagnostics/Manifests.lua` is the allowlist, one function per event answering through the live handler's own lookup: a firing on `ns.ADDON_MESSAGE_PREFIX`, or for an item `ns.IsItemNamePending` says the Dispensed Items tree is waiting on, logs in full. Anything else is counted, and the report ends with a suppressed-traffic block of first-seen text and count, biggest first (`CHAT_MSG_ADDON(BigWigs, ...) x469`). A firing with no id, or one hidden in combat on Forever, logs verbatim, and a hidden argument is written as `<secret>`. Because the log holds the add-on's own group messages, which carry groupmates' names and what they have to give, the Event Log box carries a review-before-pasting line (`EVENT_LOG_PRIVACY`).
+### Event Log
 
-**The context reports** are this add-on's own probes, one per feature that can silently do nothing (README-Notes records that choice), each on the Settings tab. They read state and never change it, and none scans the bags while a trade is open: `ns.ScanInventory` and the snapshot builders replace the inventory cache the fill compares against, so a scan mid-trade would make the next bag update read no change and skip its refill. Trade & Fill walks the bags itself rather than through the scanner, and Announcement Macro builds its would-be body only with no trade open.
+The log records whatever the shared dispatcher frame receives, so it sees exactly the events the add-on registers.
 
-**Trade & Fill** answers "I opened a trade and nothing went in." It prints combat, the cursor, the instance and group state; every Dispense switch with the raw `C_PartyInfo.GetLootMethod` returns and whether the master-loot hold would stop the automatic fill right now; whether an item is on for this class (which is what earns the trade panel a place) and whether the panel is shown. With a trade open it prints the partner as captured at `TRADE_SHOW` and as read live, flags the player-plus-10 level fallback, and prints the status line, every hold reason and short note, `ns.State.MissingStack` and the window's own slots. `ns.GetFillState()` in `Features/Dispenser.lua` hands it copies of the fill's brakes: moves spent against both ceilings, the last shape per item (an unchanged one is a bounce), items still settling, what the fill has placed and any conjure waiting to be placed. Per configured item it prints every gate, the scope's per-class counts and, mid-trade, the partner's own count and what is left of a Maximum per Player. Last it walks the carried bags itself and lists every collection or configured item with its use level, max stack (or `(uncached)`) and each slot's count, lock and bound flags, then the rank each collection's fill would start from at the partner's level.
+**Capture limits.** Entries go into a 500-entry buffer that drops its oldest entry when full. Each entry is capped at 8 arguments of 255 bytes each, with pipes escaped after the length cut so a truncated argument cannot leave a dangling pipe.
 
-**Conjure & Restack** answers "the conjure buttons never show" and "my water never got combined." For the buttons it prints their switch, Dispense, combat, whether a trade is open and the panel shown, and from `ns.GetConjureButtonsState()` in `Features/Conjure-Buttons.lua` whether the secure holder exists, is shown, or is waiting for combat to end to hide. It prints the rank `ns.GetConjureSpell` would pick for each collection at the partner's level (the player's own with no trade open), with its fallback flag, and for the unique healthstone the tiers already carried, which are skipped. Then every rank in each spell table `ns.DIAGNOSTIC_SPELLS` names (each collection's `Spells` and `ns.HEALTHSTONE_TALENT_SPELLS`, by path, so no spell ID lives in the diagnostics files), with whether `ns.IsSpellLearned` counts it known and whether the client has loaded its name, since a button with no name stays hidden; a spell table the loaded folder never built prints `TABLE MISSING`. For the restack it prints each input to `CanRestack`, the chain's state from `ns.GetRestackState()` in `Features/Bag-Moves.lua`, the partials `ns.CollectRestackPartials` (the restack's own `CollectPartials`) would merge, and every tracked slot it leaves out for a lock or an uncached max stack.
+**Excluded firehoses.** `ns.DIAGNOSTIC_EVENT_EXCLUDE` holds only `BAG_UPDATE`, which fires per slot change. `BAG_UPDATE_DELAYED` is kept because it fires once per settle. The fill writes its own trail through `ns:LogEventNow` instead, each call made only while logging is on:
 
-**Inventory Tooltips** answers "a tooltip isn't listing what I or a groupmate has to give." It prints both tooltip switches, Share My Inventory and Dispense, combat (which skips the block), which path each tooltip hook took (`ns.unitTooltipPath`, `ns.bagTooltipPath`: `TooltipDataProcessor` on Forever, `OnTooltipSetUnit` and `SetBagItem` on Era and TBC Anniversary), the group channel and whether `ns.ADDON_MESSAGE_PREFIX` is registered, and the Improved Healthstone rank and talent name (a name the client hasn't loaded drops that tooltip row). `ns.GetGroupSparesState()` in `Features/Group-Spares.lua` hands it the player's own key, the roster keys from `RosterKeys` (the same walk the prune uses), copies of what each sender last said, half-received broadcasts, the last payload sent and its channel, and the pending and combat-held flags. Each groupmate prints with whether anything was heard from them, and each sender is flagged `no roster match` when its name isn't on the roster: the documented silent failure, a sender spelled differently from the key the tooltip looks up. It lists groupmates' names by maintainer decision (README-Notes), and its description says so.
+- `OnBagUpdate` logs each `BAG_UPDATE` it acts on.
+- `PlaceStack` logs each slot it skips and why (`PLACE`).
+- `ns.ShapeStack` logs each move it issues or judges bounced (`SHAPE`).
+- `FillTrade` logs each item it holds while a move settles (`SHAPE`) and its cursor stand-down (`FILL`).
+- `ns.SplitToCursor` logs each split (`SPLIT`).
 
-**Announcement Macro** answers "the - Dispenser macro is empty, missing or out of date." It prints the macro switch and Dispense (off leaves the body empty), combat (an update waits for it to end), the channel and the slash the body starts with, whether the raid marker is dropped on Forever, and from `ns.GetAnnouncementState()` in `Features/Announcements.lua` whether an update is pending or held for combat and whether the slots-full warning was already given this session. It prints the character's macro count against `MAX_CHARACTER_MACROS`, then the macro as it stands: its slot, its body with its byte count against the 255 limit, and whether it matches the last body the add-on wrote. Last it prints the body the add-on would write now, except while a trade is open, since building it rescans the bags the fill is comparing against.
+So an excluded firehose still leaves the entries the log exists to carry.
 
-Validate Data walks `ns.DIAGNOSTIC_DATA_SOURCES`, one entry per static data file (`Collections`), and exports TSV of everything the client knows about every ID, with a `STATUS` column reading `OK`, or flagging what it does not recognize (`NOT ON CLIENT`), what loaded only partly (`INCOMPLETE`) and what threw (`ERROR`). That is how a renumbered or flavor-missing ID is caught without waiting for a player report. Each source names its table on `ns` by name, so a table the loaded folder never built prints a `TABLE MISSING` row in each block, and the report itself is titled with the file this client loaded (`Validate Data: Camelot/Collections-Camelot.lua`, through `ns.DataSourceFileName`). The Data tab's buttons read Validate, its Run All validates every file, and a running report shows its `n / total IDs` progress. `ns.COLLECTIONS` nests an `Items` and a `Spells` table per collection, so its two sources use a `collect` function that walks the nesting and carries the collection key into a `DATA_COLLECTION` column beside each row's own rank, use level and heal; `ns.HEALTHSTONE_TALENT_SPELLS` is an array, so its ID is the value. Items and spells print in blocks of their own: a spell is checked with `C_Spell.DoesSpellExist`, settles once its name, description and tooltip have loaded, and its row carries every spell reader plus whether this character knows it, so a conjure rank renumbered on one client shows up here rather than as a conjure button that silently never appears. IDs are requested 100 at a time and polled until each settles, and a straggler that never answers settles as a flagged row. A clean run flags nothing: a flagged ID is a row in the wrong folder, and a folder's copy is pruned only against a run on its own client.
+**Filtered events.** Two registered events are firehoses that carry an id, so `ns.MESSAGE_ID_FILTERED_EVENTS` filters them at capture rather than dropping them, through `ns:SuppressUncorrelatedMessage`:
 
-**Display Context** reads the mini-map button through `ns.DIAGNOSTIC_MINIMAP` in `Diagnostics/Manifests.lua`: its LibDBIcon name (`ns.LOCALE_NAME`, not the folder name), the profile's `minimap` table LibDBIcon was handed, and the path to that table inside `WaterDispenserDB`. It follows a dragged position link by link, from the button's own `db` to the raw saved value, beside the screen size, UI scale and `uiScale` CVar.
+- `CHAT_MSG_ADDON` carries every add-on's traffic in the group.
+- `GET_ITEM_INFO_RECEIVED` fires once per item the client loads, hundreds of times while Validate Data or a bag add-on runs.
 
-The rest of the Settings and Code tabs is stock framework. **Saved Variables** dumps the table `ns.SAVED_VARIABLES_NAME` names, eight levels deep, and **Other Add-ons** lists the client's other add-ons. **Event Registration** registers and unregisters each name in `ns.EVENT_NAMES` on a throwaway frame and counts the `[FAIL]`s. **API Endpoints** runs `ns.DIAGNOSTIC_API_CHECKS`, existence and shape checks only, plus a `(Validate Data)` row for every reader the validator uses; the modern and fallback tooltip pairs are expected to show one `[FAIL]` each, since a client ships only one of the two. **Library Versions** prints every library LibStub holds with its minor version, which is how an older copy loaded by another add-on shows up.
+`CORRELATED_IDS` is the allowlist, with one function per event that answers through the live handler's own lookup. A firing on `ns.ADDON_MESSAGE_PREFIX` logs in full, and so does one for an item `ns.IsItemNamePending` says the Dispensed Items tree is waiting on. Anything else is counted, and the report ends with a suppressed-traffic block of first-seen text and count, biggest first (`CHAT_MSG_ADDON(BigWigs, ...) x469`). A firing with no id logs verbatim. A hidden argument, including an id hidden in combat on Forever, is written as `<secret>`.
 
-The **Localization** tab is what a player on a non-English client pastes. **Locale Context** prints `GetLocale()`, the `textLocale` and `audioLocale` CVars, and how many strings `ns.L` defines. **Game Names** walks `ns.DIAGNOSTIC_NAME_LOOKUPS` (built in `Diagnostics/Manifests.lua` from the data: each collection's label, every collection item and conjure rank, the Improved Healthstone talent, every class) plus the player's own Dispensed Items, and prints, as TSV, the name this client returns through the add-on's own call, flagging `NIL` for no name, `FALLBACK` for a class name the client didn't supply and `ERROR` for a lookup that threw; unloaded items are requested and settled like Validate Data's stragglers. **Message Length** builds the longest announcement macro this language can produce, each collection's longest-named item and every user item at a four-digit count through the longest channel slash, using the add-on's own `ns.BuildAnnouncementPart` and `ns.BuildAnnouncementMacroBody`, and prints its untruncated byte length against 255 (`OVER` past it) and how many items truncation keeps. It builds strings only: nothing is sent and no macro is written. ruRU is the canary, since its names run widest in bytes.
+**Privacy line.** The log holds the add-on's own group messages, which carry groupmates' names and what they have to give. So the Event Log box carries a review-before-pasting line (`EVENT_LOG_PRIVACY`), shown because `CHAT_MSG_ADDON` is among the registered events.
 
-Strings here are developer-facing and deliberately live in `ns.DiagnosticsStrings` as plain English, never in `Locales/`.
+### Context Reports
+
+The four context reports are this add-on's own probes, one per feature that can silently do nothing, each on the Settings tab. They read state and never change it. None calls `ns.ScanInventory`: that moves the baseline the fill compares against, so a scan mid-trade would make the next bag update read no change and skip its refill. Trade & Fill walks the bags itself rather than through the scanner, and Announcement Macro builds its would-be body only with no trade open.
+
+**Trade & Fill** answers "I opened a trade and nothing went in." It prints, in order:
+
+1. The player's class and level, combat, the cursor, and the instance and group state.
+2. Every Dispense switch, with the raw `C_PartyInfo.GetLootMethod` returns, the master-looter result, and whether the master-loot hold would stop the automatic fill right now.
+3. Whether an item is on for this class (which is what earns the trade panel a place) and whether the panel is shown.
+4. With a trade open: the partner as captured at `TRADE_SHOW` and as read live, a flag for the player-plus-10 level fallback, the scope, the status line, every hold reason and short note, `ns.State.MissingStack`, and the window's own slots.
+5. The fill's brakes, as copies handed over by `ns.GetFillState()` in `Features/Dispenser.lua` (which merges `ns.GetShapingState()` from `Features/Stack-Shaping.lua`): moves spent against both ceilings, the last shape per item (an unchanged one is a bounce), items still settling, what the fill has placed, and any conjure waiting to be placed.
+6. Per configured item: every gate (`Distribute` and whether it allows the item now, `GuildiesOnly`, `FactorLevel`, the reserve, the session cap), the scope's per-class counts, and mid-trade the partner's own count and what is left of a Maximum per Player.
+7. Its own walk of the carried bags, listing every collection or configured item with its use level, max stack (or `(uncached)`) and each slot's count, lock and bound flags.
+8. The rank each collection's fill would start from at the partner's level.
+
+**Conjure & Restack** answers "the conjure buttons never show" and "my water never got combined." For the buttons it prints:
+
+- Their switch, Dispense, combat, and whether a trade is open and the panel shown.
+- From `ns.GetConjureButtonsState()` in `Features/Conjure-Buttons.lua`: whether the secure holder exists, is shown, or is waiting for combat to end to hide.
+- Per collection, the rank `ns.GetConjureSpell` would pick at the partner's level (the player's own with no trade open), with its fallback flag, and mid-trade whether that button is shown. For the unique healthstone it also prints the tiers already carried, which are skipped.
+- Every rank in each spell table `ns.DIAGNOSTIC_SPELLS` names: each collection's `Spells` and `ns.HEALTHSTONE_TALENT_SPELLS`, by path, so no spell ID lives in the diagnostics files. Each rank shows the level of what it makes, whether `ns.IsSpellLearned` counts it known, and whether the client has loaded its name, since a button with no name stays hidden. A spell table the loaded folder never built prints `TABLE MISSING`.
+
+For the restack it prints:
+
+- Each input to `CanRestack`.
+- The chain's state from `ns.GetRestackState()` in `Features/Bag-Moves.lua`.
+- The partials `ns.CollectRestackPartials` (the restack's own `CollectPartials`) would merge.
+- Every tracked slot it leaves out for a lock or an uncached max stack.
+
+**Inventory Tooltips** answers "a tooltip isn't listing what I or a groupmate has to give." It prints:
+
+- Both tooltip switches, the bag-tooltip switch, Share My Inventory and Dispense.
+- Combat, which skips the block.
+- Which path each tooltip hook took (`ns.unitTooltipPath`, `ns.bagTooltipPath`), the carried bag range, and the items that earn the bag-tooltip line for this class.
+- The group channel and whether `ns.ADDON_MESSAGE_PREFIX` is registered.
+- The Improved Healthstone rank and talent name. A name the client hasn't loaded drops that tooltip row.
+- What `ns.GetGroupSparesState()` in `Features/Group-Spares.lua` hands it: the player's own key, the roster keys from `RosterKeys` (the same walk the prune uses), copies of what each sender last said, half-received broadcasts, the last payload sent and its channel, and the pending and combat-held flags.
+
+Each groupmate prints with whether anything was heard from them. A sender whose name isn't on the roster is flagged `no roster match`: that is the documented silent failure, a sender spelled differently from the key the tooltip looks up. The report lists groupmates' names on purpose, since a spelling mismatch only shows with both side by side, and its description says so.
+
+**Announcement Macro** answers "the - Dispenser macro is empty, missing or out of date." It prints:
+
+- The macro switch and Dispense (off leaves the body empty), and combat (an update waits for it to end).
+- The channel and the slash the body starts with, and whether the raid marker is dropped on Forever.
+- From `ns.GetAnnouncementState()` in `Features/Announcements.lua`: whether an update is pending or held for combat, and whether the slots-full warning was already given this session.
+- The character's macro count against `MAX_CHARACTER_MACROS`.
+- The macro as it stands: its slot, its body with its byte count against the 255 limit, and whether it matches the last body the add-on wrote.
+- The body the add-on would write now, except while a trade is open, since building it rescans the bags the fill is comparing against.
+
+### Data, Code and Settings Reports
+
+**Validate Data** walks `ns.DIAGNOSTIC_DATA_SOURCES`, one entry per static data file (`Collections`), and exports TSV of everything the client knows about every ID. Its `STATUS` column reads `OK`, or flags what the client does not recognize (`NOT ON CLIENT`), what loaded only partly (`INCOMPLETE`) and what threw (`ERROR`). That is how a renumbered or flavor-missing ID is caught without waiting for a player report.
+
+Each source names its table on `ns` by name, so a table the loaded folder never built prints a `TABLE MISSING` row in the block of its own kind. The report is titled with the file this client loaded (`Validate Data: Camelot/Collections-Camelot.lua`, through `ns.DataSourceFileName`). The Data tab's buttons read Validate, its Run All validates every file, and a running report shows its `n / total IDs` progress.
+
+`ns.COLLECTIONS` nests an `Items` and a `Spells` table per collection, so its two sources use a `collect` function. That function walks the nesting and carries the collection key into a `DATA_COLLECTION` column beside each row's own rank, use level and heal. `ns.HEALTHSTONE_TALENT_SPELLS` is an array, so its ID is the value.
+
+Items and spells print in blocks of their own. A spell is checked with `C_Spell.DoesSpellExist`, and its row carries every spell reader plus whether this character knows it. That way a conjure rank renumbered on one client shows up here rather than as a conjure button that silently never appears. IDs are requested 100 at a time and polled every half second, re-asked every third idle poll and given up after twelve, so a straggler that never answers settles as a flagged row. A clean run flags nothing: a flagged ID is a row in the wrong folder, and a folder's copy is pruned only against a run on its own client.
+
+**Display Context** answers "the mini-map button is gone or off-screen." It prints:
+
+- The screen size, UI scale and `uiScale` CVar.
+- Whether the LibDataBroker object exists, and whether the button is registered under `ns.LOCALE_NAME` (not the folder name) and created.
+- Its hidden flag and saved angle.
+- The dragged position followed link by link: `math.atan2` (LibDBIcon's drag handler needs it), the LibDBIcon minor version, whether the button's own `db` *is* `ns.db.profile.minimap`, and the raw value inside `WaterDispenserDB` for the current profile.
+
+The rest of the Settings and Code tabs is stock framework:
+
+- **Saved Variables** dumps the table `ns.SAVED_VARIABLES_NAME` names, eight levels deep.
+- **Other Add-ons** lists every add-on in the client with its version and load state.
+- **Event Registration** registers and unregisters each name in `ns.EVENT_NAMES` on a throwaway frame, prints `C_EventUtils.IsEventValid` beside it, and counts the `[FAIL]`s.
+- **API Endpoints** runs `ns.DIAGNOSTIC_API_CHECKS`, existence and shape checks only. Validate Data adds the readers it supplies itself, marked `(Validate Data)`. A client ships only one of each modern and legacy pair, so a `[FAIL]` on the half it lacks is expected.
+- **Library Versions** prints every library LibStub holds with its minor version, which is how an older copy loaded by another add-on shows up.
+
+### Localization Tab
+
+The **Localization** tab is what a player on a non-English client pastes.
+
+**Locale Context** prints `GetLocale()`, the `textLocale` and `audioLocale` CVars, and how many strings `ns.L` defines.
+
+**Game Names** walks `ns.DIAGNOSTIC_NAME_LOOKUPS`, built in `Diagnostics/Manifests.lua` from the data. It covers:
+
+- Each collection's label.
+- Every collection item and conjure rank.
+- The first Improved Healthstone talent rank, the only one ever named.
+- Every class.
+
+Each line reads `[OK|NIL] constant (kind id): name`, through the add-on's own call. `NIL` covers a name the client has not supplied, a class name that fell back to its token, and a lookup that threw, whose error takes the name's place. A collection label reads `NIL` while its item is uncached, so the Loading placeholder never passes for a name. Unloaded records are requested and polled like Validate Data's stragglers. The player's own Dispensed Items are not here: their names print in Trade & Fill's item list.
+
+**Message Length** builds the longest announcement macro this language can produce:
+
+- It takes each collection's longest item link in bytes, and every user item, at a count of 9999 (each part's byte length printed), through the longest channel slash.
+- It builds them with the add-on's own `ns.BuildAnnouncementPart` and `ns.BuildAnnouncementMacroBody`.
+- It prints the untruncated byte length against 255 (`OVER` past it) and, when truncation drops anything, how many items it keeps.
+- An item the client has not loaded is left out and listed, with a hint to run Game Names first.
+
+It builds strings only: nothing is sent and no macro is written. ruRU is the canary, since its names run widest in bytes.
+
+Panel titles, descriptions and UI text are developer-facing and deliberately live in `ns.DiagnosticsStrings` as plain English, never in `Locales/`. Report body lines are plain English inside each builder.
 
 ## Saved Variables
 
@@ -451,7 +582,7 @@ Water Dispenser declares one SavedVariables global, `WaterDispenserDB`, holding 
 
 **Model: Simple.** `AceDB:New("WaterDispenserDB", ns.DATABASE_DEFAULTS, true)` passes the shared-Default third argument, so every character starts on one shared `"Default"` profile and per-character setups are opt-in through the stock Profiles panel. **Reset Profile therefore clears everything back to install defaults, the mini-map position and the whole Dispensed Items list included.** Nothing the add-on stores differs by character, which is what makes it Simple: everything lives in `ns.db.profile`, `ns.db.global` is unused, and a new setting is a profile key.
 
-The shape is `ns.DATABASE_DEFAULTS` in `Data/Default-Settings.lua`: the general and panel toggles, the `minimap` table LibDBIcon reads, `Announcements`, and `Items`, the per-item configuration. `Items` is keyed by collection name for the built-ins and by numeric item ID for user-added items. Each entry carries its gates, its reserve and session cap beside their toggles, its player-class filter, and its `Solo` / `Group` / `Raid` per-class counts. No entry stores a name or icon: a user-added item's come from the client by its ID (`ns.GetItemConfigName`, `ns.GetItemConfigIcon`), with the `ITEM_LOADING` placeholder while the item is uncached and a `GET_ITEM_INFO_RECEIVED` watcher in `Options/Options-Dispensed-Items.lua` that rebuilds the item tree when a placeholder's item arrives. Entries saved before that carry `Name` and `Icon`; a tagged migration in `Features/Core.lua` nils both on login and on every profile switch.
+The shape is `ns.DATABASE_DEFAULTS` in `Data/Default-Settings.lua`: the general and panel toggles, the `minimap` table LibDBIcon reads, `Announcements`, and `Items`, the per-item configuration. `Items` is keyed by collection name for the built-ins and by numeric item ID for user-added items. Each entry carries its gates, its reserve and session cap beside their toggles, its player-class filter, and its `Solo` / `Group` / `Raid` per-class counts. No entry stores a name or icon: a user-added item's come from the client by its ID (`ns.GetItemConfigName`, `ns.GetItemConfigIcon`), with the `ITEM_LOADING` placeholder while the item is uncached and a `GET_ITEM_INFO_RECEIVED` watcher in `Options/Options-Dispensed-Items.lua`, registered only while a placeholder is pending, that rebuilds the item tree when a placeholder's item arrives. Entries saved before that carry `Name` and `Icon`; a tagged migration in `Features/Core.lua` nils both on login and on every profile switch.
 
 Defaults come from `ns.DATABASE_DEFAULTS` and are applied by AceDB-3.0 when a scope is first accessed, and explicit user values, including `false`, are never overridden. Note that scalar and table defaults are physically copied into the saved table (`copyDefaults` via `rawset`); only `*`/`**` wildcard defaults resolve through metatables. This add-on defines no wildcard defaults.
 
@@ -488,9 +619,9 @@ Mid-trade conjure placement picks up the new collection automatically once `Spel
 
 1. Call `ns.RegisterEvent(name, handler)` from the owning module's `Init*()`. Never register it on a frame of your own: it would escape both the diagnostics tap and `ns.EVENT_NAMES`.
 2. If the add-on only cares about one unit, pass the unit tokens as trailing arguments so the dispatcher uses `RegisterUnitEvent`. Remember the filter is fixed by the first registration of that event name anywhere in the add-on.
-3. If the event is a firehose that would bury the log, classify it rather than dropping it. One that carries an id the add-on acts on goes in `ns.MESSAGE_ID_FILTERED_EVENTS` with the id's argument position, with a function in `ns.DIAGNOSTIC_CORRELATED_IDS` answering whether the add-on acts on an id, through the same lookup the handler uses; both live in `Diagnostics/Manifests.lua`. One with no id goes in `ns.DIAGNOSTIC_EVENT_EXCLUDE`, also there, and the handler that acts on it writes those firings back through `ns:LogEventNow`.
+3. If the event is a firehose that would bury the log, classify it rather than dropping it. One that carries an id the add-on acts on goes in `ns.MESSAGE_ID_FILTERED_EVENTS` with the id's argument position, with a function in the file-local `CORRELATED_IDS` answering whether the add-on acts on an id, through the same lookup the handler uses; both live in `Diagnostics/Event-Log.lua`. One with no id goes in `ns.DIAGNOSTIC_EVENT_EXCLUDE`, also there, and the handler that acts on it writes those firings back through `ns:LogEventNow`.
 
-The name lands in `ns.EVENT_NAMES` automatically, which is what the event-registration probe and the event log both read, so there is no second list to update. An event invalid on one client is skipped there by the dispatcher's `pcall` and reported by the probe.
+The name lands in `ns.EVENT_NAMES` automatically, which is what the event-registration probe reads, so there is no second list to update. An event the add-on only needs for a while (as the Dispensed Items panel needs `GET_ITEM_INFO_RECEIVED`) drops its handler with `ns.UnregisterEvent`, which releases the frame's registration once no handler is left and keeps the name in the list. An event invalid on one client is skipped there by the dispatcher's `pcall` and reported by the probe.
 
 ## Adding a New Setting
 
@@ -508,6 +639,7 @@ Locale files live in `Locales/<locale>.lua`, each registered through AceLocale-3
 
 - **`enUS.lua` is the source of truth** and the only file that passes the `true` default-fallback flag. Every string originates there, and AceLocale falls back to it through `__index` for any key a locale does not define. The other ten are owned by the Localization Review (`07 - Localization Review.md`) and are never hand-edited during ordinary work. A renamed key leaves harmless orphans in the translated files until that pass runs, and a retired key name is never reused, because a stale translation of a reused name would silently win over the English fallback.
 - **Placeholders** must match `enUS` in count, type and order per key in every locale. A `%d` that receives a name throws at runtime, and a dropped placeholder silently loses its value, since `string.format` ignores extra arguments. Twenty-five keys carry them: `FORMAT_ITEM_COUNT`, `ITEM_LOADING`, `CHAT_LOADED`, the three `CHAT_*` notices with arguments, `TOOLTIP_HEALTHSTONE_TALENT`, ten of the `TRADE_STATUS_*` status-line keys, `TRADE_CONJURE_MAKES` and `TRADE_CONJURE_MAKES_LOWEST`, the two `OPTIONS_ITEM_STATUS_*` page lines, `OPTIONS_ITEM_COUNT_TOO_HIGH`, `OPTIONS_ITEM_GUILDIES_ONLY_HELP`, `ANNOUNCEMENTS_BODY` and `OPTIONS_VERSION`. Several put a name before a number or two names side by side (`TRADE_STATUS_LEVEL` is `%s %s %d`, `TRADE_STATUS_SHORT` is `%d %s`), so a translation that reorders them must keep the order, not just the count. `FORMAT_ITEM_COUNT` (`%s %d`) is the shared item-and-count format, reached from the chat prints, the macro body, the trade status line and the Dispense panel's Example line, so one bad translation of it shows in all four.
+- **Game names never go in `Locales/`** (Style Guide → GAME NAMES). Every one is stored as an ID in the flavor folders and named by the client: a collection's label is its rank-1 item's name, `ns.COLLECTION_NAME_ITEM_ID` through `C_Item.GetItemInfo`; a user-added item's name and the trade status line's item names come from `C_Item.GetItemInfo` by item ID; a conjure button's label and tooltip title are `C_Spell.GetSpellName` on the rank's spell ID in `ns.COLLECTIONS[key].Spells`; the healthstone tooltip row names the talent with `C_Spell.GetSpellName(ns.HEALTHSTONE_TALENT_SPELLS[1])`; class labels on the item grid come from `ns.GetClassName` (`LOCALIZED_CLASS_NAMES_MALE` by class token), and the partner's class in the status line from `UnitClass("NPC")`, gendered for them. An uncached item shows `ITEM_LOADING` (`Loading ID: %d`) until it loads, never a translated fallback. The Diagnostic Tools Game Names report checks every one of these lookups on the running client.
 - **`ANNOUNCEMENTS_BODY` is a whole sentence around one `%s`**, deliberately, so translators control word order. Never split it into an intro and an outro pair; Korean puts the list first and the verb last.
 - **One key family is composed at runtime.** The Distribute labels are read as `L["OPTIONS_ITEM_DISTRIBUTE_" .. mode:upper()]`, so a search for `OPTIONS_ITEM_DISTRIBUTE_INSTANCE` finds no call site. Those keys are not orphans, and adding a mode to `ns.DISTRIBUTE_MODES` means adding its key.
 - **Overflow canary: ruRU.** The macro budget is measured in bytes, so the widest-encoding locale overflows first. The fixed lead alone (the party slash, marker, title, separator and template head) measures 49 bytes in Russian against 35 in English and 37 in German, so a body that fits in English can still truncate an item early in Russian. Check truncation against ruRU, not German.
@@ -557,6 +689,6 @@ PR guidelines:
 - **Data changes land in every flavor folder they are true for**, and the PR says which copies changed, which were left, and why.
 - **Output length**: any change to the announcement body or the group-spares wire format is measured in bytes against `ns.CHAT_MESSAGE_MAX_LENGTH`, in ruRU, with full item hyperlinks (Style Guide → MESSAGES → Message Length).
 - **Strings**: add or change them in `Locales/enUS.lua` only; the Localization Review reconciles the other ten.
-- **Run `README-Testing.md`** on every flavor the add-on ships a TOC for before tagging a release, WoW Forever included, and cite the step number when something fails.
+- **Run `README-Testing.md`** on every flavor the add-on ships a TOC for before tagging a release, WoW Forever included, and cite the check number when something fails.
 - **Update this document** when the architecture, the file map or the saved-variable shape changes.
 - **PR descriptions say what a player will notice**, in plain language, the way release notes do: "Trading a low-level player now hands over water they can drink, not your top rank." Commit messages carry the developer detail.

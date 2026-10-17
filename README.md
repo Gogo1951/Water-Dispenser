@@ -1,6 +1,6 @@
 # Water Dispenser
 
-Effortless consumable distribution. Auto-fill trade windows with conjured water, food, and healthstones at the right rank and amount for each player. Add any item, from Hourglass Sand to Resistance Potions, and distribute a raid's worth in seconds.
+Effortless mage and warlock consumable distribution. Auto-fill trade windows with conjured water, food, and healthstones at the right rank and amount for each player. Add any item, from Hourglass Sand to potions, and distribute a raid's worth in seconds.
 
 **TL;DR**: For the mage or warlock the whole raid lines up to trade. Stop counting stacks and digging through bags, just open the trade and it's already filled.
 
@@ -58,7 +58,7 @@ Hover a groupmate to see what they can give out, or click the `- Dispenser` macr
 | Click                | What happens                                           |
 | -------------------- | ------------------------------------------------------ |
 | Left-Click           | Toggles Dispense on or off                             |
-| Shift + Middle-Click | Opens the options panel, the same as typing `/wd`      |
+| Shift + Middle-Click | Opens the Options Interface, the same as typing `/wd`  |
 | Hover                | Shows whether Dispense is on, and what you can give    |
 
 <img width="300" src="https://github.com/user-attachments/assets/8ef56312-1f0a-44b9-87b2-049acd80393e" />
@@ -71,6 +71,7 @@ Hover a groupmate to see what they can give out, or click the `- Dispenser` macr
 * **Announcements** // The `- Dispenser` macro, with a live preview.
 * **Inventory Tooltips** // See what your group can give, and choose whether to share your own.
 * **Profiles** // One set of rules for every character, or one per character.
+* **Feedback & Support** // Links to report a bug, share an idea, or help spread the word.
 * **Diagnostic Tools** // Read-only reports to paste into a bug report.
 
 <img width="800" src="https://github.com/user-attachments/assets/b978dc1f-6bd7-48b0-a147-c3c9475b8bb1" />
