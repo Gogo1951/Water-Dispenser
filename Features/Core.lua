@@ -82,6 +82,23 @@ function ns.RegisterEvent(event, handler, ...)
 	table.insert(eventHandlers[event], handler)
 end
 
+-- Drops one handler, and the frame's registration once the event has none left. ns.EVENT_NAMES keeps the name.
+function ns.UnregisterEvent(event, handler)
+	local handlers = eventHandlers[event]
+	if not handlers then
+		return
+	end
+	for index = #handlers, 1, -1 do
+		if handlers[index] == handler then
+			table.remove(handlers, index)
+		end
+	end
+	if #handlers == 0 then
+		eventFrame:UnregisterEvent(event)
+		eventHandlers[event] = nil
+	end
+end
+
 eventFrame:SetScript("OnEvent", function(_, event, ...)
 	-- Diagnostics tap, gated on the boolean first so the dispatcher costs nothing while logging is off.
 	if ns.diagnostics and ns.diagnostics.logging then
@@ -110,7 +127,11 @@ local function DropStoredItemNames()
 	end
 end
 
--- Creates the AceDB database and wires the refresh that follows a profile switch.
+--[[
+	Creates the AceDB database and wires the refresh that follows a profile switch.
+	The AceDB conversion shipped with no bridge on purpose: a pre-conversion
+	mini-map position and reserve amount fall back to defaults.
+]]
 local function SetupDatabase()
 	ns.db = LibStub("AceDB-3.0"):New(ns.SAVED_VARIABLES_NAME, ns.DATABASE_DEFAULTS, true)
 
@@ -153,9 +174,6 @@ ns.RegisterEvent("PLAYER_LOGIN", function()
 	SetupDatabase()
 	if ns.RegisterOptionsPanels then
 		ns.RegisterOptionsPanels()
-	end
-	if ns.InitDispensedItemsOptions then
-		ns.InitDispensedItemsOptions()
 	end
 	if ns.InitDispenser then
 		ns.InitDispenser()

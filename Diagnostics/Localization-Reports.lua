@@ -2,6 +2,7 @@ local _, ns = ...
 
 local GetClientHeader = ns.GetDiagnosticClientHeader
 local CountKeys = ns.CountDiagnosticKeys
+local D = ns.DiagnosticsStrings
 
 --------------------------------------------------------------------------------
 -- Locale Context
@@ -9,10 +10,10 @@ local CountKeys = ns.CountDiagnosticKeys
 
 function ns:BuildLocaleContextReport()
 	local lines = { GetClientHeader(), "" }
-	lines[#lines + 1] = "Game locale: " .. tostring(GetLocale())
-	lines[#lines + 1] = "textLocale CVar: " .. tostring(GetCVar("textLocale"))
-	lines[#lines + 1] = "audioLocale CVar: " .. tostring(GetCVar("audioLocale"))
-	lines[#lines + 1] = "Strings the add-on defines: " .. CountKeys(ns.L)
+	lines[#lines + 1] = string.format("GetLocale: %s", tostring(GetLocale()))
+	lines[#lines + 1] = string.format("textLocale CVar: %s", tostring(GetCVar("textLocale")))
+	lines[#lines + 1] = string.format("audioLocale CVar: %s", tostring(GetCVar("audioLocale")))
+	lines[#lines + 1] = string.format("Locale keys (ns.L): %d", CountKeys(ns.L))
 	return table.concat(lines, "\n")
 end
 
@@ -21,147 +22,141 @@ end
 --------------------------------------------------------------------------------
 
 --[[
-	One row per name lookup in ns.DIAGNOSTIC_NAME_LOOKUPS, plus the player's own
-	Dispensed Items, each printed with the name this client gives it. An item
-	can answer nil until the client loads it, so unloaded items are requested
-	and polled, asked again every few idle polls, and after a bounded run of
-	polls with no progress they settle as NIL rather than holding the report
-	open. Run on a non-English client, this checks every name the add-on shows
-	in that language at once.
+    One line per ns.DIAGNOSTIC_NAME_LOOKUPS row: the name this client returns
+    through the row's own lookup, or NIL. A row with a request function names
+    something that loads late, so the report asks for it and polls with
+    Validate Data's cadence before settling it as NIL. Every timer carries the
+    run's generation, so Stop retires the chain.
 ]]
-local NAMES_POLL_SECONDS = 0.5
-local NAMES_REASK_POLLS = 3
-local NAMES_MAX_IDLE_POLLS = 12
+local NAME_POLL_SECONDS = 0.5
+local NAME_REASK_POLLS = 3
+local NAME_MAX_IDLE_POLLS = 12
 
-local STATUS_OK = "OK"
-local STATUS_NIL = "NIL"
-local STATUS_FALLBACK = "FALLBACK"
-local STATUS_ERROR = "ERROR"
+local nameRun = { generation = 0 }
 
-local namesGeneration = 0
-
-local function NameRows()
-	local rows = {}
-	for _, lookup in ipairs(ns.DIAGNOSTIC_NAME_LOOKUPS or {}) do
-		rows[#rows + 1] = { constant = lookup.constant, kind = lookup.kind, id = lookup.id, lookup = lookup.lookup }
-	end
-	local items = ns.db and ns.db.profile.Items or {}
-	local userIds = {}
-	for key in pairs(items) do
-		if type(key) == "number" then
-			userIds[#userIds + 1] = key
-		end
-	end
-	table.sort(userIds)
-	for _, itemId in ipairs(userIds) do
-		rows[#rows + 1] = {
-			constant = "Items (Dispensed Items)",
-			kind = "item",
-			id = itemId,
-			lookup = function(id)
-				if not C_Item.GetItemInfo(id) then
-					return nil
-				end
-				return ns.GetItemConfigName(id)
-			end,
-		}
-	end
-	return rows
-end
-
--- The row's name, or nil and the message when the lookup throws.
+-- The row's name, or nil and the message when its lookup throws.
 local function ReadName(row)
-	local ok, name = pcall(row.lookup, row.id)
+	local ok, name = pcall(row.lookup)
 	if not ok then
 		return nil, tostring(name)
 	end
-	if type(name) ~= "string" or name == "" then
+	if name == nil or tostring(name) == "" then
 		return nil, nil
 	end
-	return name, nil
+	return tostring(name), nil
 end
 
-local function RequestRow(row)
-	if row.kind == "item" then
-		pcall(C_Item.RequestLoadItemDataByID, row.id)
+-- Line breaks shown as a literal \n, and pipes escaped so links paste as text.
+local function ShownText(text)
+	local shown = text:gsub("\r?\n", "\\n")
+	shown = shown:gsub("|", "||")
+	return shown
+end
+
+local function PendingRows()
+	local pending = {}
+	for _, row in ipairs(ns.DIAGNOSTIC_NAME_LOOKUPS) do
+		if row.request and not ReadName(row) then
+			pending[#pending + 1] = row
+		end
+	end
+	return pending
+end
+
+local function RequestRows(rows)
+	for _, row in ipairs(rows) do
+		pcall(row.request)
 	end
 end
 
-local function FinishNames(rows, onFinish)
-	local lines = { GetClientHeader(), "", table.concat({ "STATUS", "CONSTANT", "KIND", "ID", "NAME" }, "\t") }
-	local counts = {}
-	for _, row in ipairs(rows) do
+local function FinishNames(run)
+	local lines = { GetClientHeader(), "" }
+	local missing = 0
+	for _, row in ipairs(ns.DIAGNOSTIC_NAME_LOOKUPS) do
 		local name, problem = ReadName(row)
-		local status = STATUS_OK
-		if problem then
-			status, name = STATUS_ERROR, problem
-		elseif not name then
-			status = STATUS_NIL
-		elseif row.kind == "class" and name == row.id then
-			status = STATUS_FALLBACK
+		if not name then
+			missing = missing + 1
 		end
-		counts[status] = (counts[status] or 0) + 1
-		lines[#lines + 1] = table.concat({
-			status,
+		lines[#lines + 1] = string.format(
+			"[%s] %s (%s %s): %s",
+			name and "OK" or "NIL",
 			row.constant,
 			row.kind,
 			tostring(row.id),
-			((tostring(name or "")):gsub("[\t\r\n]", " "):gsub("|", "||")),
-		}, "\t")
+			ShownText(name or problem or "")
+		)
 	end
-	local note = {}
-	for _, status in ipairs({ STATUS_OK, STATUS_NIL, STATUS_FALLBACK, STATUS_ERROR }) do
-		if counts[status] then
-			note[#note + 1] = counts[status] .. " " .. status
+	local onFinish = run.onFinish
+	run.onFinish = nil
+	if onFinish then
+		onFinish(
+			table.concat(lines, "\n"),
+			missing == 0 and D.NAMES_ALL_FOUND or string.format(D.NAMES_SOME_NIL, missing)
+		)
+	end
+end
+
+local function ScheduleNames(run, delay, step)
+	local generation = run.generation
+	C_Timer.After(delay, function()
+		if run.generation ~= generation then
+			return
 		end
+		local ok, problem = pcall(step, run)
+		if not ok then
+			local onFinish = run.onFinish
+			run.onFinish = nil
+			run.generation = run.generation + 1
+			if onFinish then
+				onFinish(nil, nil, tostring(problem))
+			end
+		end
+	end)
+end
+
+local function PollNames(run)
+	local pending = PendingRows()
+	if #pending == 0 then
+		FinishNames(run)
+		return
 	end
-	onFinish(table.concat(lines, "\n"), table.concat(note, ", "))
+	if #pending < run.pendingCount then
+		run.pendingCount = #pending
+		run.idlePolls = 0
+	else
+		run.idlePolls = run.idlePolls + 1
+	end
+	if run.idlePolls >= NAME_MAX_IDLE_POLLS then
+		FinishNames(run)
+		return
+	end
+	if run.idlePolls > 0 and run.idlePolls % NAME_REASK_POLLS == 0 then
+		RequestRows(pending)
+	end
+	ScheduleNames(run, NAME_POLL_SECONDS, PollNames)
 end
 
 --[[
-	onFinish(text, note) receives the finished report. A run that is stopped or
-	replaced never calls it: every poll checks the generation it started under.
+    onFinish(text, note) receives the finished report and its status note, or
+    onFinish(nil, nil, problem) when a step threw. A stopped run never calls it.
 ]]
-function ns:StartGameNamesReport(onFinish)
-	namesGeneration = namesGeneration + 1
-	local generation = namesGeneration
-	local rows = NameRows()
-	for _, row in ipairs(rows) do
-		if not ReadName(row) then
-			RequestRow(row)
-		end
+function ns:StartNameLookupReport(onFinish)
+	nameRun.generation = nameRun.generation + 1
+	nameRun.onFinish = onFinish
+	nameRun.idlePolls = 0
+	local pending = PendingRows()
+	nameRun.pendingCount = #pending
+	if #pending == 0 then
+		ScheduleNames(nameRun, 0, FinishNames)
+		return
 	end
-
-	local idlePolls, lastWaiting = 0, nil
-	local function Poll()
-		if generation ~= namesGeneration then
-			return
-		end
-		local waiting = {}
-		for _, row in ipairs(rows) do
-			local name, problem = ReadName(row)
-			if row.kind == "item" and not name and not problem then
-				waiting[#waiting + 1] = row
-			end
-		end
-		if #waiting == 0 or idlePolls >= NAMES_MAX_IDLE_POLLS then
-			FinishNames(rows, onFinish)
-			return
-		end
-		idlePolls = (lastWaiting and #waiting >= lastWaiting) and idlePolls + 1 or 0
-		lastWaiting = #waiting
-		if idlePolls > 0 and idlePolls % NAMES_REASK_POLLS == 0 then
-			for _, row in ipairs(waiting) do
-				RequestRow(row)
-			end
-		end
-		C_Timer.After(NAMES_POLL_SECONDS, Poll)
-	end
-	C_Timer.After(0, Poll)
+	RequestRows(pending)
+	ScheduleNames(nameRun, NAME_POLL_SECONDS, PollNames)
 end
 
-function ns:StopGameNamesReport()
-	namesGeneration = namesGeneration + 1
+function ns:StopNameLookupReport()
+	nameRun.generation = nameRun.generation + 1
+	nameRun.onFinish = nil
 end
 
 --------------------------------------------------------------------------------

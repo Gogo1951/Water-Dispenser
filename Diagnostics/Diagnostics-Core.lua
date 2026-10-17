@@ -23,8 +23,9 @@ local _, ns = ...
     it starts false at every login and is never persisted.
 
     outputs holds each report tab's one output box (settings, code, data,
-    localization), status each report's last run state, and running the tab
-    whose run is in flight, or nil.
+    localization),
+    status each report's last run state, and running the tab whose run is in
+    flight, or nil.
 ]]
 ns.diagnostics = ns.diagnostics
 	or {
@@ -80,6 +81,9 @@ ns.DiagnosticsStrings = {
 	EVENT_LOG_STOP_DESCRIPTION = "Stops capturing and keeps what was captured, ready to show.",
 	EVENT_LOG_SHOW = "Show",
 	EVENT_LOG_SHOW_DESCRIPTION = "Prints the captured events in the box below, ready to copy.",
+	EVENT_LOG_PRIVACY = "The log includes "
+		.. TITLE
+		.. "'s add-on messages, which carry your groupmates' names and what they have to give. Read it through before you paste it anywhere.",
 	TAINT_TITLE = "Taint Log",
 	TAINT_INTRO = 'Seeing "action blocked" or "interface action failed" errors? Turn this on and the game records the cause to a file. Send the file along with your bug report.',
 	TAINT_STATE = "Taint logging is currently set to level %d (0 = off, 2 = verbose).",
@@ -117,11 +121,11 @@ ns.DiagnosticsStrings = {
 		.. TITLE
 		.. " relies on is present on this client.",
 	CODE_RUN_ALL = "Run All Code Reports",
-	DATA_INTRO = "Checks every item, spell and quest the add-on ships against this client. Paste a result into a spreadsheet and sort by STATUS to find what needs pruning.",
+	DATA_INTRO = "Checks every item and spell the add-on ships against this client. Paste a result into a spreadsheet and sort by STATUS to find what needs pruning.",
 	DATA_RUN_ALL = "Validate All Data Files",
-	LOCALIZATION_INTRO = "For a player on a non-English client: which language the game is really in, the name this client gives everything "
+	LOCALIZATION_INTRO = "Playing in a language other than English and a name or the announcement macro reads wrong? These show what your client calls everything "
 		.. TITLE
-		.. " names, and how close its messages come to their length limit in this language.",
+		.. " names, and how long the macro runs in your language.",
 	LOCALIZATION_RUN_ALL = "Run All Localization Reports",
 	RUN_ALL_DESCRIPTION = "Runs %s, one after another.",
 
@@ -142,21 +146,24 @@ ns.DiagnosticsStrings = {
 	VALIDATE_TITLE = "Validate Data: %s",
 	VALIDATE_DESCRIPTION = "Checks every id in this data file against this client and exports the results as tab-separated text.",
 	VALIDATE_PROGRESS = "%s / %s IDs",
-	VALIDATE_HINT = "Checks every item, spell and quest id a data file ships against this client and exports what the client knows about each one as tab-separated text, ready to paste into a spreadsheet. Each kind gets a block of its own. Item rows carry every item API return, the file's own values in the DATA columns so you can sort for mismatches, everything the client knows about the item's spell including its tooltip in SPELL_TOOLTIP, and the whole item tooltip in one TOOLTIP cell, its lines joined by // and a right-hand text after >>. Spell rows carry every spell API return, the DATA columns, whether this character knows the spell, and its whole tooltip. Quest rows carry every quest API return the client has, and a table of ids no API looks up shows its row count. STATUS reads OK, NOT ON CLIENT for an id this client does not have or never answers for, INCOMPLETE when an item or spell loaded but its tooltip or text never did, NO TITLE when a quest's title never loaded (not grounds to prune), ERROR with the message in the name cell when a read throws, or TABLE MISSING when this client's folder never built a table.",
 	DISPLAY_TITLE = "Display Context",
 	DISPLAY_DESCRIPTION = "Shows your screen size, UI scale and the mini-map button's saved position.",
 	ADDONS_TITLE = "Other Add-ons",
 	ADDONS_DESCRIPTION = "Lists every installed add-on with its version, and whether it is loadable or disabled.",
 	SAVED_TITLE = "Saved Variables",
 	SAVED_DESCRIPTION = "Prints " .. TITLE .. "'s saved settings and lists as readable text.",
-	LOCALE_TITLE = "Locale Context",
-	LOCALE_DESCRIPTION = "Shows the game's language, its text and audio language settings, and how many strings the add-on has.",
-	NAMES_TITLE = "Game Names",
-	NAMES_DESCRIPTION = "Shows the name this client gives every item, spell and class the add-on names, flagging any it can't find.",
-	LENGTH_TITLE = "Message Length",
-	LENGTH_DESCRIPTION = "Builds the longest announcement macro this language can produce and measures it against the 255-byte limit. Writes no macro.",
 	LIBS_TITLE = "Library Versions",
 	LIBS_DESCRIPTION = "Lists the version of every library " .. TITLE .. " loaded.",
+	LOCALE_TITLE = "Locale Context",
+	LOCALE_DESCRIPTION = "Shows your client's language, its text and audio language settings, and how many of "
+		.. TITLE
+		.. "'s own strings loaded.",
+	NAMES_TITLE = "Game Names",
+	NAMES_DESCRIPTION = "Shows the name your client gives every game string " .. TITLE .. " shows or matches.",
+	NAMES_ALL_FOUND = "all found",
+	NAMES_SOME_NIL = "%d NIL",
+	MESSAGES_TITLE = "Message Length",
+	MESSAGES_DESCRIPTION = "Builds the longest announcement macro this language can produce and measures it against the 255-byte limit. Writes no macro.",
 
 	STATUS_WAITING = "Waiting",
 	STATUS_RUNNING = "Running",

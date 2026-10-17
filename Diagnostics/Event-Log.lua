@@ -11,29 +11,51 @@ local EVENT_LOG_MAX_ARGS = 8
 local EVENT_LOG_MAX_ARG_LENGTH = 255
 
 --[[
-	Events ns:LogEvent drops before recording. The dispatcher only ever hands
-	LogEvent the events the add-on registers (Core's ns.EVENT_NAMES), so a
-	generic offender belongs here only once it is registered. A firehose that is
-	sometimes signal and carries no id goes here, and the handler that acts on it
-	writes its signal firings back through ns:LogEventNow.
+    Events ns:LogEvent drops before recording. The dispatcher only ever hands
+    LogEvent the events Water Dispenser registers (Core's ns.EVENT_NAMES), and
+    BAG_UPDATE is the one sustained firehose among them: it fires per slot
+    change, where BAG_UPDATE_DELAYED (once per settle) is kept. The fill writes
+    back the BAG_UPDATE firings it acts on, and its own PLACE, SHAPE, FILL and
+    SPLIT steps, through ns:LogEventNow.
 ]]
-ns.DIAGNOSTIC_EVENT_EXCLUDE = ns.DIAGNOSTIC_EVENT_EXCLUDE or {}
+ns.DIAGNOSTIC_EVENT_EXCLUDE = {
+	BAG_UPDATE = true,
+}
 
 --[[
-	Events that carry a message id, and the argument position it arrives in, for
-	ns:SuppressUncorrelatedMessage to classify per firing rather than drop
-	wholesale. The ids the add-on acts on come from ns.DIAGNOSTIC_CORRELATED_IDS
-	in Diagnostics/Manifests.lua: one function per event, answering through the
-	same lookup the live handler uses, so the allowlist can never drift from it.
+    Events that carry a message id, and the argument position it arrives in,
+    for ns:SuppressUncorrelatedMessage to classify per firing rather than drop
+    wholesale. CHAT_MSG_ADDON carries every add-on's traffic in the group, and
+    in a raid the boss mods and meters alone would push everything else out of
+    the buffer; its id is the prefix. GET_ITEM_INFO_RECEIVED fires once per item
+    the client loads while the Dispensed Items panel waits on a name, hundreds
+    of times if Validate Data or a bag add-on runs meanwhile.
 ]]
-ns.MESSAGE_ID_FILTERED_EVENTS = ns.MESSAGE_ID_FILTERED_EVENTS or {}
+ns.MESSAGE_ID_FILTERED_EVENTS = {
+	CHAT_MSG_ADDON = 1,
+	GET_ITEM_INFO_RECEIVED = 1,
+}
 
 --[[
-	One argument as log text. A value Forever hides in combat is written as
-	<secret> and never stringified. Pipes are escaped (| -> ||) AFTER the length
-	cut so each argument shows verbatim in the report editbox instead of rendering
-	as a clickable item swatch, and so the cut can never leave a dangling pipe
-	that would eat the following ", " separator.
+    The ids the live handlers act on, through the same lookups they use: the
+    allowlist, never a list of noise.
+]]
+local CORRELATED_IDS = {
+	CHAT_MSG_ADDON = function(prefix)
+		return prefix == ns.ADDON_MESSAGE_PREFIX
+	end,
+	GET_ITEM_INFO_RECEIVED = function(itemId)
+		return ns.IsItemNamePending ~= nil and ns.IsItemNamePending(itemId)
+	end,
+}
+
+--[[
+    One argument as log text. A value Forever hides in combat is written as
+    <secret> and never stringified, since string-building with one throws.
+    Pipes are escaped (| -> ||) AFTER the length cut so each argument shows
+    verbatim in the report editbox instead of rendering as a clickable item
+    swatch, and so the cut can never leave a dangling pipe that would eat the
+    following ", " separator.
 ]]
 local function ArgumentText(value)
 	if ns.IsSecretValue(value) then
@@ -44,14 +66,15 @@ local function ArgumentText(value)
 end
 
 --[[
-	Per-firing filter for the events above. A firing whose id the add-on does
-	not correlate folds into a per-id counter (first-seen text plus a count)
-	rendered as one block at the end of the report, so firehose traffic can't
-	evict the entries the log exists to carry. A firing carrying no id in the
-	filtered position, or a secret one, is unclassifiable, and unclassifiable is
-	signal: it logs verbatim.
+    Per-firing filter for the events above. A firing whose id the add-on does
+    not correlate folds into a per-id counter (first-seen text plus a count)
+    rendered as one block at the end of the report, so firehose traffic can't
+    evict the entries the log exists to carry. A firing carrying no id in the
+    filtered position, or a secret one, is unclassifiable, and unclassifiable
+    is signal: it logs verbatim. Counters are keyed by event and id, since the
+    prefix is a string and an item id a number.
 
-	Returns true when the firing was counted and must not reach the buffer.
+    Returns true when the firing was counted and must not reach the buffer.
 ]]
 function ns:SuppressUncorrelatedMessage(event, ...)
 	local idPosition = ns.MESSAGE_ID_FILTERED_EVENTS[event]
@@ -66,7 +89,7 @@ function ns:SuppressUncorrelatedMessage(event, ...)
 	if idType ~= "number" and idType ~= "string" then
 		return false
 	end
-	local correlated = ns.DIAGNOSTIC_CORRELATED_IDS and ns.DIAGNOSTIC_CORRELATED_IDS[event]
+	local correlated = CORRELATED_IDS[event]
 	if correlated and correlated(messageID) then
 		return false
 	end
@@ -99,12 +122,13 @@ function ns:StopEventLog()
 end
 
 --[[
-	Appends one entry. Snapshots arguments to strings immediately -- never retain
-	references, since some events carry frames or tables that would leak memory
-	or go stale -- and caps the argument count and each argument's byte length so
-	a single entry can't run away.
+    One entry in the buffer, for ns:LogEvent and ns:LogEventNow below.
+    Snapshots arguments to strings immediately -- never retain references, since
+    some events carry frames or tables that would leak memory or go stale. Caps
+    the arg count and per-argument byte length (ArgumentText above) so a single
+    entry can't run away.
 ]]
-local function AppendLogEntry(event, ...)
+local function AppendEntry(event, ...)
 	local log = ns.diagnostics.log
 	if not log then
 		return
@@ -130,22 +154,27 @@ function ns:LogEvent(event, ...)
 	if ns:SuppressUncorrelatedMessage(event, ...) then
 		return
 	end
-	AppendLogEntry(event, ...)
+	AppendEntry(event, ...)
 end
 
 --[[
-	Logs past the exclude list and the filter, for a handler writing back the
-	firings of an excluded event it acted on, or a step of its own the events
-	alone can't show. Callers check ns.diagnostics.logging first.
+    The way back in for an excluded firehose that is sometimes signal: the
+    handler that decides a firing mattered calls this with the event and its
+    arguments, and it is recorded as the dispatcher would have, past the
+    exclude list. Feature code calls it, so it carries the dispatcher's own
+    single boolean check before any work.
 ]]
 function ns:LogEventNow(event, ...)
-	AppendLogEntry(event, ...)
+	if not ns.diagnostics.logging then
+		return
+	end
+	AppendEntry(event, ...)
 end
 
 --[[
-	Renders the suppressed-traffic counters as one compact block, biggest
-	offender first. This is also how a tester discovers a message id the add-on
-	should be correlating but isn't.
+    Renders the suppressed-traffic counters as one compact block, biggest
+    offender first. This is also how a tester discovers a message id the add-on
+    should be correlating but isn't.
 ]]
 local function AppendSuppressedSummary(lines)
 	local suppressed = ns.diagnostics.suppressed
@@ -192,9 +221,9 @@ end
 --------------------------------------------------------------------------------
 
 --[[
-	The taintLog CVar controls UI taint logging to Logs\taint.log. Level 2 logs
-	both blocked actions and accesses to tainted globals; 0 is off. This is the
-	only state the diagnostics panel ever writes.
+    The taintLog CVar controls UI taint logging to Logs\taint.log. Level 2 logs
+    both blocked actions and accesses to tainted globals; 0 is off. This is the
+    only state the diagnostics panel ever writes.
 ]]
 
 function ns:GetTaintLogState()

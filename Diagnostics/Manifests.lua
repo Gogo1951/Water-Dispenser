@@ -86,12 +86,6 @@ ns.DIAGNOSTIC_API_CHECKS = {
 		end,
 	},
 	{
-		"C_Spell.GetSpellInfo",
-		function()
-			return type(C_Spell) == "table" and type(C_Spell.GetSpellInfo) == "function"
-		end,
-	},
-	{
 		"C_Item.GetItemCount",
 		function()
 			return type(C_Item) == "table" and type(C_Item.GetItemCount) == "function"
@@ -107,12 +101,6 @@ ns.DIAGNOSTIC_API_CHECKS = {
 		"C_Spell.GetSpellName",
 		function()
 			return type(C_Spell) == "table" and type(C_Spell.GetSpellName) == "function"
-		end,
-	},
-	{
-		"C_Spell.GetSpellSubtext",
-		function()
-			return type(C_Spell) == "table" and type(C_Spell.GetSpellSubtext) == "function"
 		end,
 	},
 	{
@@ -212,6 +200,12 @@ ns.DIAGNOSTIC_API_CHECKS = {
 		end,
 	},
 	{
+		"GameTooltip OnTooltipSetItem script (fallback bag tooltip path)",
+		function()
+			return GameTooltip:HasScript("OnTooltipSetItem") and true or false
+		end,
+	},
+	{
 		"GameTooltip OnTooltipSetUnit script (fallback unit tooltip path)",
 		function()
 			return GameTooltip:HasScript("OnTooltipSetUnit") and true or false
@@ -296,6 +290,20 @@ ns.DIAGNOSTIC_API_CHECKS = {
 		"SetCVar",
 		function()
 			return type(SetCVar) == "function"
+		end,
+	},
+	-- ns.IsInCombat: every fill, conjure button, broadcast and macro update stands down on it.
+	{
+		"InCombatLockdown",
+		function()
+			return type(InCombatLockdown) == "function"
+		end,
+	},
+	-- ns.GetGroupChatChannel asks for instance groups first; without it every group would read as instance chat.
+	{
+		"LE_PARTY_CATEGORY_INSTANCE",
+		function()
+			return LE_PARTY_CATEGORY_INSTANCE ~= nil
 		end,
 	},
 	-- The master-loot hold indexes this on every trade opened inside an instance.
@@ -425,15 +433,15 @@ ns.DIAGNOSTIC_API_CHECKS = {
 		end,
 	},
 	{
-		"C_Spell.DoesSpellExist",
-		function()
-			return type(C_Spell) == "table" and type(C_Spell.DoesSpellExist) == "function"
-		end,
-	},
-	{
 		"C_Spell.RequestLoadSpellData",
 		function()
 			return type(C_Spell) == "table" and type(C_Spell.RequestLoadSpellData) == "function"
+		end,
+	},
+	{
+		"C_Spell.IsSpellDataCached",
+		function()
+			return type(C_Spell) == "table" and type(C_Spell.IsSpellDataCached) == "function"
 		end,
 	},
 	{
@@ -460,46 +468,12 @@ ns.DIAGNOSTIC_API_CHECKS = {
 }
 
 --------------------------------------------------------------------------------
--- Event Log Filters
+-- Event Log Examples
 --------------------------------------------------------------------------------
 
 -- The add-on's own example reports, appended to the shared Event Log intro.
 ns.DiagnosticsStrings.EVENT_LOG_EXAMPLES =
 	"Best for 'the trade window didn't fill' or 'the macro didn't update' reports."
-
--- Shown under the Event Log intro, because CHAT_MSG_ADDON is registered.
-ns.DiagnosticsStrings.EVENT_LOG_PRIVACY =
-	"This log records Water Dispenser's add-on messages, which carry your groupmates' names and what they have to give. Review it before you paste it anywhere."
-
---[[
-	BAG_UPDATE fires per slot change; BAG_UPDATE_DELAYED (once per settle) is
-	kept. The fill writes back the BAG_UPDATE firings it acts on, and its own
-	PLACE, SHAPE, FILL and SPLIT steps, through ns:LogEventNow.
-]]
-ns.DIAGNOSTIC_EVENT_EXCLUDE = {
-	BAG_UPDATE = true,
-}
-
---[[
-	CHAT_MSG_ADDON carries every add-on's traffic in the group, and in a raid the
-	boss mods and meters alone would push everything else out of the buffer.
-	GET_ITEM_INFO_RECEIVED fires once per item the client loads, hundreds of
-	times while Validate Data or a bag add-on runs. Both carry their id first.
-]]
-ns.MESSAGE_ID_FILTERED_EVENTS = {
-	CHAT_MSG_ADDON = 1,
-	GET_ITEM_INFO_RECEIVED = 1,
-}
-
--- The ids the live handlers act on, through the same lookups they use: the allowlist, never a list of noise.
-ns.DIAGNOSTIC_CORRELATED_IDS = {
-	CHAT_MSG_ADDON = function(prefix)
-		return prefix == ns.ADDON_MESSAGE_PREFIX
-	end,
-	GET_ITEM_INFO_RECEIVED = function(itemId)
-		return ns.IsItemNamePending ~= nil and ns.IsItemNamePending(itemId)
-	end,
-}
 
 --------------------------------------------------------------------------------
 -- Report Helpers
@@ -543,9 +517,9 @@ end
 
 --[[
 	Every carried slot holding a collection item or a configured user item, read
-	straight from the bags. Never through ns.ScanInventory or a snapshot builder:
-	those replace the cache the fill compares against, so the next bag update
-	would read no change and skip its refill.
+	straight from the bags. Never through ns.ScanInventory: it moves the baseline
+	the fill compares against, so the next bag update would read no change and
+	skip its refill.
 ]]
 local function ReadTrackedBags()
 	local items, order = {}, {}
@@ -1183,7 +1157,9 @@ end
 	both tooltip switches, the hooks, the add-on channel, and every name the
 	channel has heard beside every name on the roster. A sender with no roster
 	match is the silent failure: their list arrived under a spelling the tooltip
-	never looks up. Lists groupmates' names, as README-Notes records.
+	never looks up. Prints groupmates' names on purpose, since that mismatch only
+	shows with both spellings side by side; the panel's review-before-pasting hint
+	says so.
 ]]
 function ns:BuildInventoryTooltipsReport()
 	local lines = { GetClientHeader(), "" }
@@ -1202,6 +1178,16 @@ function ns:BuildInventoryTooltipsReport()
 		ns.bagTooltipPath or "not hooked",
 		tostring(ns.LAST_BAG_INDEX)
 	)
+	-- The bag tooltip's line needs both switches above, then an item configured and on for this class.
+	local earning = {}
+	local items = db.Items or {}
+	for _, key in ipairs(ConfiguredKeys()) do
+		if ns.IsItemActiveForPlayer(items[key]) then
+			earning[#earning + 1] = Plain(ns.GetItemConfigName(key) or key)
+		end
+	end
+	lines[#lines + 1] = "Items on for this class (bag tooltip line): "
+		.. (#earning > 0 and table.concat(earning, ", ") or "none")
 
 	local registered = "n/a"
 	if C_ChatInfo and C_ChatInfo.IsAddonMessagePrefixRegistered then
@@ -1275,43 +1261,18 @@ function ns:BuildInventoryTooltipsReport()
 end
 
 --------------------------------------------------------------------------------
--- Display Context
---------------------------------------------------------------------------------
-
---[[
-	The mini-map button Display Context reads: registered with LibDBIcon under
-	the brand name, its placement kept in the profile (Simple model).
-]]
-ns.DIAGNOSTIC_MINIMAP = {
-	name = ns.LOCALE_NAME,
-	settings = function()
-		return ns.db and ns.db.profile.minimap
-	end,
-	savedPath = function()
-		return { "profiles", ns.db and ns.db:GetCurrentProfile() or "?", "minimap" }
-	end,
-}
-
---------------------------------------------------------------------------------
 -- Name Lookups
 --------------------------------------------------------------------------------
 
 --[[
 	Every game record the add-on names by ID, for the Localization tab's Game
-	Names report: { constant, kind, id, lookup }. lookup is the exact call the
-	add-on's features make and returns the client's name, or nil while the
-	client has none. Built from the data, so a new collection or rank is checked
-	with nothing added here; the player's own Dispensed Items are added at run
-	time by the report.
+	Names report: { constant, kind, id, lookup, request }. lookup is the exact
+	call the add-on's features make and returns the client's name, or nil while
+	the client has none; request asks the client for a record that loads late.
+	Built from the data, so a new collection or rank is checked with nothing
+	added here. The player's own Dispensed Items are named in the Trade & Fill
+	report's item list.
 ]]
-local function LookupItemName(itemId)
-	return (C_Item.GetItemInfo(itemId))
-end
-
-local function LookupSpellName(spellId)
-	return C_Spell.GetSpellName(spellId)
-end
-
 local function SortedKeys(values)
 	local keys = {}
 	for key in pairs(values or {}) do
@@ -1323,38 +1284,60 @@ end
 
 ns.DIAGNOSTIC_NAME_LOOKUPS = {}
 
-local function AddLookup(constant, kind, id, lookup)
+local function AddLookup(constant, kind, id, lookup, request)
 	ns.DIAGNOSTIC_NAME_LOOKUPS[#ns.DIAGNOSTIC_NAME_LOOKUPS + 1] =
-		{ constant = constant, kind = kind, id = id, lookup = lookup }
+		{ constant = constant, kind = kind, id = id, lookup = lookup, request = request }
+end
+
+local function AddItem(constant, itemId)
+	AddLookup(constant, "item", itemId, function()
+		return (C_Item.GetItemInfo(itemId))
+	end, function()
+		C_Item.RequestLoadItemDataByID(itemId)
+	end)
+end
+
+local function AddSpell(constant, spellId)
+	AddLookup(constant, "spell", spellId, function()
+		return C_Spell.GetSpellName(spellId)
+	end, function()
+		C_Spell.RequestLoadSpellData(spellId)
+	end)
 end
 
 for _, key in ipairs(ns.BUILTIN_ORDER) do
 	local nameItemId = ns.COLLECTION_NAME_ITEM_ID[key]
 	if nameItemId then
 		-- The collection's label goes through ns.GetItemConfigName, whose Loading placeholder is not a name.
-		AddLookup("COLLECTION_NAME_ITEM_ID." .. key, "item", nameItemId, function(itemId)
-			if not C_Item.GetItemInfo(itemId) then
+		AddLookup("COLLECTION_NAME_ITEM_ID." .. key, "item", nameItemId, function()
+			if not C_Item.GetItemInfo(nameItemId) then
 				return nil
 			end
 			return ns.GetItemConfigName(key)
+		end, function()
+			C_Item.RequestLoadItemDataByID(nameItemId)
 		end)
 	end
 	local collection = ns.COLLECTIONS[key]
 	if collection then
 		for _, itemId in ipairs(SortedKeys(collection.Items)) do
-			AddLookup("COLLECTIONS." .. key .. ".Items", "item", itemId, LookupItemName)
+			AddItem("COLLECTIONS." .. key .. ".Items", itemId)
 		end
 		for _, spellId in ipairs(SortedKeys(collection.Spells)) do
-			AddLookup("COLLECTIONS." .. key .. ".Spells", "spell", spellId, LookupSpellName)
+			AddSpell("COLLECTIONS." .. key .. ".Spells", spellId)
 		end
 	end
 end
 -- Only the first talent rank is ever named: it labels the healthstone row in a warlock's tooltip.
 if ns.HEALTHSTONE_TALENT_SPELLS and ns.HEALTHSTONE_TALENT_SPELLS[1] then
-	AddLookup("HEALTHSTONE_TALENT_SPELLS[1]", "spell", ns.HEALTHSTONE_TALENT_SPELLS[1], LookupSpellName)
+	AddSpell("HEALTHSTONE_TALENT_SPELLS[1]", ns.HEALTHSTONE_TALENT_SPELLS[1])
 end
+-- ns.GetClassName falls back to the class token when the client has no name for it; that fallback reads NIL here.
 for _, class in ipairs(ns.CLASSES) do
-	AddLookup("CLASSES", "class", class, ns.GetClassName)
+	AddLookup("CLASSES", "class", class, function()
+		local name = ns.GetClassName(class)
+		return name ~= class and name or nil
+	end)
 end
 
 --------------------------------------------------------------------------------

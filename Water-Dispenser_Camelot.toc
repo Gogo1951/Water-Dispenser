@@ -1,5 +1,5 @@
 ## Title: Water Dispenser
-## Notes: Effortless consumable distribution. Auto-fill trade windows with conjured water, food, and healthstones at the right rank and amount for each player. Add any item, from Hourglass Sand to Resistance Potions, and distribute a raid's worth in seconds.
+## Notes: Effortless mage and warlock consumable distribution. Auto-fill trade windows with conjured water, food, and healthstones at the right rank and amount for each player. Add any item, from Hourglass Sand to potions, and distribute a raid's worth in seconds.
 ## Author: Gogo1951
 
 ## IconTexture: Interface/AddOns/Water-Dispenser/Includes/Images/Water-Dispenser.tga
@@ -65,6 +65,8 @@ Features/Announcements.lua
 Features/Inventory-Scanner.lua
 Features/Bag-Moves.lua
 Features/Session-Ledger.lua
+Features/Trade-Status.lua
+Features/Stack-Shaping.lua
 Features/Dispenser.lua
 Features/Trade-UI.lua
 Features/Conjure-Buttons.lua
@@ -79,7 +81,7 @@ Diagnostics/Event-Log.lua
 Diagnostics/Code-Reports.lua
 Diagnostics/Settings-Reports.lua
 Diagnostics/Validate-Data.lua
-Diagnostics/Locale-Reports.lua
+Diagnostics/Localization-Reports.lua
 Diagnostics/Report-Runner.lua
 
 # Options
@@ -90,6 +92,7 @@ Options/Options-Dispensed-Items.lua
 Options/Options-Announcements.lua
 Options/Options-Group-Spares.lua
 Options/Options-Profiles.lua
+Options/Options-Feedback-Support.lua
 Diagnostics/Options-Diagnostics.lua
 Options/Options.lua
 

@@ -13,7 +13,7 @@ L["ADDON_TITLE"] = "Water Dispenser"
 -- Shared Formats
 --------------------------------------------------------------------------------
 
--- %s is the item's name or link, %d how many of it. Used by the chat prints and the announcement macro.
+-- %s is the item's name or link, %d how many of it. Used by the chat prints, the trade status line and the announcement macro.
 L["FORMAT_ITEM_COUNT"] = "%s x%d"
 -- Stands in for an item's name until the client has loaded it. %d is the item ID.
 L["ITEM_LOADING"] = "Chargement de l'ID : %d"
@@ -28,7 +28,7 @@ L["ITEM_LOADING"] = "Chargement de l'ID : %d"
 	own labels.
 ]]
 L["CHAT_LOADED"] =
-	"Version %s. Les paramètres (y compris l'option pour désactiver ce message) se trouvent dans Options > AddOns > Water Dispenser. Vous aimez cet add-on ? Parlez-en à vos amis ! (="
+	"Version %s. Les paramètres (y compris l'option pour désactiver ce message) se trouvent dans Options > AddOns > Water Dispenser. Vous aimez cet add-on ? Parlez-en à un ami, ajoutez-le à vos favoris sur CurseForge ou donnez-lui une Star sur GitHub. (="
 L["CHAT_NO_TRADE"] = "Aucune fenêtre d'échange active."
 L["CHAT_COMBAT_BLOCKED"] = "WoW bloque les échanges automatisés pendant le combat."
 L["CHAT_OPTIONS_IN_COMBAT"] =
@@ -76,7 +76,7 @@ L["BUTTON_FILL"] = "Remplir la fenêtre d'échange"
 
 --[[
 	The silver status line under the trade panel's buttons. "Fill Trade Window" must
-	match BUTTON_FILL. ADDED's %s is the window's contents, each FORMAT_ITEM_COUNT,
+	match BUTTON_FILL, and "Dispense" must match TAB_DISPENSE. ADDED's %s is the window's contents, each FORMAT_ITEM_COUNT,
 	joined like the announcement's list. In the rest, %s is an item or collection
 	name unless noted.
 ]]
@@ -85,13 +85,13 @@ L["TRADE_STATUS_ADDED"] = "Ajouté : %s."
 L["TRADE_STATUS_SHORT"] = "Il manque %d %s : pas assez dans vos sacs."
 L["TRADE_STATUS_SHORT_RESERVE"] = "Il manque %d %s : votre réserve garde le reste."
 L["TRADE_STATUS_DISPENSE_OFF"] =
-	"Le remplissage automatique est désactivé. Remplir la fenêtre d'échange ajoute toujours vos quantités habituelles."
+	"Distribuer est désactivé. Remplir la fenêtre d'échange ajoute toujours vos quantités habituelles."
 L["TRADE_STATUS_OFF_STRANGERS"] =
-	"Le remplissage automatique est désactivé pour les inconnus. Remplir la fenêtre d'échange ajoute toujours vos quantités habituelles."
+	"Distribuer est désactivé pour les inconnus. Remplir la fenêtre d'échange ajoute toujours vos quantités habituelles."
 L["TRADE_STATUS_OFF_PARTY"] =
-	"Le remplissage automatique est désactivé pour les membres du groupe. Remplir la fenêtre d'échange ajoute toujours vos quantités habituelles."
+	"Distribuer est désactivé pour les membres du groupe. Remplir la fenêtre d'échange ajoute toujours vos quantités habituelles."
 L["TRADE_STATUS_OFF_RAID"] =
-	"Le remplissage automatique est désactivé pour les membres du raid. Remplir la fenêtre d'échange ajoute toujours vos quantités habituelles."
+	"Distribuer est désactivé pour les membres du raid. Remplir la fenêtre d'échange ajoute toujours vos quantités habituelles."
 L["TRADE_STATUS_MASTER_LOOT"] =
 	"Retenu tant que vous êtes maître du butin. Remplir la fenêtre d'échange ajoute toujours vos quantités habituelles."
 -- The first %s is the partner's class name.
@@ -136,7 +136,7 @@ L["MINIMAP_DISPENSE_REPORT"] = "Rapport de distribution"
 --------------------------------------------------------------------------------
 
 L["OPTIONS_DESCRIPTION"] =
-	"Distribution de consommables sans effort. Remplit automatiquement les fenêtres d'échange avec de l'eau, de la nourriture et des pierres de soins invoquées, au bon rang et en bonne quantité pour chaque joueur. Ajoutez n'importe quel objet, du Sable de sablier aux potions de résistance, et approvisionnez tout un raid en quelques secondes."
+	"Distribution de consommables sans effort pour mages et démonistes. Remplit automatiquement les fenêtres d'échange avec de l'eau, de la nourriture et des pierres de soins invoquées, au bon rang et en bonne quantité pour chaque joueur. Ajoutez n'importe quel objet, du Sable de sablier aux potions, et approvisionnez tout un raid en quelques secondes."
 
 L["OPTIONS_WELCOME_MESSAGE"] = "Activer le message de bienvenue"
 L["OPTIONS_WELCOME_MESSAGE_DESC"] =
@@ -157,7 +157,7 @@ L["OPTIONS_COMMAND_DESCRIPTION"] = "Ouvre l'interface des options de cet add-on.
 -- Names the panel and the mini-map tooltip's feature row.
 L["TAB_DISPENSE"] = "Distribuer"
 L["OPTIONS_DISPENSE_MASTER"] = "Activer la distribution"
--- Also the panel's intro line and the mini-map tooltip's feature description.
+-- Also the panel's intro line, the General panel's Features switch tooltip and the mini-map tooltip's feature description.
 L["OPTIONS_DISPENSE_MASTER_DESC"] =
 	"Remplit automatiquement la fenêtre d'échange à son ouverture, selon vos paramètres."
 L["OPTIONS_DISPENSE_SOLO"] = "Activer pour les inconnus"
@@ -172,7 +172,7 @@ L["OPTIONS_DISPENSE_RAID_DESC"] =
 -- The label says what it does; the tooltip only covers why it is needed and when it stands down.
 L["OPTIONS_RESTACK"] = "Regrouper les piles partielles après un échange"
 L["OPTIONS_RESTACK_DESC"] =
-	"L'eau et la nourriture invoquées se posent dans un nouvel emplacement de sac à chaque incantation et le jeu ne les regroupe jamais, alors Water Dispenser les réunit une fois, juste après la fermeture d'une fenêtre d'échange, et jamais à un autre moment, ni en combat, ni tant que vous tenez quelque chose sur votre curseur."
+	"L'eau et la nourriture invoquées se posent dans un nouvel emplacement de sac à chaque incantation et le jeu ne les regroupe jamais, alors Water Dispenser les réunit une fois, juste après la fermeture d'une fenêtre d'échange. Il ne les réunit jamais à un autre moment, ni en combat, ni tant que vous tenez quelque chose sur votre curseur."
 L["OPTIONS_HOLD_MASTER_LOOT"] = "Retenir tant que vous êtes maître du butin"
 -- "Fill Trade Window" must match BUTTON_FILL.
 L["OPTIONS_HOLD_MASTER_LOOT_DESC"] =
@@ -180,7 +180,7 @@ L["OPTIONS_HOLD_MASTER_LOOT_DESC"] =
 L["OPTIONS_CONJURE_BUTTONS"] = "Afficher les boutons d'invocation à côté des échanges"
 -- "Fill Trade Window" must match BUTTON_FILL.
 L["OPTIONS_CONJURE_BUTTONS_DESC"] =
-	"Ajoute sous Remplir la fenêtre d'échange des boutons qui invoquent de l'eau, de la nourriture ou une pierre de soins que votre partenaire d'échange peut utiliser à son niveau, et ce que vous créez va directement dans l'échange ouvert."
+	"Ajoute sous Remplir la fenêtre d'échange des boutons qui invoquent de l'eau, de la nourriture ou une pierre de soins que votre partenaire d'échange peut utiliser à son niveau. Ce que vous créez va directement dans l'échange ouvert."
 L["OPTIONS_MISSING_STACK_WARNINGS"] = "Activer les avertissements quand vous êtes à court"
 L["OPTIONS_MISSING_STACK_WARNINGS_DESC"] =
 	"Affiche une note dans votre fenêtre de discussion quand vous n'avez pas assez d'un objet configuré dans vos sacs pour donner la quantité définie."
@@ -203,7 +203,7 @@ L["OPTIONS_TOOLTIPS_DESC"] =
 	"Affiche dans les infobulles de joueur ce que les membres du groupe qui utilisent Water Dispenser ont configuré à distribuer, et signale dans vos propres sacs les objets que vous distribuez."
 L["OPTIONS_SHOW_INVENTORY"] = "Afficher l'inventaire dans les infobulles de joueur"
 L["OPTIONS_SHOW_INVENTORY_DESC"] =
-	"Ajoute un bloc Water Dispenser aux infobulles de joueur listant ce qu'ils ont configuré à distribuer et combien ils peuvent en donner, le vôtre s'affichant toujours, en groupe ou non."
+	"Ajoute un bloc Water Dispenser aux infobulles de joueur listant ce qu'ils ont configuré à distribuer et combien ils peuvent en donner. Le vôtre s'affiche toujours, que vous soyez en groupe ou non."
 L["OPTIONS_BAG_TOOLTIPS"] = "Afficher les infobulles de sac pour les objets distribués"
 L["OPTIONS_BAG_TOOLTIPS_DESC"] =
 	"Ajoute une ligne Water Dispenser à l'infobulle d'un objet de vos sacs quand cet objet est configuré pour être distribué, afin de voir d'un coup d'œil ce que l'add-on remettra."
@@ -220,7 +220,7 @@ L["OPTIONS_ITEMS_DESC"] =
 	"Configurez combien distribuer de chaque objet. Les quantités se comptent en objets individuels, donc 20 eaux signifient 20 eaux, et 1 potion signifie 1 potion. Une pile est découpée à la quantité exacte s'il le faut."
 -- "Add an Item" must match OPTIONS_ADD_ITEM.
 L["OPTIONS_ITEMS_EMPTY"] =
-	'Aucun objet configuré. Sélectionnez "Ajouter un objet" dans la liste pour ajouter n\'importe quel objet échangeable de vos sacs.'
+	"Aucun objet configuré. Sélectionnez Ajouter un objet dans la liste pour ajouter n'importe quel objet échangeable de vos sacs."
 
 --[[
 	The silver line opening an item's page while nothing of it would go out. In
@@ -257,14 +257,14 @@ L["OPTIONS_ITEM_DISTRIBUTE_INSTANCE"] = "En instance"
 L["OPTIONS_ITEM_GUILDIES_ONLY"] = "Guilde uniquement"
 L["OPTIONS_ITEM_GUILDIES_ONLY_DESC"] = "Ignore cet objet quand votre partenaire d'échange n'est pas dans votre guilde."
 -- Panel line under the toggle, not a tooltip: it names the guild, which no fixed string can. %s is the player's guild.
-L["OPTIONS_ITEM_GUILDIES_ONLY_HELP"] = "Donner uniquement aux membres de <%s>."
+L["OPTIONS_ITEM_GUILDIES_ONLY_HELP"] = "Ne donne cet objet qu'aux membres de <%s>."
 L["OPTIONS_ITEM_GUILDIES_ONLY_NO_GUILD"] = "Vous n'êtes dans aucune guilde, donc ceci ne donne l'objet à personne."
 L["OPTIONS_ITEM_FACTOR_LEVEL"] = "Prendre en compte le niveau requis de l'objet"
 L["OPTIONS_ITEM_FACTOR_LEVEL_DESC"] =
 	"Ignore cet objet quand votre partenaire d'échange est en dessous du niveau requis par l'objet."
 L["OPTIONS_ITEM_RESERVE"] = "Activer les réserves"
 L["OPTIONS_ITEM_RESERVE_DESC"] =
-	"Garde toujours au moins cette quantité dans vos sacs, la distribution, votre infobulle de joueur et la macro d'annonce considérant tout ce qui dépasse ce nombre comme disponible à donner."
+	"Garde au moins cette quantité dans vos sacs. Seul ce qui dépasse ce nombre est distribué, affiché dans votre infobulle de joueur ou listé dans la macro d'annonce."
 L["OPTIONS_ITEM_PLAYER_CAP"] = "Activer le maximum par joueur"
 L["OPTIONS_ITEM_PLAYER_CAP_DESC"] =
 	"Arrête de donner cet objet à quelqu'un une fois qu'il en a reçu autant de votre part. Les compteurs repartent à zéro quand vous vous déconnectez, rechargez ou modifiez les quantités de cet objet."
@@ -303,22 +303,38 @@ L["OPTIONS_ANNOUNCEMENTS_ENABLE_DESC"] =
 -- "Enable Reserves" must match OPTIONS_ITEM_RESERVE.
 L["OPTIONS_ANNOUNCEMENTS_PREVIEW_EMPTY"] =
 	"Rien à annoncer. Configurez des objets, remplissez vos sacs ou abaissez une réserve dans Activer les réserves."
--- "Enable Dispense" must match OPTIONS_DISPENSE_MASTER, "Dispense" must match TAB_DISPENSE.
+-- "Enable Dispense" must match OPTIONS_DISPENSE_MASTER, "Water Dispenser" ADDON_TITLE, and "Dispense" TAB_DISPENSE.
 L["OPTIONS_ANNOUNCEMENTS_PREVIEW_DISPENSE_OFF"] =
-	"Rien à annoncer tant qu'Activer la distribution est désactivé, dans l'onglet Distribuer."
+	"Rien à annoncer tant qu'Activer la distribution est désactivé. Activez-le dans Water Dispenser > Distribuer."
 
 -- Macro message template (%s is the item list) and the connector before the last list entry.
 L["ANNOUNCEMENTS_BODY"] = "J'ai %s. Lancez l'échange !"
 L["ANNOUNCEMENTS_AND"] = "et"
 
 --------------------------------------------------------------------------------
--- Options — Support
+-- Options — Feedback & Support
 --------------------------------------------------------------------------------
 
-L["OPTIONS_SUPPORT"] = "Commentaires et assistance"
--- The General panel's last line. %s is the version.
+L["OPTIONS_LEVEL_UP_TITLE"] = "Aidez Water Dispenser à monter de niveau"
+L["OPTIONS_LEVEL_UP_INTRO"] =
+	"Cet add-on a été créé par des joueurs qui adorent ce jeu et veulent le rendre aussi amusant que possible pour tout le monde. Nous ne demanderons jamais de dons. Notre vraie satisfaction, c'est de savoir que notre travail rend le jeu un peu meilleur pour vous. Si c'est le cas, nous serions ravis de l'entendre !"
+L["OPTIONS_LEVEL_UP_WAYS"] = "Voici quelques façons de nous aider à toucher plus de joueurs."
+L["OPTIONS_LEVEL_UP_FEEDBACK"] =
+	"• Donnez votre avis : Vous avez trouvé un bug ou vous avez une idée ? Dites-le-nous sur Discord. Vos retours nous aident à améliorer l'add-on, et les pull requests sont toujours les bienvenues."
+L["OPTIONS_LEVEL_UP_FRIEND"] =
+	"• Parlez-en à un ami : Vous connaissez quelqu'un qui pourrait aimer cet add-on ? Parlez-lui-en. Le bouche-à-oreille aide plus de joueurs à découvrir de bons add-ons."
+L["OPTIONS_LEVEL_UP_CURSEFORGE"] =
+	"• Ajoutez-le à vos favoris sur CurseForge : Ouvrez le lien CurseForge ci-dessous, connectez-vous et cliquez sur l'étoile sous le bouton Download. Les favoris aident plus de joueurs à découvrir l'add-on."
+L["OPTIONS_LEVEL_UP_GITHUB"] =
+	"• Donnez une Star sur GitHub : Ouvrez le lien GitHub ci-dessous, connectez-vous et cliquez sur Star en haut à droite. Les Stars aident le projet à obtenir davantage d'outils de développement gratuits."
+L["OPTIONS_LEVEL_UP_THANKS"] = "Merci d'avoir choisi Water Dispenser !"
+
+L["OPTIONS_FEEDBACK"] = "Commentaires et assistance"
+L["OPTIONS_FEEDBACK_LINKS_HEADER"] = "Liens pour commentaires et assistance"
+L["OPTIONS_CURSEFORGE"] = "CurseForge"
+L["OPTIONS_GITHUB"] = "GitHub"
+L["OPTIONS_DISCORD"] = "Discord"
+L["OPTIONS_WAGO"] = "Wago"
+L["OPTIONS_COPY_LINK"] = "Pour copier un lien, cliquez dans sa case, puis appuyez sur Ctrl+A et Ctrl+C."
+-- The Feedback & Support panel's last line. %s is the version.
 L["OPTIONS_VERSION"] = "Version %s"
-L["SUPPORT_CURSEFORGE"] = "CurseForge"
-L["SUPPORT_GITHUB"] = "GitHub"
-L["SUPPORT_DISCORD"] = "Discord"
-L["SUPPORT_WAGO"] = "Wago"

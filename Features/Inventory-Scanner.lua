@@ -4,8 +4,16 @@ local _, ns = ...
 -- State
 --------------------------------------------------------------------------------
 
--- Inventory cache. Rebuilt on demand by ScanInventory().
+-- Inventory cache. Rebuilt on demand by every scan, the fill's and the display reads' alike.
 local inventory = nil
+
+--[[
+	The inventory the fill last scanned, which only the fill's own scan replaces. A
+	display read mid-trade (the macro refresh, the group broadcast, a mini-map hover)
+	rebuilds the cache too, and comparing against that would make the fill's next
+	bag update read no change and skip its refill.
+]]
+local fillBaseline = nil
 
 --------------------------------------------------------------------------------
 -- Accessors
@@ -21,13 +29,13 @@ end
 
 local function ClearInventory()
 	inventory = nil
+	fillBaseline = nil
 end
 ns.ClearInventory = ClearInventory
 
 --[[
     Builds the inventory table from bag contents. Each entry has a Bags list of
-    {Bag, Slot, Count, Full, Bound, Locked} per occupied slot. Returns true if
-    anything changed in a way that may affect a fill.
+    {Bag, Slot, Count, Full, Bound, Locked} per occupied slot.
 
     Locked is recorded because, with a trade open, a locked slot is one already
     sitting in the trade window (or still mid-move from a split). The fill has to
@@ -39,8 +47,7 @@ ns.ClearInventory = ClearInventory
     when the player doesn't know the conjure spell, so a non-mage holding
     conjured water still announces it as MageWater.
 ]]
-local function ScanInventory()
-	local previous = inventory
+local function BuildInventory()
 	inventory = {}
 
 	for bag = BACKPACK_CONTAINER, ns.LAST_BAG_INDEX do
@@ -133,11 +140,11 @@ local function ScanInventory()
 			end
 		end
 	end
+end
 
-	if not previous then
-		return true
-	end
-	for id, item in pairs(inventory) do
+-- True if anything changed between two inventories in a way that may affect a fill.
+local function InventoryChanged(previous, current)
+	for id, item in pairs(current) do
 		local previousItem = previous[id]
 		if not previousItem or #item.Bags ~= #previousItem.Bags then
 			return true
@@ -160,27 +167,36 @@ local function ScanInventory()
 		end
 	end
 	for id in pairs(previous) do
-		if not inventory[id] then
+		if not current[id] then
 			return true
 		end
 	end
 	return false
 end
+
+-- The fill's scan: rebuilds the cache and returns true if it changed since the fill last scanned.
+local function ScanInventory()
+	local previous = fillBaseline
+	BuildInventory()
+	fillBaseline = inventory
+	return previous == nil or InventoryChanged(previous, inventory)
+end
 ns.ScanInventory = ScanInventory
 
 --[[
-    ScanInventory is a full bag walk. The options panels read the inventory from
+    BuildInventory is a full bag walk. The options panels read the inventory from
     several render callbacks in the same frame; this coalesces those into one
-    scan per frame (GetTime is constant within a frame), while a reopen on a
-    later frame still rescans so freshly looted items appear. It also scans when
+    walk per frame (GetTime is constant within a frame), while a reopen on a
+    later frame still rescans so freshly looted items appear. It also walks when
     the cache is empty. Trade and fill paths call ScanInventory directly and
-    always scan fresh -- this wrapper is only for the options/display reads.
+    always scan fresh; this wrapper is only for the options/display reads, and
+    never moves the fill's baseline.
 ]]
 local lastDisplayScan = nil
 local function ScanInventoryForDisplay()
 	local now = GetTime()
 	if inventory == nil or now ~= lastDisplayScan then
-		ScanInventory()
+		BuildInventory()
 		lastDisplayScan = now
 	end
 end
@@ -338,7 +354,7 @@ function ns.BuildAnnouncementSnapshot(ignoreReserve)
 		return entries
 	end
 
-	-- Built-in collections first, in stable display order.
+	-- Built-in collections first, in stable display order. Only the best rank on hand is counted, never summed across ranks, though a trade cascades to lower ranks.
 	for _, key in ipairs(ns.BUILTIN_ORDER) do
 		local itemConfig = ns.db.profile.Items[key]
 		if itemConfig and ns.IsItemActiveForPlayer(itemConfig) and ns.IsItemDistributableNow(itemConfig) then
@@ -439,7 +455,7 @@ function ns.BuildTooltipSnapshot()
 			still something the player is carrying and can be asked for.
 		]]
 		local gated = not (ns.IsItemDistributableNow(itemConfig) and ns.IsItemActiveForPlayer(itemConfig))
-		-- A collection is reported as the best rank on hand, the same item the fill would reach for.
+		-- A collection is reported as the best rank on hand, the same item the fill would reach for, never summed across ranks.
 		local id = (not gated) and (isCollection and BestRankItemId(key) or key) or nil
 		local inventoryItem = id and inventory[id] or nil
 		if inventoryItem and #inventoryItem.Bags > 0 then

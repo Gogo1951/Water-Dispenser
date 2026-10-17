@@ -21,6 +21,30 @@ local selectedItemToAdd
 -- Item IDs a build labelled with the Loading placeholder; their arrival rebuilds the tree with the real names.
 local pendingNames = {}
 
+-- Whether GET_ITEM_INFO_RECEIVED is registered; it is only while a name is pending.
+local watchingNames = false
+
+-- Rebuilt rather than repainted: the tree is sorted by name, so a name arriving can move its entry.
+local function OnItemInfoReceived(_, itemId)
+	if not pendingNames[itemId] then
+		return
+	end
+	pendingNames[itemId] = nil
+	if next(pendingNames) == nil then
+		ns.UnregisterEvent("GET_ITEM_INFO_RECEIVED", OnItemInfoReceived)
+		watchingNames = false
+	end
+	ns.RebuildDispensedItemsOptions()
+end
+
+local function WatchName(itemId)
+	pendingNames[itemId] = true
+	if not watchingNames then
+		watchingNames = true
+		ns.RegisterEvent("GET_ITEM_INFO_RECEIVED", OnItemInfoReceived)
+	end
+end
+
 --------------------------------------------------------------------------------
 -- Class Ordering (alphabetical by localized name)
 --------------------------------------------------------------------------------
@@ -68,7 +92,7 @@ end
 local function ItemDisplayName(itemKey)
 	local nameItemId = ns.GetItemConfigNameItemId(itemKey)
 	if nameItemId and not C_Item.GetItemInfo(nameItemId) then
-		pendingNames[nameItemId] = true
+		WatchName(nameItemId)
 	end
 	local icon = ns.GetItemConfigIcon(itemKey)
 	local iconTag = icon and ("|T" .. icon .. ":16|t ") or ""
@@ -372,7 +396,7 @@ local function AmountRow(order, enabledField, amountField, nameKey, descKey)
 				if config then
 					config[enabledField] = value and true or false
 					if value then
-						-- Arming a reset profile would otherwise show a 0 it never saved.
+						-- Falls back to 1 only when nothing numeric is stored; a stored 0 stays 0.
 						config[amountField] = ns.OptionsParseCount(config[amountField]) or 1
 					end
 				end
@@ -979,23 +1003,10 @@ function ns.RebuildDispensedItemsOptions()
 end
 
 --------------------------------------------------------------------------------
--- Initialization
+-- Diagnostics
 --------------------------------------------------------------------------------
-
--- Rebuilt rather than repainted: the tree is sorted by name, so a name arriving can move its entry.
-local function OnItemInfoReceived(_, itemId)
-	if not pendingNames[itemId] then
-		return
-	end
-	pendingNames[itemId] = nil
-	ns.RebuildDispensedItemsOptions()
-end
 
 -- Whether the tree is waiting on this item's name; the Diagnostic Tools event log keeps these firings and counts the rest.
 function ns.IsItemNamePending(itemId)
 	return pendingNames[itemId] ~= nil
-end
-
-function ns.InitDispensedItemsOptions()
-	ns.RegisterEvent("GET_ITEM_INFO_RECEIVED", OnItemInfoReceived)
 end

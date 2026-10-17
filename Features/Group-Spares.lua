@@ -50,8 +50,8 @@ local lastBroadcast, lastChannel
 --[[
 	The last offer composed, held until something that could change it schedules a
 	broadcast. The player's own tooltip is built from this, and the game rebuilds a
-	hovered unit tooltip about five times a second, so uncached it walked every bag
-	slot on each of those refreshes for an answer that had not moved.
+	hovered unit tooltip about five times a second, so uncached it would walk every
+	bag slot on each of those refreshes for an answer that has not moved.
 ]]
 local cachedOffer
 
@@ -288,11 +288,23 @@ end
 -- Receiving
 --------------------------------------------------------------------------------
 
-local function OnAddonMessage(_, prefix, message, _, sender)
-	if ns.IsSecretValue(prefix) or ns.IsSecretValue(message) or ns.IsSecretValue(sender) then
+-- Only the group channels a broadcast goes out on; a whisper on the prefix is from someone outside the group.
+local GROUP_CHANNELS = {
+	PARTY = true,
+	RAID = true,
+	INSTANCE_CHAT = true,
+}
+
+local function OnAddonMessage(_, prefix, message, channel, sender)
+	if
+		ns.IsSecretValue(prefix)
+		or ns.IsSecretValue(message)
+		or ns.IsSecretValue(channel)
+		or ns.IsSecretValue(sender)
+	then
 		return
 	end
-	if prefix ~= ns.ADDON_MESSAGE_PREFIX or not sender then
+	if prefix ~= ns.ADDON_MESSAGE_PREFIX or not sender or not GROUP_CHANNELS[channel] then
 		return
 	end
 

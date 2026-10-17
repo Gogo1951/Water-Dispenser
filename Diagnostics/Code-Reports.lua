@@ -7,7 +7,7 @@ local GetClientHeader = ns.GetDiagnosticClientHeader
 --------------------------------------------------------------------------------
 
 --[[
-    For every event Magic Eraser registers (ns.EVENT_NAMES, exported by
+    For every event Water Dispenser registers (ns.EVENT_NAMES, exported by
     Core.lua), report whether it is valid on this client
     (C_EventUtils.IsEventValid) and whether RegisterEvent succeeds. The probe
     frame registers then immediately unregisters each event with no handler

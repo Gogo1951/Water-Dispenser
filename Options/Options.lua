@@ -61,8 +61,8 @@ SlashCmdList["WATERDISPENSER"] = SlashHandler
 	Registration only; panel content lives in each panel file's builder. Called
 	from Features/Core.lua once ns.db exists (the Profiles builder needs the
 	database). Child order is fixed: General (root) -> Dispense -> Dispensed Items
-	-> Announcements -> Inventory Tooltips -> Profiles (second-to-last) -> Diagnostic
-	Tools (last). Every child's third AddToBlizOptions argument is the parent's
+	-> Announcements -> Inventory Tooltips -> Profiles -> Feedback & Support ->
+	Diagnostic Tools (last). Every child's third AddToBlizOptions argument is the parent's
 	display name so they all nest under Water Dispenser.
 ]]
 function ns.RegisterOptionsPanels()
@@ -87,6 +87,9 @@ function ns.RegisterOptionsPanels()
 	local profilesOptions = ns.BuildProfilesOptions()
 	AceConfig:RegisterOptionsTable(REGISTRY.Profiles, profilesOptions)
 	AceConfigDialog:AddToBlizOptions(REGISTRY.Profiles, profilesOptions.name, parent)
+
+	AceConfig:RegisterOptionsTable(REGISTRY.FeedbackSupport, ns.BuildFeedbackSupportOptions())
+	AceConfigDialog:AddToBlizOptions(REGISTRY.FeedbackSupport, L["OPTIONS_FEEDBACK"], parent)
 
 	-- A builder function, so the tabs come and go with the enable toggle (see Diagnostics/Options-Diagnostics.lua).
 	AceConfig:RegisterOptionsTable(REGISTRY.Diagnostics, ns.BuildDiagnosticsOptions)

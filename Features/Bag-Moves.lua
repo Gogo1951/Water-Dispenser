@@ -17,9 +17,8 @@ local _, ns = ...
 	The fill drives both. The merge also runs once more, on its own, the moment a
 	trade window closes -- see Post-Trade Restack below. That is the only bag write
 	that happens outside a fill, and there is deliberately nothing listening to bag
-	updates: a pass that ran on every settle also merged the separate stacks a
-	player had built by hand to hand over, and took splits off the cursor as they
-	were made.
+	updates: a pass that runs on every settle merges the separate stacks a player
+	builds by hand to hand over, and takes splits off the cursor as they are made.
 
 	Both follow the same two rules: never move against a locked slot, and never
 	leave an item stranded on the cursor -- a stranded cursor is what makes the
@@ -218,9 +217,9 @@ function ns.SplitToCursor(bag, slot, count)
 	--[[
 		One entry point, and no check that it worked. The cursor does not reliably read
 		as occupied in the same frame the split was issued, so an empty cursor here
-		proves nothing -- reading it as a no-op and asking again is what put a red
-		"Couldn't split those items" on the screen, the second call landing on a slot
-		the first had already locked while the trade filled correctly regardless.
+		proves nothing. Reading it as a no-op and asking again puts a red "Couldn't
+		split those items" on the screen: the second call lands on a slot the first
+		has already locked, while the trade fills correctly regardless.
 	]]
 	C_Container.SplitContainerItem(bag, slot, count)
 	local took = CursorHasItem() and true or false
@@ -304,8 +303,8 @@ end
 
 	Nothing here listens to bag updates, and that is the whole design. Driving this
 	off BAG_UPDATE_DELAYED fires it every time the player touches their own bags: it
-	merged the separate stacks they had just built by hand to hand someone, and it
-	took manual splits off the cursor, because the cursor does not reliably read as
+	merges the separate stacks they have just built by hand to hand someone, and it
+	takes manual splits off the cursor, because the cursor does not reliably read as
 	occupied in the frame a split is issued.
 
 	One pass can only halve the loose slots -- MergePartials pairs them off, so four

@@ -90,7 +90,7 @@ ns.HEALTHSTONE_TALENT_SPELLS = {
 How We Got the Data
 
 Last Validated
-	2026-10-08, Classic Era 1.15.9.70003
+	2026-10-16, Classic Era 1.15.9.70003
 
 Notes
 	- Season of Discovery realms build Data/Discovery/'s copy instead, so this file returns before declaring anything there.
@@ -101,6 +101,9 @@ Notes
 	- Each healthstone rank has three items: the stones a warlock makes with 0, 1 and 2 points in Improved Healthstone. They share rank and use level, and each point adds 10% to the heal.
 	- HEALTHSTONE_TALENT_SPELLS holds Improved Healthstone's two ranks, as the passive spells the talent grants, lowest first. The highest one a warlock knows is the rank they took (HealthstoneTalentRank in Features/Group-Spares.lua).
 	- On this client the stones made at 0, 1 and 2 points are three different unique items, so a raid can carry one of each at once and coordinates around which rank each warlock took. That's why the player tooltip states a warlock's rank even when they carry no stone.
+	- Spells holds only the ranks a mage or warlock learns (SkillLineAbility lines 237 and 354). Left out: the Create Healthstone spells 23517 to 23522 and 23813 to 23821, which a rank's spell casts behind the scenes to make the stone matching the warlock's Improved Healthstone points; 8736 Conjure Food and 20018 Create Healthstone (Major), which make class items but no class learns; and every other spell named Conjure Water, Conjure Food or Create Healthstone, which makes no item itself (most only cast a learned rank, like Conjure Water 10141 to 10143) or nothing at all (28023).
+	- Items left out: 3249 Conjured test Item, a test item, and 2071 Deprecated Mountain Spring Water, which isn't a conjured item.
+	- Mountain Spring Water (231778) and the Conjure Water rank that makes it (468766) are in this client's tables but left out: their IDs are Season of Discovery's, and Data/Discovery/ holds them.
 
 SQL (CMaNGOS)
 	classic-db
@@ -174,5 +177,13 @@ Wowhead
 	None.
 
 wago.tools
+	https://wago.tools/db2/SpellName?build=1.15.9.70003
+	https://wago.tools/db2/SpellEffect?build=1.15.9.70003
+	https://wago.tools/db2/SpellLevels?build=1.15.9.70003
+	https://wago.tools/db2/SkillLineAbility?build=1.15.9.70003
+	https://wago.tools/db2/Item?build=1.15.9.70003
+	https://wago.tools/db2/ItemSparse?build=1.15.9.70003
+
+QuestieDB
 	None.
 ]]
