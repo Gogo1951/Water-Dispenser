@@ -13,7 +13,7 @@ L["ADDON_TITLE"] = "Water Dispenser"
 -- Shared Formats
 --------------------------------------------------------------------------------
 
--- %s is the item's name or link, %d how many of it. Used by the chat prints and the announcement macro.
+-- %s is the item's name or link, %d how many of it. Used by the chat prints, the trade status line and the announcement macro.
 L["FORMAT_ITEM_COUNT"] = "%s x%d"
 -- Stands in for an item's name until the client has loaded it. %d is the item ID.
 L["ITEM_LOADING"] = "불러오는 중: ID %d"
@@ -28,7 +28,7 @@ L["ITEM_LOADING"] = "불러오는 중: ID %d"
 	own labels.
 ]]
 L["CHAT_LOADED"] =
-	"버전 %s. 설정(이 메시지를 끄는 옵션 포함)은 옵션 > 애드온 > Water Dispenser에서 찾을 수 있습니다. 이 애드온이 마음에 드시나요? 친구에게 알려주세요! (="
+	"버전 %s. 설정(이 메시지를 끄는 옵션 포함)은 옵션 > 애드온 > Water Dispenser에 있습니다. 이 애드온이 마음에 드시나요? 친구에게 알려 주시거나, CurseForge에서 즐겨찾기에 추가하거나, GitHub에서 Star를 눌러 주세요. (="
 L["CHAT_NO_TRADE"] = "활성화된 거래 창이 없습니다."
 L["CHAT_COMBAT_BLOCKED"] = "WoW는 전투 중 자동 거래를 차단합니다."
 L["CHAT_OPTIONS_IN_COMBAT"] = "안전을 위해 전투 중에는 설정 창을 열 수 없습니다."
@@ -74,7 +74,7 @@ L["BUTTON_FILL"] = "거래 창 채우기"
 
 --[[
 	The silver status line under the trade panel's buttons. "Fill Trade Window" must
-	match BUTTON_FILL. ADDED's %s is the window's contents, each FORMAT_ITEM_COUNT,
+	match BUTTON_FILL, and "Dispense" must match TAB_DISPENSE. ADDED's %s is the window's contents, each FORMAT_ITEM_COUNT,
 	joined like the announcement's list. In the rest, %s is an item or collection
 	name unless noted.
 ]]
@@ -83,13 +83,13 @@ L["TRADE_STATUS_ADDED"] = "%s 추가됨."
 L["TRADE_STATUS_SHORT"] = "%d개 부족 (%s): 가방에 충분하지 않습니다."
 L["TRADE_STATUS_SHORT_RESERVE"] = "%d개 부족 (%s): 나머지는 예비 수량으로 남겨 둡니다."
 L["TRADE_STATUS_DISPENSE_OFF"] =
-	"자동 채우기가 꺼져 있습니다. 거래 창 채우기는 여전히 평소 수량을 추가합니다."
+	"분배가 꺼져 있습니다. 거래 창 채우기는 여전히 평소 수량을 추가합니다."
 L["TRADE_STATUS_OFF_STRANGERS"] =
-	"모르는 사람에 대한 자동 채우기가 꺼져 있습니다. 거래 창 채우기는 여전히 평소 수량을 추가합니다."
+	"모르는 사람에 대한 분배가 꺼져 있습니다. 거래 창 채우기는 여전히 평소 수량을 추가합니다."
 L["TRADE_STATUS_OFF_PARTY"] =
-	"파티원에 대한 자동 채우기가 꺼져 있습니다. 거래 창 채우기는 여전히 평소 수량을 추가합니다."
+	"파티원에 대한 분배가 꺼져 있습니다. 거래 창 채우기는 여전히 평소 수량을 추가합니다."
 L["TRADE_STATUS_OFF_RAID"] =
-	"공격대원에 대한 자동 채우기가 꺼져 있습니다. 거래 창 채우기는 여전히 평소 수량을 추가합니다."
+	"공격대원에 대한 분배가 꺼져 있습니다. 거래 창 채우기는 여전히 평소 수량을 추가합니다."
 L["TRADE_STATUS_MASTER_LOOT"] =
 	"전리품 담당자인 동안 보류합니다. 거래 창 채우기는 여전히 평소 수량을 추가합니다."
 -- The first %s is the partner's class name.
@@ -134,7 +134,7 @@ L["MINIMAP_DISPENSE_REPORT"] = "분배 현황"
 --------------------------------------------------------------------------------
 
 L["OPTIONS_DESCRIPTION"] =
-	"손쉬운 소모품 분배. 창조된 물, 음식, 생명석을 각 플레이어에게 맞는 등급과 수량으로 거래 창에 자동으로 채웁니다. 모래시계 모래부터 저항 물약까지 어떤 아이템이든 추가해 공격대 전체에 필요한 양을 몇 초 만에 나눠 주세요."
+	"마법사와 흑마법사를 위한 손쉬운 소모품 분배. 창조된 물, 음식, 생명석을 각 플레이어에게 맞는 등급과 수량으로 거래 창에 자동으로 채웁니다. 모래시계 모래부터 물약까지 어떤 아이템이든 추가해 공격대 전체에 필요한 양을 몇 초 만에 나눠 주세요."
 
 L["OPTIONS_WELCOME_MESSAGE"] = "환영 메시지 사용"
 L["OPTIONS_WELCOME_MESSAGE_DESC"] =
@@ -155,7 +155,7 @@ L["OPTIONS_COMMAND_DESCRIPTION"] = "이 애드온의 설정 창을 엽니다."
 -- Names the panel and the mini-map tooltip's feature row.
 L["TAB_DISPENSE"] = "분배"
 L["OPTIONS_DISPENSE_MASTER"] = "분배 활성화"
--- Also the panel's intro line and the mini-map tooltip's feature description.
+-- Also the panel's intro line, the General panel's Features switch tooltip and the mini-map tooltip's feature description.
 L["OPTIONS_DISPENSE_MASTER_DESC"] = "거래가 열리면 설정에 따라 거래 창을 자동으로 채웁니다."
 L["OPTIONS_DISPENSE_SOLO"] = "모르는 사람에게 사용"
 L["OPTIONS_DISPENSE_SOLO_DESC"] =
@@ -167,7 +167,7 @@ L["OPTIONS_DISPENSE_RAID_DESC"] = "공격대원과 거래할 때 거래 창을 �
 -- The label says what it does; the tooltip only covers why it is needed and when it stands down.
 L["OPTIONS_RESTACK"] = "거래 후 남은 묶음 합치기"
 L["OPTIONS_RESTACK_DESC"] =
-	"창조된 물과 음식은 시전할 때마다 새 가방 칸에 들어가고 게임은 이를 다시 합쳐 주지 않으므로, Water Dispenser가 거래 창이 닫힌 직후 한 번만 합쳐 주며, 그 외의 때나 전투 중, 커서에 무언가를 들고 있을 때는 절대 합치지 않습니다."
+	"창조된 물과 음식은 시전할 때마다 새 가방 칸에 들어가고 게임은 이를 다시 합쳐 주지 않으므로, Water Dispenser가 거래 창이 닫힌 직후 한 번 합쳐 줍니다. 그 외의 때나 전투 중, 커서에 무언가를 들고 있을 때는 절대 합치지 않습니다."
 L["OPTIONS_HOLD_MASTER_LOOT"] = "전리품 담당자일 때 보류"
 -- "Fill Trade Window" must match BUTTON_FILL.
 L["OPTIONS_HOLD_MASTER_LOOT_DESC"] =
@@ -175,7 +175,7 @@ L["OPTIONS_HOLD_MASTER_LOOT_DESC"] =
 L["OPTIONS_CONJURE_BUTTONS"] = "거래 옆에 창조 버튼 표시"
 -- "Fill Trade Window" must match BUTTON_FILL.
 L["OPTIONS_CONJURE_BUTTONS_DESC"] =
-	"거래 창 채우기 아래에 거래 상대가 자기 레벨에서 사용할 수 있는 물, 음식, 생명석을 창조하는 버튼을 추가하며, 만든 것은 열린 거래에 바로 들어갑니다."
+	"거래 창 채우기 아래에 거래 상대가 자기 레벨에서 사용할 수 있는 물, 음식, 생명석을 창조하는 버튼을 추가합니다. 만든 것은 열린 거래에 바로 들어갑니다."
 L["OPTIONS_MISSING_STACK_WARNINGS"] = "수량이 부족할 때 경고 사용"
 L["OPTIONS_MISSING_STACK_WARNINGS_DESC"] =
 	"설정한 수량을 줄 만큼 해당 아이템이 가방에 없을 때 대화창에 알림을 출력합니다."
@@ -199,7 +199,7 @@ L["OPTIONS_TOOLTIPS_DESC"] =
 	"Water Dispenser를 사용하는 파티원이 나눠 주도록 설정한 것을 플레이어 툴팁에 표시하고, 내 가방에서 내가 나눠 주는 아이템에 표시를 남깁니다."
 L["OPTIONS_SHOW_INVENTORY"] = "플레이어 툴팁에 보유 목록 표시"
 L["OPTIONS_SHOW_INVENTORY_DESC"] =
-	"플레이어 툴팁에 Water Dispenser 항목을 추가해 그들이 나눠 주도록 설정한 것과 나눠 줄 수 있는 수량을 보여 주며, 본인의 목록은 파티 여부와 관계없이 항상 표시됩니다."
+	"플레이어 툴팁에 Water Dispenser 항목을 추가해 그들이 나눠 주도록 설정한 것과 나눠 줄 수 있는 수량을 보여 줍니다. 본인의 목록은 파티 여부와 관계없이 항상 표시됩니다."
 L["OPTIONS_BAG_TOOLTIPS"] = "분배 아이템에 가방 툴팁 표시"
 L["OPTIONS_BAG_TOOLTIPS_DESC"] =
 	"가방 속 아이템이 나눠 주도록 설정되어 있으면 그 아이템 툴팁에 Water Dispenser 줄을 추가해, 애드온이 무엇을 건네줄지 한눈에 알 수 있게 합니다."
@@ -216,7 +216,7 @@ L["OPTIONS_ITEMS_DESC"] =
 	"각 아이템을 얼마나 분배할지 설정하세요. 수량은 묶음이 아니라 개수로 세므로 물 20개는 물 20개, 물약 1개는 물약 1개입니다. 필요하면 묶음을 정확한 수량만큼 쪼갭니다."
 -- "Add an Item" must match OPTIONS_ADD_ITEM.
 L["OPTIONS_ITEMS_EMPTY"] =
-	'설정된 아이템이 없습니다. 목록에서 "아이템 추가"를 선택하여 가방에 있는 거래 가능한 아이템을 무엇이든 추가하세요.'
+	"설정된 아이템이 없습니다. 목록에서 아이템 추가를 선택하여 가방에 있는 거래 가능한 아이템을 무엇이든 추가하세요."
 
 --[[
 	The silver line opening an item's page while nothing of it would go out. In
@@ -254,7 +254,7 @@ L["OPTIONS_ITEM_DISTRIBUTE_INSTANCE"] = "인스턴스에서만"
 L["OPTIONS_ITEM_GUILDIES_ONLY"] = "길드원에게만"
 L["OPTIONS_ITEM_GUILDIES_ONLY_DESC"] = "거래 상대가 내 길드원이 아니면 이 아이템을 건너뜁니다."
 -- Panel line under the toggle, not a tooltip: it names the guild, which no fixed string can. %s is the player's guild.
-L["OPTIONS_ITEM_GUILDIES_ONLY_HELP"] = "<%s> 길드원에게만 줍니다."
+L["OPTIONS_ITEM_GUILDIES_ONLY_HELP"] = "이 아이템을 <%s> 길드원에게만 줍니다."
 L["OPTIONS_ITEM_GUILDIES_ONLY_NO_GUILD"] =
 	"길드에 가입되어 있지 않아, 이 설정으로는 아무에게도 아이템이 나가지 않습니다."
 L["OPTIONS_ITEM_FACTOR_LEVEL"] = "아이템의 요구 레벨 고려"
@@ -262,7 +262,7 @@ L["OPTIONS_ITEM_FACTOR_LEVEL_DESC"] =
 	"거래 상대의 레벨이 아이템의 요구 레벨보다 낮으면 이 아이템을 건너뜁니다."
 L["OPTIONS_ITEM_RESERVE"] = "예비 수량 사용"
 L["OPTIONS_ITEM_RESERVE_DESC"] =
-	"가방에 항상 최소 이만큼은 남겨 두며, 분배와 플레이어 툴팁, 알림 매크로는 그 수를 넘는 수량만 나눠 줄 수 있는 것으로 취급합니다."
+	"가방에 최소 이만큼은 남겨 둡니다. 그 수를 넘는 수량만 분배되고, 플레이어 툴팁에 표시되고, 알림 매크로에 나열됩니다."
 L["OPTIONS_ITEM_PLAYER_CAP"] = "플레이어당 최대량 사용"
 L["OPTIONS_ITEM_PLAYER_CAP_DESC"] =
 	"누군가 나에게서 이만큼 받으면 그 사람에게 이 아이템을 더 이상 주지 않습니다. 로그아웃하거나, UI를 다시 불러오거나, 이 아이템의 수량을 바꾸면 횟수가 초기화됩니다."
@@ -301,22 +301,39 @@ L["OPTIONS_ANNOUNCEMENTS_ENABLE_DESC"] =
 -- "Enable Reserves" must match OPTIONS_ITEM_RESERVE.
 L["OPTIONS_ANNOUNCEMENTS_PREVIEW_EMPTY"] =
 	"알릴 내용이 없습니다. 아이템을 설정하거나, 가방을 채우거나, 예비 수량 사용에서 값을 낮추세요."
--- "Enable Dispense" must match OPTIONS_DISPENSE_MASTER, "Dispense" must match TAB_DISPENSE.
+-- "Enable Dispense" must match OPTIONS_DISPENSE_MASTER, "Water Dispenser" ADDON_TITLE, and "Dispense" TAB_DISPENSE.
 L["OPTIONS_ANNOUNCEMENTS_PREVIEW_DISPENSE_OFF"] =
-	"분배 탭에서 분배 활성화가 꺼져 있는 동안에는 알릴 내용이 없습니다."
+	"분배 활성화가 꺼져 있는 동안에는 알릴 내용이 없습니다. Water Dispenser > 분배에서 켜세요."
 
 -- Macro message template (%s is the item list) and the connector before the last list entry.
 L["ANNOUNCEMENTS_BODY"] = "%s 보유 중입니다. 거래를 거세요!"
 L["ANNOUNCEMENTS_AND"] = "및"
 
 --------------------------------------------------------------------------------
--- Options — Support
+-- Options — Feedback & Support
 --------------------------------------------------------------------------------
 
-L["OPTIONS_SUPPORT"] = "피드백 및 지원"
--- The General panel's last line. %s is the version.
+L["OPTIONS_LEVEL_UP_TITLE"] = "Water Dispenser의 레벨 업을 도와주세요"
+L["OPTIONS_LEVEL_UP_INTRO"] =
+	"이 애드온은 이 게임을 사랑하고 모두가 최대한 즐겁게 플레이하기를 바라는 플레이어들이 만들었습니다. 저희는 절대 후원을 요청하지 않습니다. 저희의 작업이 여러분의 게임을 조금 더 낫게 만든다는 것이 진정한 보람입니다. 그렇다면 꼭 이야기해 주세요!"
+L["OPTIONS_LEVEL_UP_WAYS"] =
+	"더 많은 플레이어에게 다가갈 수 있도록 도와주실 수 있는 몇 가지 방법입니다."
+L["OPTIONS_LEVEL_UP_FEEDBACK"] =
+	"• 피드백 공유: 버그를 발견했거나 아이디어가 있으신가요? Discord에서 알려 주세요. 여러분의 피드백은 애드온을 개선하는 데 도움이 되며, 풀 리퀘스트는 언제나 환영합니다."
+L["OPTIONS_LEVEL_UP_FRIEND"] =
+	"• 친구에게 알리기: 이 애드온을 좋아할 만한 사람을 알고 계신가요? 그분께 알려 주세요. 입소문은 더 많은 플레이어가 좋은 애드온을 발견하는 데 도움이 됩니다."
+L["OPTIONS_LEVEL_UP_CURSEFORGE"] =
+	"• CurseForge 즐겨찾기: 아래 CurseForge 링크를 열고 로그인한 다음 Download 버튼 아래의 별을 클릭하세요. 즐겨찾기는 더 많은 플레이어가 애드온을 발견하는 데 도움이 됩니다."
+L["OPTIONS_LEVEL_UP_GITHUB"] =
+	"• GitHub Star: 아래 GitHub 링크를 열고 로그인한 다음 오른쪽 위의 Star를 클릭하세요. Star는 프로젝트가 더 많은 무료 개발 도구를 받을 자격을 얻는 데 도움이 됩니다."
+L["OPTIONS_LEVEL_UP_THANKS"] = "Water Dispenser를 선택해 주셔서 감사합니다!"
+
+L["OPTIONS_FEEDBACK"] = "피드백 및 지원"
+L["OPTIONS_FEEDBACK_LINKS_HEADER"] = "피드백 및 지원 링크"
+L["OPTIONS_CURSEFORGE"] = "CurseForge"
+L["OPTIONS_GITHUB"] = "GitHub"
+L["OPTIONS_DISCORD"] = "Discord"
+L["OPTIONS_WAGO"] = "Wago"
+L["OPTIONS_COPY_LINK"] = "링크를 복사하려면 해당 상자를 클릭한 다음 Ctrl+A와 Ctrl+C를 누르세요."
+-- The Feedback & Support panel's last line. %s is the version.
 L["OPTIONS_VERSION"] = "버전 %s"
-L["SUPPORT_CURSEFORGE"] = "CurseForge"
-L["SUPPORT_GITHUB"] = "GitHub"
-L["SUPPORT_DISCORD"] = "Discord"
-L["SUPPORT_WAGO"] = "Wago"

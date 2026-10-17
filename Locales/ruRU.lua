@@ -13,7 +13,7 @@ L["ADDON_TITLE"] = "Water Dispenser"
 -- Shared Formats
 --------------------------------------------------------------------------------
 
--- %s is the item's name or link, %d how many of it. Used by the chat prints and the announcement macro.
+-- %s is the item's name or link, %d how many of it. Used by the chat prints, the trade status line and the announcement macro.
 L["FORMAT_ITEM_COUNT"] = "%s x%d"
 -- Stands in for an item's name until the client has loaded it. %d is the item ID.
 L["ITEM_LOADING"] = "Загрузка ID: %d"
@@ -28,7 +28,7 @@ L["ITEM_LOADING"] = "Загрузка ID: %d"
 	own labels.
 ]]
 L["CHAT_LOADED"] =
-	"Версия %s. Настройки (включая отключение этого сообщения) находятся в Настройки > Модификации > Water Dispenser. Нравится аддон? Расскажите друзьям! (="
+	"Версия %s. Настройки (включая отключение этого сообщения) находятся в Настройки > Модификации > Water Dispenser. Нравится аддон? Расскажите другу, добавьте его в избранное на CurseForge или поставьте Star на GitHub. (="
 L["CHAT_NO_TRADE"] = "Нет активного окна обмена."
 L["CHAT_COMBAT_BLOCKED"] = "WoW блокирует автоматический обмен во время боя."
 L["CHAT_OPTIONS_IN_COMBAT"] =
@@ -76,7 +76,7 @@ L["BUTTON_FILL"] = "Заполнить окно обмена"
 
 --[[
 	The silver status line under the trade panel's buttons. "Fill Trade Window" must
-	match BUTTON_FILL. ADDED's %s is the window's contents, each FORMAT_ITEM_COUNT,
+	match BUTTON_FILL, and "Dispense" must match TAB_DISPENSE. ADDED's %s is the window's contents, each FORMAT_ITEM_COUNT,
 	joined like the announcement's list. In the rest, %s is an item or collection
 	name unless noted.
 ]]
@@ -86,13 +86,13 @@ L["TRADE_STATUS_SHORT"] = "Не хватает %d шт. (%s): в сумках н
 L["TRADE_STATUS_SHORT_RESERVE"] =
 	"Не хватает %d шт. (%s): остальное держит ваш резерв."
 L["TRADE_STATUS_DISPENSE_OFF"] =
-	"Автозаполнение отключено. Заполнить окно обмена по-прежнему добавляет ваши обычные количества."
+	"Раздача отключена. Заполнить окно обмена по-прежнему добавляет ваши обычные количества."
 L["TRADE_STATUS_OFF_STRANGERS"] =
-	"Автозаполнение отключено для незнакомцев. Заполнить окно обмена по-прежнему добавляет ваши обычные количества."
+	"Раздача отключена для незнакомцев. Заполнить окно обмена по-прежнему добавляет ваши обычные количества."
 L["TRADE_STATUS_OFF_PARTY"] =
-	"Автозаполнение отключено для участников группы. Заполнить окно обмена по-прежнему добавляет ваши обычные количества."
+	"Раздача отключена для участников группы. Заполнить окно обмена по-прежнему добавляет ваши обычные количества."
 L["TRADE_STATUS_OFF_RAID"] =
-	"Автозаполнение отключено для участников рейда. Заполнить окно обмена по-прежнему добавляет ваши обычные количества."
+	"Раздача отключена для участников рейда. Заполнить окно обмена по-прежнему добавляет ваши обычные количества."
 L["TRADE_STATUS_MASTER_LOOT"] =
 	"Отложено, пока вы ответственный за добычу. Заполнить окно обмена по-прежнему добавляет ваши обычные количества."
 -- The first %s is the partner's class name.
@@ -138,7 +138,7 @@ L["MINIMAP_DISPENSE_REPORT"] = "Отчет о раздаче"
 --------------------------------------------------------------------------------
 
 L["OPTIONS_DESCRIPTION"] =
-	"Раздача расходников без усилий. Автоматически заполняет окна обмена сотворенной водой, едой и камнями здоровья нужного ранга и в нужном количестве для каждого игрока. Добавьте любой предмет, от песка из песочных часов до зелий сопротивления, и снабдите весь рейд за считанные секунды."
+	"Раздача расходников без усилий для магов и чернокнижников. Автоматически заполняет окна обмена сотворенной водой, едой и камнями здоровья нужного ранга и в нужном количестве для каждого игрока. Добавьте любой предмет, от песка из песочных часов до зелий, и снабдите весь рейд за считанные секунды."
 
 L["OPTIONS_WELCOME_MESSAGE"] = "Включить приветственное сообщение"
 L["OPTIONS_WELCOME_MESSAGE_DESC"] =
@@ -159,7 +159,7 @@ L["OPTIONS_COMMAND_DESCRIPTION"] = "Открывает окно настроек
 -- Names the panel and the mini-map tooltip's feature row.
 L["TAB_DISPENSE"] = "Раздача"
 L["OPTIONS_DISPENSE_MASTER"] = "Включить раздачу"
--- Also the panel's intro line and the mini-map tooltip's feature description.
+-- Also the panel's intro line, the General panel's Features switch tooltip and the mini-map tooltip's feature description.
 L["OPTIONS_DISPENSE_MASTER_DESC"] =
 	"Автоматически заполняет окно обмена при его открытии на основе ваших настроек."
 L["OPTIONS_DISPENSE_SOLO"] = "Включить для незнакомцев"
@@ -174,7 +174,7 @@ L["OPTIONS_DISPENSE_RAID_DESC"] =
 -- The label says what it does; the tooltip only covers why it is needed and when it stands down.
 L["OPTIONS_RESTACK"] = "Объединять неполные стопки после обмена"
 L["OPTIONS_RESTACK_DESC"] =
-	"Сотворенные вода и еда каждый раз попадают в новую ячейку сумки, и игра никогда не складывает их обратно, поэтому Water Dispenser объединяет их один раз, сразу после закрытия окна обмена, и никогда в другое время, в бою или пока вы держите что-то на курсоре."
+	"Сотворенные вода и еда каждый раз попадают в новую ячейку сумки, и игра никогда не складывает их обратно, поэтому Water Dispenser объединяет их один раз, сразу после закрытия окна обмена. Ни в какое другое время, ни в бою, ни пока вы держите что-то на курсоре, он их не объединяет."
 L["OPTIONS_HOLD_MASTER_LOOT"] = "Не заполнять, пока вы ответственный за добычу"
 -- "Fill Trade Window" must match BUTTON_FILL.
 L["OPTIONS_HOLD_MASTER_LOOT_DESC"] =
@@ -182,7 +182,7 @@ L["OPTIONS_HOLD_MASTER_LOOT_DESC"] =
 L["OPTIONS_CONJURE_BUTTONS"] = "Показывать кнопки сотворения рядом с обменом"
 -- "Fill Trade Window" must match BUTTON_FILL.
 L["OPTIONS_CONJURE_BUTTONS_DESC"] =
-	"Добавляет под кнопкой Заполнить окно обмена кнопки, которые сотворяют воду, еду или камень здоровья, подходящие по уровню вашему партнеру по обмену, и созданное сразу попадает в открытый обмен."
+	"Добавляет под кнопкой Заполнить окно обмена кнопки, которые сотворяют воду, еду или камень здоровья, подходящие по уровню вашему партнеру по обмену. Созданное сразу попадает в открытый обмен."
 L["OPTIONS_MISSING_STACK_WARNINGS"] =
 	"Включить предупреждения, когда запасы на исходе"
 L["OPTIONS_MISSING_STACK_WARNINGS_DESC"] =
@@ -209,7 +209,7 @@ L["OPTIONS_TOOLTIPS_DESC"] =
 L["OPTIONS_SHOW_INVENTORY"] =
 	"Показывать запасы во всплывающих подсказках игроков"
 L["OPTIONS_SHOW_INVENTORY_DESC"] =
-	"Добавляет блок Water Dispenser в подсказки игроков со списком того, что они настроили для раздачи, и сколько они готовы отдать, причем ваш собственный список показывается всегда, в группе или нет."
+	"Добавляет блок Water Dispenser в подсказки игроков со списком того, что они настроили для раздачи, и сколько они готовы отдать. Ваш собственный список показывается всегда, в группе вы или нет."
 L["OPTIONS_BAG_TOOLTIPS"] =
 	"Показывать подсказки в сумках для раздаваемых предметов"
 L["OPTIONS_BAG_TOOLTIPS_DESC"] =
@@ -227,7 +227,7 @@ L["OPTIONS_ITEMS_DESC"] =
 	"Настройте, сколько каждого предмета раздавать. Количество считается в отдельных предметах, поэтому 20 воды означают 20 воды, а 1 зелье означает 1 зелье. При необходимости стопка делится до точного количества."
 -- "Add an Item" must match OPTIONS_ADD_ITEM.
 L["OPTIONS_ITEMS_EMPTY"] =
-	'Нет настроенных предметов. Выберите "Добавить предмет" в списке, чтобы добавить любой передаваемый предмет из ваших сумок.'
+	"Нет настроенных предметов. Выберите Добавить предмет в списке, чтобы добавить любой передаваемый предмет из ваших сумок."
 
 --[[
 	The silver line opening an item's page while nothing of it would go out. In
@@ -267,7 +267,7 @@ L["OPTIONS_ITEM_GUILDIES_ONLY"] = "Только согильдийцам"
 L["OPTIONS_ITEM_GUILDIES_ONLY_DESC"] =
 	"Пропускает этот предмет, если ваш партнер по обмену не состоит в вашей гильдии."
 -- Panel line under the toggle, not a tooltip: it names the guild, which no fixed string can. %s is the player's guild.
-L["OPTIONS_ITEM_GUILDIES_ONLY_HELP"] = "Отдавать только участникам <%s>."
+L["OPTIONS_ITEM_GUILDIES_ONLY_HELP"] = "Отдает этот предмет только участникам <%s>."
 L["OPTIONS_ITEM_GUILDIES_ONLY_NO_GUILD"] =
 	"Вы не состоите в гильдии, поэтому так этот предмет не достанется никому."
 L["OPTIONS_ITEM_FACTOR_LEVEL"] = "Учитывать требуемый уровень предмета"
@@ -275,7 +275,7 @@ L["OPTIONS_ITEM_FACTOR_LEVEL_DESC"] =
 	"Пропускает этот предмет, если уровень вашего партнера по обмену ниже требуемого для предмета."
 L["OPTIONS_ITEM_RESERVE"] = "Включить резерв"
 L["OPTIONS_ITEM_RESERVE_DESC"] =
-	"Всегда оставляет в сумках хотя бы столько, а раздача, ваша подсказка игрока и макрос анонса считают все сверх этого числа доступным для передачи."
+	"Оставляет в сумках хотя бы столько. Раздается, показывается в вашей подсказке игрока и попадает в макрос анонса только то, что сверх этого числа."
 L["OPTIONS_ITEM_PLAYER_CAP"] = "Включить максимум на игрока"
 L["OPTIONS_ITEM_PLAYER_CAP_DESC"] =
 	"Перестает давать этот предмет игроку, как только он получил от вас столько. Счет начинается заново, когда вы выходите из игры, перезагружаете интерфейс или меняете количества этого предмета."
@@ -316,22 +316,40 @@ L["OPTIONS_ANNOUNCEMENTS_ENABLE_DESC"] =
 -- "Enable Reserves" must match OPTIONS_ITEM_RESERVE.
 L["OPTIONS_ANNOUNCEMENTS_PREVIEW_EMPTY"] =
 	"Нечего анонсировать. Настройте предметы, пополните сумки или уменьшите резерв в разделе Включить резерв."
--- "Enable Dispense" must match OPTIONS_DISPENSE_MASTER, "Dispense" must match TAB_DISPENSE.
+-- "Enable Dispense" must match OPTIONS_DISPENSE_MASTER, "Water Dispenser" ADDON_TITLE, and "Dispense" TAB_DISPENSE.
 L["OPTIONS_ANNOUNCEMENTS_PREVIEW_DISPENSE_OFF"] =
-	"Нечего анонсировать, пока Включить раздачу отключено на вкладке Раздача."
+	"Нечего анонсировать, пока Включить раздачу отключено. Включите это в Water Dispenser > Раздача."
 
 -- Macro message template (%s is the item list) and the connector before the last list entry.
 L["ANNOUNCEMENTS_BODY"] = "У меня есть %s. Кидайте обмен!"
 L["ANNOUNCEMENTS_AND"] = "и"
 
 --------------------------------------------------------------------------------
--- Options — Support
+-- Options — Feedback & Support
 --------------------------------------------------------------------------------
 
-L["OPTIONS_SUPPORT"] = "Отзывы и поддержка"
--- The General panel's last line. %s is the version.
+L["OPTIONS_LEVEL_UP_TITLE"] = "Помогите Water Dispenser повысить уровень"
+L["OPTIONS_LEVEL_UP_INTRO"] =
+	"Этот аддон создали игроки, которые любят эту игру и хотят сделать ее как можно интереснее для всех. Мы никогда не будем просить пожертвований. Настоящее удовлетворение приносит знание того, что наша работа делает игру для вас чуточку лучше. Если это так, мы будем рады об этом услышать!"
+L["OPTIONS_LEVEL_UP_WAYS"] =
+	"Вот несколько способов помочь нам охватить больше игроков."
+L["OPTIONS_LEVEL_UP_FEEDBACK"] =
+	"• Поделитесь отзывом: Нашли ошибку или есть идея? Сообщите нам в Discord. Ваши отзывы помогают нам улучшать аддон, а пул-реквесты всегда приветствуются."
+L["OPTIONS_LEVEL_UP_FRIEND"] =
+	"• Расскажите другу: Знаете кого-то, кому может понравиться этот аддон? Расскажите ему. Сарафанное радио помогает большему числу игроков находить отличные аддоны."
+L["OPTIONS_LEVEL_UP_CURSEFORGE"] =
+	"• Добавьте в избранное на CurseForge: Откройте ссылку на CurseForge ниже, войдите в аккаунт и нажмите на звездочку под кнопкой Download. Избранное помогает большему числу игроков найти аддон."
+L["OPTIONS_LEVEL_UP_GITHUB"] =
+	"• Поставьте Star на GitHub: Откройте ссылку на GitHub ниже, войдите в аккаунт и нажмите Star в правом верхнем углу. Звезды помогают проекту получить доступ к большему числу бесплатных инструментов для разработчиков."
+L["OPTIONS_LEVEL_UP_THANKS"] = "Спасибо, что выбрали Water Dispenser!"
+
+L["OPTIONS_FEEDBACK"] = "Отзывы и поддержка"
+L["OPTIONS_FEEDBACK_LINKS_HEADER"] = "Ссылки для отзывов и поддержки"
+L["OPTIONS_CURSEFORGE"] = "CurseForge"
+L["OPTIONS_GITHUB"] = "GitHub"
+L["OPTIONS_DISCORD"] = "Discord"
+L["OPTIONS_WAGO"] = "Wago"
+L["OPTIONS_COPY_LINK"] =
+	"Чтобы скопировать ссылку, щелкните по ее полю, затем нажмите Ctrl+A и Ctrl+C."
+-- The Feedback & Support panel's last line. %s is the version.
 L["OPTIONS_VERSION"] = "Версия %s"
-L["SUPPORT_CURSEFORGE"] = "CurseForge"
-L["SUPPORT_GITHUB"] = "GitHub"
-L["SUPPORT_DISCORD"] = "Discord"
-L["SUPPORT_WAGO"] = "Wago"

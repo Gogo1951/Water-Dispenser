@@ -44,7 +44,7 @@ local function GetPreviewText()
 		if message then
 			--[[
 				HELP, not TEXT: this line is helper text -- a preview of what the macro
-				would say -- and white read as the panel's own body copy, as though the
+				would say -- and white reads as the panel's own body copy, as though the
 				add-on were stating it rather than showing it.
 			]]
 			return GetColor("HELP") .. message .. "|r"

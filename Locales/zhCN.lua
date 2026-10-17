@@ -13,7 +13,7 @@ L["ADDON_TITLE"] = "Water Dispenser"
 -- Shared Formats
 --------------------------------------------------------------------------------
 
--- %s is the item's name or link, %d how many of it. Used by the chat prints and the announcement macro.
+-- %s is the item's name or link, %d how many of it. Used by the chat prints, the trade status line and the announcement macro.
 L["FORMAT_ITEM_COUNT"] = "%s x%d"
 -- Stands in for an item's name until the client has loaded it. %d is the item ID.
 L["ITEM_LOADING"] = "正在加载 ID：%d"
@@ -28,7 +28,7 @@ L["ITEM_LOADING"] = "正在加载 ID：%d"
 	own labels.
 ]]
 L["CHAT_LOADED"] =
-	"版本 %s。设置（包含关闭此信息的选项）可以在 选项 > 插件 > Water Dispenser 中找到。喜欢这个插件吗？分享给你的朋友吧！(="
+	"版本 %s。设置（包含关闭此信息的选项）位于 选项 > 插件 > Water Dispenser。喜欢这个插件吗？告诉你的朋友，在 CurseForge 上收藏它，或在 GitHub 上给它点 Star。(="
 L["CHAT_NO_TRADE"] = "没有已打开的交易窗口。"
 L["CHAT_COMBAT_BLOCKED"] = "魔兽世界会在战斗中阻止自动交易。"
 L["CHAT_OPTIONS_IN_COMBAT"] = "出于安全考虑，战斗中无法打开选项界面。"
@@ -74,7 +74,7 @@ L["BUTTON_FILL"] = "填充交易窗口"
 
 --[[
 	The silver status line under the trade panel's buttons. "Fill Trade Window" must
-	match BUTTON_FILL. ADDED's %s is the window's contents, each FORMAT_ITEM_COUNT,
+	match BUTTON_FILL, and "Dispense" must match TAB_DISPENSE. ADDED's %s is the window's contents, each FORMAT_ITEM_COUNT,
 	joined like the announcement's list. In the rest, %s is an item or collection
 	name unless noted.
 ]]
@@ -82,13 +82,10 @@ L["TRADE_STATUS_ADDED"] = "已添加 %s。"
 -- %d is how many short.
 L["TRADE_STATUS_SHORT"] = "缺少 %d 个 %s：背包中数量不足。"
 L["TRADE_STATUS_SHORT_RESERVE"] = "缺少 %d 个 %s：其余部分由保留数量保留。"
-L["TRADE_STATUS_DISPENSE_OFF"] = "自动填充已关闭。填充交易窗口仍会添加你通常的数量。"
-L["TRADE_STATUS_OFF_STRANGERS"] =
-	"对陌生人的自动填充已关闭。填充交易窗口仍会添加你通常的数量。"
-L["TRADE_STATUS_OFF_PARTY"] =
-	"对小队成员的自动填充已关闭。填充交易窗口仍会添加你通常的数量。"
-L["TRADE_STATUS_OFF_RAID"] =
-	"对团队成员的自动填充已关闭。填充交易窗口仍会添加你通常的数量。"
+L["TRADE_STATUS_DISPENSE_OFF"] = "分发已关闭。填充交易窗口仍会添加你通常的数量。"
+L["TRADE_STATUS_OFF_STRANGERS"] = "对陌生人的分发已关闭。填充交易窗口仍会添加你通常的数量。"
+L["TRADE_STATUS_OFF_PARTY"] = "对小队成员的分发已关闭。填充交易窗口仍会添加你通常的数量。"
+L["TRADE_STATUS_OFF_RAID"] = "对团队成员的分发已关闭。填充交易窗口仍会添加你通常的数量。"
 L["TRADE_STATUS_MASTER_LOOT"] =
 	"你负责分配战利品时暂不填充。填充交易窗口仍会添加你通常的数量。"
 -- The first %s is the partner's class name.
@@ -133,7 +130,7 @@ L["MINIMAP_DISPENSE_REPORT"] = "分发报告"
 --------------------------------------------------------------------------------
 
 L["OPTIONS_DESCRIPTION"] =
-	"轻松分发消耗品。自动用制造的水、食物和治疗石填充交易窗口，为每位玩家提供合适的等级和数量。添加任意物品，从沙漏之沙到抗性药水，几秒钟就能分发一整个团队的份量。"
+	"为法师和术士轻松分发消耗品。自动用制造的水、食物和治疗石填充交易窗口，为每位玩家提供合适的等级和数量。添加任意物品，从沙漏之沙到药水，几秒钟就能分发一整个团队的份量。"
 
 L["OPTIONS_WELCOME_MESSAGE"] = "启用欢迎信息"
 L["OPTIONS_WELCOME_MESSAGE_DESC"] = "当 Water Dispenser 加载时，在聊天框输出一行问候语。"
@@ -153,7 +150,7 @@ L["OPTIONS_COMMAND_DESCRIPTION"] = "打开本插件的选项界面。"
 -- Names the panel and the mini-map tooltip's feature row.
 L["TAB_DISPENSE"] = "分发"
 L["OPTIONS_DISPENSE_MASTER"] = "启用分发"
--- Also the panel's intro line and the mini-map tooltip's feature description.
+-- Also the panel's intro line, the General panel's Features switch tooltip and the mini-map tooltip's feature description.
 L["OPTIONS_DISPENSE_MASTER_DESC"] = "打开交易时根据你的设置自动填充交易窗口。"
 L["OPTIONS_DISPENSE_SOLO"] = "对陌生人启用"
 L["OPTIONS_DISPENSE_SOLO_DESC"] = "当与不在队伍或团队中的玩家交易时，自动填充交易窗口。"
@@ -164,7 +161,7 @@ L["OPTIONS_DISPENSE_RAID_DESC"] = "当与团队成员交易时，自动填充交
 -- The label says what it does; the tooltip only covers why it is needed and when it stands down.
 L["OPTIONS_RESTACK"] = "交易结束后合并零散堆叠"
 L["OPTIONS_RESTACK_DESC"] =
-	"制造的水和食物每次施放都会落在新的背包格中，游戏从不会把它们合回去，因此 Water Dispenser 会在交易窗口关闭后立即合并一次，而在其他任何时候、战斗中或你的光标上拿着东西时都绝不会这样做。"
+	"制造的水和食物每次施放都会落在新的背包格中，游戏从不会把它们合回去，因此 Water Dispenser 会在交易窗口关闭后立即合并一次。在其他任何时候、战斗中或你的光标上拿着东西时，它都绝不会合并。"
 L["OPTIONS_HOLD_MASTER_LOOT"] = "负责分配战利品时暂停"
 -- "Fill Trade Window" must match BUTTON_FILL.
 L["OPTIONS_HOLD_MASTER_LOOT_DESC"] =
@@ -172,7 +169,7 @@ L["OPTIONS_HOLD_MASTER_LOOT_DESC"] =
 L["OPTIONS_CONJURE_BUTTONS"] = "在交易旁显示制造按钮"
 -- "Fill Trade Window" must match BUTTON_FILL.
 L["OPTIONS_CONJURE_BUTTONS_DESC"] =
-	"在填充交易窗口下方添加按钮，用于制造你的交易对象在其等级可以使用的水、食物或治疗石，制造出的物品会直接放入当前交易。"
+	"在填充交易窗口下方添加按钮，用于制造你的交易对象在其等级可以使用的水、食物或治疗石。制造出的物品会直接放入当前交易。"
 L["OPTIONS_MISSING_STACK_WARNINGS"] = "库存不足时启用警告"
 L["OPTIONS_MISSING_STACK_WARNINGS_DESC"] =
 	"当背包中已配置物品的数量不足以给出你设定的数量时，在聊天框中输出提示。"
@@ -194,7 +191,7 @@ L["OPTIONS_TOOLTIPS_DESC"] =
 	"在玩家提示信息中显示使用 Water Dispenser 的队友设置为分发的内容，并在你自己的背包中标记你要分发的物品。"
 L["OPTIONS_SHOW_INVENTORY"] = "在玩家提示中显示库存"
 L["OPTIONS_SHOW_INVENTORY_DESC"] =
-	"在玩家提示信息中添加一个 Water Dispenser 区块，列出他们设置为分发的内容以及可以送出的数量，而无论是否组队，你自己的库存都会始终显示。"
+	"在玩家提示信息中添加一个 Water Dispenser 区块，列出他们设置为分发的内容以及可以送出的数量。无论是否组队，你自己的都会始终显示。"
 L["OPTIONS_BAG_TOOLTIPS"] = "为分发物品显示背包提示"
 L["OPTIONS_BAG_TOOLTIPS_DESC"] =
 	"当背包中的某个物品被设置为分发时，在它的提示信息中添加一行 Water Dispenser 说明，让你一眼就能看出插件会送出什么。"
@@ -211,7 +208,7 @@ L["OPTIONS_ITEMS_DESC"] =
 	"设置每种物品分发多少。数量按单个物品计算，所以 20 个水就是 20 个水，1 个药水就是 1 个药水。必要时会把一堆拆分到精确数量。"
 -- "Add an Item" must match OPTIONS_ADD_ITEM.
 L["OPTIONS_ITEMS_EMPTY"] =
-	'未配置物品。请在列表中选择 "添加物品"，从背包中添加任何可交易的物品。'
+	"未配置物品。请在列表中选择添加物品，从背包中添加任何可交易的物品。"
 
 --[[
 	The silver line opening an item's page while nothing of it would go out. In
@@ -248,14 +245,14 @@ L["OPTIONS_ITEM_DISTRIBUTE_INSTANCE"] = "副本中"
 L["OPTIONS_ITEM_GUILDIES_ONLY"] = "仅限公会成员"
 L["OPTIONS_ITEM_GUILDIES_ONLY_DESC"] = "当你的交易对象不在你的公会中时，跳过该物品。"
 -- Panel line under the toggle, not a tooltip: it names the guild, which no fixed string can. %s is the player's guild.
-L["OPTIONS_ITEM_GUILDIES_ONLY_HELP"] = "只给 <%s> 的成员。"
+L["OPTIONS_ITEM_GUILDIES_ONLY_HELP"] = "此物品只给 <%s> 的成员。"
 L["OPTIONS_ITEM_GUILDIES_ONLY_NO_GUILD"] =
 	"你没有加入任何公会，所以这样设置不会把该物品给任何人。"
 L["OPTIONS_ITEM_FACTOR_LEVEL"] = "考虑物品的等级需求"
 L["OPTIONS_ITEM_FACTOR_LEVEL_DESC"] = "当你的交易对象未达到该物品的需求等级时，跳过该物品。"
 L["OPTIONS_ITEM_RESERVE"] = "启用保留数量"
 L["OPTIONS_ITEM_RESERVE_DESC"] =
-	"始终在背包中至少保留这么多，而分发、你的玩家提示和喊话宏会把超出这个数量的部分视为可以送出的。"
+	"在背包中至少保留这么多。只有超出这个数量的部分才会被分发、显示在你的玩家提示中或列入喊话宏。"
 L["OPTIONS_ITEM_PLAYER_CAP"] = "启用每位玩家上限"
 L["OPTIONS_ITEM_PLAYER_CAP_DESC"] =
 	"当某人已从你这里获得这么多后，停止向其送出此物品。登出、重载界面或更改此物品的数量后，计数会重新开始。"
@@ -294,22 +291,38 @@ L["OPTIONS_ANNOUNCEMENTS_ENABLE_DESC"] =
 -- "Enable Reserves" must match OPTIONS_ITEM_RESERVE.
 L["OPTIONS_ANNOUNCEMENTS_PREVIEW_EMPTY"] =
 	"没有可喊话的内容。配置物品，补充背包，或在启用保留数量中调低保留值。"
--- "Enable Dispense" must match OPTIONS_DISPENSE_MASTER, "Dispense" must match TAB_DISPENSE.
+-- "Enable Dispense" must match OPTIONS_DISPENSE_MASTER, "Water Dispenser" ADDON_TITLE, and "Dispense" TAB_DISPENSE.
 L["OPTIONS_ANNOUNCEMENTS_PREVIEW_DISPENSE_OFF"] =
-	"分发标签页中的启用分发处于关闭状态时，没有可喊话的内容。"
+	"启用分发处于关闭状态时，没有可喊话的内容。请在 Water Dispenser > 分发 中开启。"
 
 -- Macro message template (%s is the item list) and the connector before the last list entry.
 L["ANNOUNCEMENTS_BODY"] = "我有 %s。点我交易！"
 L["ANNOUNCEMENTS_AND"] = "和"
 
 --------------------------------------------------------------------------------
--- Options — Support
+-- Options — Feedback & Support
 --------------------------------------------------------------------------------
 
-L["OPTIONS_SUPPORT"] = "反馈与支持"
--- The General panel's last line. %s is the version.
+L["OPTIONS_LEVEL_UP_TITLE"] = "帮助 Water Dispenser 升级"
+L["OPTIONS_LEVEL_UP_INTRO"] =
+	"这个插件由热爱这款游戏、希望让每个人都玩得尽可能开心的玩家打造。我们永远不会请求捐赠。真正的满足感来自知道我们的工作让你的游戏体验变得更好一点。如果真是这样，我们很乐意听你说说！"
+L["OPTIONS_LEVEL_UP_WAYS"] = "以下是几种帮助我们接触更多玩家的方式。"
+L["OPTIONS_LEVEL_UP_FEEDBACK"] =
+	"• 分享反馈：发现了 bug 或有新点子？在 Discord 上告诉我们。你的反馈能帮助我们改进插件，也随时欢迎提交 pull request。"
+L["OPTIONS_LEVEL_UP_FRIEND"] =
+	"• 告诉朋友：认识可能会喜欢这个插件的人吗？把它介绍给他们。口碑能帮助更多玩家发现优秀的插件。"
+L["OPTIONS_LEVEL_UP_CURSEFORGE"] =
+	"• 在 CurseForge 上收藏：打开下方的 CurseForge 链接，登录后点击 Download 按钮下方的星标。收藏能帮助更多玩家发现这个插件。"
+L["OPTIONS_LEVEL_UP_GITHUB"] =
+	"• 在 GitHub 上点 Star：打开下方的 GitHub 链接，登录后点击右上角的 Star。Star 能帮助项目获得更多免费的开发者工具。"
+L["OPTIONS_LEVEL_UP_THANKS"] = "感谢你选择 Water Dispenser！"
+
+L["OPTIONS_FEEDBACK"] = "反馈与支持"
+L["OPTIONS_FEEDBACK_LINKS_HEADER"] = "反馈与支持链接"
+L["OPTIONS_CURSEFORGE"] = "CurseForge"
+L["OPTIONS_GITHUB"] = "GitHub"
+L["OPTIONS_DISCORD"] = "Discord"
+L["OPTIONS_WAGO"] = "Wago"
+L["OPTIONS_COPY_LINK"] = "要复制链接，请点击它的输入框，然后按 Ctrl+A 和 Ctrl+C。"
+-- The Feedback & Support panel's last line. %s is the version.
 L["OPTIONS_VERSION"] = "版本 %s"
-L["SUPPORT_CURSEFORGE"] = "CurseForge"
-L["SUPPORT_GITHUB"] = "GitHub"
-L["SUPPORT_DISCORD"] = "Discord"
-L["SUPPORT_WAGO"] = "Wago"

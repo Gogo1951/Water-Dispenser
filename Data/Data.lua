@@ -17,6 +17,7 @@ ns.OPTIONS_REGISTRY = {
 	Announcements = ADDON_NAME .. "_Announcements",
 	GroupSpares = ADDON_NAME .. "_GroupSpares",
 	Profiles = ADDON_NAME .. "_Profiles",
+	FeedbackSupport = ADDON_NAME .. "_FeedbackSupport",
 	Diagnostics = ADDON_NAME .. "_Diagnostics",
 }
 
@@ -148,7 +149,7 @@ ns.ITEM_QUALITY_COLORS = {
 -- URLs
 --------------------------------------------------------------------------------
 
-ns.URLS = {
+ns.LINKS = {
 	CURSEFORGE = "https://www.curseforge.com/wow/addons/water-dispenser-revisited",
 	GITHUB = "https://github.com/Gogo1951/Water-Dispenser",
 	DISCORD = "https://discord.gg/eh8hKq992Q",
