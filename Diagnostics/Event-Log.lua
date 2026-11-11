@@ -28,8 +28,9 @@ ns.DIAGNOSTIC_EVENT_EXCLUDE = {
     wholesale. CHAT_MSG_ADDON carries every add-on's traffic in the group, and
     in a raid the boss mods and meters alone would push everything else out of
     the buffer; its id is the prefix. GET_ITEM_INFO_RECEIVED fires once per item
-    the client loads while the Dispensed Items panel waits on a name, hundreds
-    of times if Validate Data or a bag add-on runs meanwhile.
+    the client loads while the Dispensed Items panel or the trade status line
+    waits on a name, hundreds of times if Validate Data or a bag add-on runs
+    meanwhile.
 ]]
 ns.MESSAGE_ID_FILTERED_EVENTS = {
 	CHAT_MSG_ADDON = 1,
@@ -38,7 +39,8 @@ ns.MESSAGE_ID_FILTERED_EVENTS = {
 
 --[[
     The ids the live handlers act on, through the same lookups they use: the
-    allowlist, never a list of noise.
+    allowlist, never a list of noise. The trade status line keeps its pending
+    names to itself, so a name it was waiting on counts like any other item.
 ]]
 local CORRELATED_IDS = {
 	CHAT_MSG_ADDON = function(prefix)
@@ -50,29 +52,57 @@ local CORRELATED_IDS = {
 }
 
 --[[
-    One argument as log text. A value Forever hides in combat is written as
-    <secret> and never stringified, since string-building with one throws.
-    Pipes are escaped (| -> ||) AFTER the length cut so each argument shows
-    verbatim in the report editbox instead of rendering as a clickable item
-    swatch, and so the cut can never leave a dangling pipe that would eat the
-    following ", " separator.
+    A secret value (WoW Forever) errors when compared, concatenated or used as
+    a table key, so the log never turns one into text. Clients without secret
+    values have no issecretvalue, and every value there is plain.
 ]]
-local function ArgumentText(value)
-	if ns.IsSecretValue(value) then
-		return "<secret>"
+local IsSecretValue = rawget(_G, "issecretvalue")
+
+local function IsPlain(value)
+	return not (IsSecretValue and IsSecretValue(value))
+end
+
+-- The counter id a secret message id folds into, since a secret can't key a table.
+local SECRET_ID = 0
+
+--[[
+    Folds one uncorrelated firing into its counter: the first-seen text plus a
+    count. Counters are keyed by event, then id, so one id arriving on two
+    events stays two rows. A secret id counts under SECRET_ID with the text
+    <secret>.
+]]
+local function CountUncorrelated(event, id, text)
+	local suppressed = ns.diagnostics.suppressed
+	if not suppressed then
+		return
 	end
-	local raw = string.sub(tostring(value), 1, EVENT_LOG_MAX_ARG_LENGTH)
-	return (raw:gsub("|", "||"))
+	if not IsPlain(id) then
+		id, text = SECRET_ID, "<secret>"
+	elseif not IsPlain(text) then
+		text = "<secret>"
+	end
+	local counters = suppressed[event]
+	if not counters then
+		counters = {}
+		suppressed[event] = counters
+	end
+	local entry = counters[id]
+	if entry then
+		entry.count = entry.count + 1
+		return
+	end
+	local raw = string.sub(tostring(text or ""), 1, EVENT_LOG_MAX_ARG_LENGTH)
+	counters[id] = { text = (raw:gsub("|", "||")), count = 1 }
 end
 
 --[[
     Per-firing filter for the events above. A firing whose id the add-on does
-    not correlate folds into a per-id counter (first-seen text plus a count)
-    rendered as one block at the end of the report, so firehose traffic can't
-    evict the entries the log exists to carry. A firing carrying no id in the
-    filtered position, or a secret one, is unclassifiable, and unclassifiable
-    is signal: it logs verbatim. Counters are keyed by event and id, since the
-    prefix is a string and an item id a number.
+    not correlate folds into its counter, rendered as one block at the end of
+    the report, so firehose traffic can't evict the entries the log exists to
+    carry. A secret id counts too. A plain firing carrying no id in the
+    filtered position (a number, or CHAT_MSG_ADDON's string prefix) is
+    unclassifiable, and unclassifiable is signal: it logs verbatim. The
+    counter's text is the argument after the id, or blank when none follows.
 
     Returns true when the firing was counted and must not reach the buffer.
 ]]
@@ -82,32 +112,21 @@ function ns:SuppressUncorrelatedMessage(event, ...)
 		return false
 	end
 	local messageID = select(idPosition, ...)
-	if ns.IsSecretValue(messageID) then
-		return false
+	if IsPlain(messageID) then
+		local idType = type(messageID)
+		if idType ~= "number" and idType ~= "string" then
+			return false
+		end
+		local correlated = CORRELATED_IDS[event]
+		if correlated and correlated(messageID) then
+			return false
+		end
 	end
-	local idType = type(messageID)
-	if idType ~= "number" and idType ~= "string" then
-		return false
-	end
-	local correlated = CORRELATED_IDS[event]
-	if correlated and correlated(messageID) then
-		return false
-	end
-	local suppressed = ns.diagnostics.suppressed
-	if not suppressed then
-		return true
-	end
-	local key = event .. "(" .. tostring(messageID) .. ")"
-	local entry = suppressed[key]
-	if entry then
-		entry.count = entry.count + 1
-		return true
-	end
-	local text = ""
+	local text
 	if select("#", ...) > idPosition then
-		text = ArgumentText((select(idPosition + 1, ...)))
+		text = select(idPosition + 1, ...)
 	end
-	suppressed[key] = { event = event, id = ArgumentText(messageID), text = text, count = 1 }
+	CountUncorrelated(event, messageID, text)
 	return true
 end
 
@@ -125,8 +144,14 @@ end
     One entry in the buffer, for ns:LogEvent and ns:LogEventNow below.
     Snapshots arguments to strings immediately -- never retain references, since
     some events carry frames or tables that would leak memory or go stale. Caps
-    the arg count and per-argument byte length (ArgumentText above) so a single
-    entry can't run away.
+    the arg count and per-argument byte length so a single entry can't run away.
+    A secret argument (WoW Forever) can't be turned into text, so it records as
+    <secret>.
+
+    Pipes are escaped (| -> ||) AFTER the length cut so each argument shows
+    verbatim in the report editbox instead of rendering as a clickable item
+    swatch. Escaping last also means the cut can never leave a dangling pipe that
+    would eat the following ", " separator.
 ]]
 local function AppendEntry(event, ...)
 	local log = ns.diagnostics.log
@@ -138,7 +163,13 @@ local function AppendEntry(event, ...)
 		if index > EVENT_LOG_MAX_ARGS then
 			break
 		end
-		parts[index] = ArgumentText((select(index, ...)))
+		local value = select(index, ...)
+		if IsPlain(value) then
+			local raw = string.sub(tostring(value), 1, EVENT_LOG_MAX_ARG_LENGTH)
+			parts[index] = (raw:gsub("|", "||"))
+		else
+			parts[index] = "<secret>"
+		end
 	end
 	log[#log + 1] = string.format("%.3f %s(%s)", GetTime(), event, table.concat(parts, ", "))
 	if #log > EVENT_LOG_SIZE then
@@ -182,8 +213,10 @@ local function AppendSuppressedSummary(lines)
 		return
 	end
 	local rows = {}
-	for key, entry in pairs(suppressed) do
-		rows[#rows + 1] = { key = key, entry = entry }
+	for event, counters in pairs(suppressed) do
+		for id, entry in pairs(counters) do
+			rows[#rows + 1] = { event = event, id = id, entry = entry }
+		end
 	end
 	if #rows == 0 then
 		return
@@ -192,13 +225,21 @@ local function AppendSuppressedSummary(lines)
 		if a.entry.count ~= b.entry.count then
 			return a.entry.count > b.entry.count
 		end
-		return a.key < b.key
+		if a.event ~= b.event then
+			return a.event < b.event
+		end
+		return a.id < b.id
 	end)
 	lines[#lines + 1] = ""
 	lines[#lines + 1] = "Suppressed uncorrelated traffic:"
 	for _, row in ipairs(rows) do
-		lines[#lines + 1] =
-			string.format("%s(%s, %s) x%d", row.entry.event, row.entry.id, row.entry.text, row.entry.count)
+		if row.id == SECRET_ID then
+			lines[#lines + 1] = string.format("%s(<secret>) x%d", row.event, row.entry.count)
+		else
+			-- %s, not %d: CHAT_MSG_ADDON's id is its string prefix.
+			lines[#lines + 1] =
+				string.format("%s(%s, %s) x%d", row.event, tostring(row.id), row.entry.text, row.entry.count)
+		end
 	end
 end
 

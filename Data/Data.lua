@@ -98,6 +98,8 @@ ns.ADDON_MESSAGE_PREFIX = "WaterDispenser"
 	{rt5} Moon, {rt6} Square, {rt7} Cross, {rt8} Skull
 ]]
 ns.TARGET_MARKER = "{rt6}" -- Square
+-- The same mark as a texture, for panels that draw a sent line: they don't parse {rtN}.
+ns.TARGET_MARKER_TEXTURE = "|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_6:0|t"
 
 --------------------------------------------------------------------------------
 -- Colors

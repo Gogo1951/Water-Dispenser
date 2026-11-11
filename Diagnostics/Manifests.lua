@@ -320,11 +320,17 @@ ns.DIAGNOSTIC_API_CHECKS = {
 			return type(TradeFrame) == "table"
 		end,
 	},
-	-- Groupmate tooltips match a sender to a groupmate through it.
+	-- Groupmate tooltips match a sender to a groupmate through it, falling back to GetRealmName when it returns nil.
 	{
 		"GetNormalizedRealmName",
 		function()
 			return type(GetNormalizedRealmName) == "function"
+		end,
+	},
+	{
+		"GetRealmName",
+		function()
+			return type(GetRealmName) == "function"
 		end,
 	},
 	-- Guarded in ns.GetClassName; the Dispensed Items grid sorts and labels classes by it.
@@ -956,6 +962,14 @@ local function AppendConjureButtons(lines, trade)
 		YesNo(buttons.HolderShown),
 		YesNo(buttons.PendingHide)
 	)
+	-- The holder is placed by Fill's screen position, and waits a frame at a time while Fill has none.
+	local fill = ns.TradeUI and ns.TradeUI.fillButton
+	local fillLeft, fillBottom = fill and fill:GetLeft(), fill and fill:GetBottom()
+	lines[#lines + 1] = string.format(
+		"  Fill button position: %s",
+		(fillLeft and fillBottom) and string.format("%.0f, %.0f", fillLeft, fillBottom)
+			or "none (the buttons wait for one before showing)"
+	)
 	local level = trade.Active and trade.Level or UnitLevel("player")
 	lines[#lines + 1] =
 		string.format("  rank each would cast for level %s%s:", tostring(level), trade.Active and "" or " (yours)")
@@ -1081,8 +1095,7 @@ function ns:BuildAnnouncementReport()
 		tostring(ns.GetGroupChatChannel() or "none"),
 		state.ChannelSlash
 	)
-	lines[#lines + 1] = "Raid marker: "
-		.. (ns.FLAVOR == "Camelot" and "dropped (WoW Forever blocks it in chat)" or ns.TARGET_MARKER)
+	lines[#lines + 1] = "Raid marker: " .. ns.TARGET_MARKER
 	lines[#lines + 1] = string.format(
 		"Update: pending=%s heldForCombat=%s slotsFullWarningGiven=%s",
 		YesNo(state.UpdatePending),

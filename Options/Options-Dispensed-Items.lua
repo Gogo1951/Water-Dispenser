@@ -18,7 +18,7 @@ local Spacer = ns.OptionsSpacer
 
 local selectedItemToAdd
 
--- Item IDs a build labelled with the Loading placeholder; their arrival rebuilds the tree with the real names.
+-- Item IDs a build labeled with the Loading placeholder; their arrival rebuilds the tree with the real names.
 local pendingNames = {}
 
 -- Whether GET_ITEM_INFO_RECEIVED is registered; it is only while a name is pending.

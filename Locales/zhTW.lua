@@ -8,6 +8,7 @@ end
 --------------------------------------------------------------------------------
 
 L["ADDON_TITLE"] = "Water Dispenser"
+L["ADDON_SHORT_NAME"] = "Water Dispenser"
 
 --------------------------------------------------------------------------------
 -- Shared Formats
@@ -74,9 +75,9 @@ L["BUTTON_FILL"] = "填充交易視窗"
 
 --[[
 	The silver status line under the trade panel's buttons. "Fill Trade Window" must
-	match BUTTON_FILL, and "Dispense" must match TAB_DISPENSE. ADDED's %s is the window's contents, each FORMAT_ITEM_COUNT,
-	joined like the announcement's list. In the rest, %s is an item or collection
-	name unless noted.
+	match BUTTON_FILL, and "Dispense" must match TAB_DISPENSE. ADDED's %s is the
+	window's contents, each FORMAT_ITEM_COUNT, joined like the announcement's list.
+	In the rest, %s is an item or collection name unless noted.
 ]]
 L["TRADE_STATUS_ADDED"] = "已加入 %s。"
 -- %d is how many short.
@@ -114,7 +115,8 @@ L["TRADE_CONJURE_MAKES_LOWEST"] = "製造 %s，你已知的最低等級。"
 
 --[[
 	The tooltip's feature row reuses TAB_DISPENSE for its name and
-	OPTIONS_DISPENSE_MASTER_DESC for its description; these are its state and click words.
+	OPTIONS_DISPENSE_MASTER_DESC for its description; the UI_ keys are its state and
+	click words.
 ]]
 L["UI_ENABLED"] = "已啟用"
 L["UI_DISABLED"] = "已停用"
@@ -162,7 +164,7 @@ L["OPTIONS_DISPENSE_RAID_DESC"] = "當與團隊成員交易時，自動填充交
 L["OPTIONS_RESTACK"] = "交易結束後合併零散堆疊"
 L["OPTIONS_RESTACK_DESC"] =
 	"製造的水和食物每次施放都會落在新的背包格中，遊戲從不會把它們合回去，因此 Water Dispenser 會在交易視窗關閉後立即合併一次。在其他任何時候、戰鬥中或你的游標上拿著東西時，它都絕不會合併。"
-L["OPTIONS_HOLD_MASTER_LOOT"] = "負責分配戰利品時暫停"
+L["OPTIONS_HOLD_MASTER_LOOT"] = "負責分配戰利品時暫不填充"
 -- "Fill Trade Window" must match BUTTON_FILL.
 L["OPTIONS_HOLD_MASTER_LOOT_DESC"] =
 	"當你在副本中負責分配戰利品時，交易視窗保持空白，因為這些交易是用來分發戰利品的。填充交易視窗仍會加入你平常的數量。"
@@ -174,8 +176,8 @@ L["OPTIONS_MISSING_STACK_WARNINGS"] = "庫存不足時啟用警告"
 L["OPTIONS_MISSING_STACK_WARNINGS_DESC"] =
 	"當背包中已設定物品的數量不足以給出你設定的數量時，在聊天框中輸出提示。"
 
--- Leads the silver line under a setting that shows the exact chat line it prints.
-L["OPTIONS_EXAMPLE"] = "範例："
+-- The silver line under a setting that shows the exact chat line it prints; %s is that line.
+L["SAMPLE_EXAMPLE"] = "範例：%s"
 
 L["OPTIONS_COMBAT_HEADER"] = "戰鬥"
 L["OPTIONS_COMBAT_DESC"] = "魔獸世界禁止插件在戰鬥中將物品放入交易視窗。"
@@ -295,7 +297,7 @@ L["OPTIONS_ANNOUNCEMENTS_PREVIEW_EMPTY"] =
 L["OPTIONS_ANNOUNCEMENTS_PREVIEW_DISPENSE_OFF"] =
 	"啟用分發處於關閉狀態時，沒有可喊話的內容。請在 Water Dispenser > 分發 中開啟。"
 
--- Macro message template (%s is the item list) and the connector before the last list entry.
+-- Macro message template (%s is the item list) and the connector before the last list entry, which the trade status line's list uses too.
 L["ANNOUNCEMENTS_BODY"] = "我有 %s。點我交易！"
 L["ANNOUNCEMENTS_AND"] = "和"
 

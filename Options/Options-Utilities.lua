@@ -34,7 +34,9 @@ function ns.OptionsExample(text, order, hidden, width)
 		type = "description",
 		name = function()
 			local line = type(text) == "function" and text() or text
-			return GetColor("HELP") .. L["OPTIONS_EXAMPLE"] .. "|r " .. line
+			-- Silver reopens after the line, for a locale whose label continues past %s.
+			local help = GetColor("HELP")
+			return help .. format(L["SAMPLE_EXAMPLE"], line .. help) .. "|r"
 		end,
 		fontSize = "medium",
 		width = width,

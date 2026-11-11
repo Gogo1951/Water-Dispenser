@@ -8,6 +8,7 @@ end
 --------------------------------------------------------------------------------
 
 L["ADDON_TITLE"] = "Water Dispenser"
+L["ADDON_SHORT_NAME"] = "Water Dispenser"
 
 --------------------------------------------------------------------------------
 -- Shared Formats
@@ -76,9 +77,9 @@ L["BUTTON_FILL"] = "Заполнить окно обмена"
 
 --[[
 	The silver status line under the trade panel's buttons. "Fill Trade Window" must
-	match BUTTON_FILL, and "Dispense" must match TAB_DISPENSE. ADDED's %s is the window's contents, each FORMAT_ITEM_COUNT,
-	joined like the announcement's list. In the rest, %s is an item or collection
-	name unless noted.
+	match BUTTON_FILL, and "Dispense" must match TAB_DISPENSE. ADDED's %s is the
+	window's contents, each FORMAT_ITEM_COUNT, joined like the announcement's list.
+	In the rest, %s is an item or collection name unless noted.
 ]]
 L["TRADE_STATUS_ADDED"] = "Добавлено: %s."
 -- %d is how many short.
@@ -122,7 +123,8 @@ L["TRADE_CONJURE_MAKES_LOWEST"] = "Создает %s, самый низкий и
 
 --[[
 	The tooltip's feature row reuses TAB_DISPENSE for its name and
-	OPTIONS_DISPENSE_MASTER_DESC for its description; these are its state and click words.
+	OPTIONS_DISPENSE_MASTER_DESC for its description; the UI_ keys are its state and
+	click words.
 ]]
 L["UI_ENABLED"] = "Включено"
 L["UI_DISABLED"] = "Отключено"
@@ -175,7 +177,7 @@ L["OPTIONS_DISPENSE_RAID_DESC"] =
 L["OPTIONS_RESTACK"] = "Объединять неполные стопки после обмена"
 L["OPTIONS_RESTACK_DESC"] =
 	"Сотворенные вода и еда каждый раз попадают в новую ячейку сумки, и игра никогда не складывает их обратно, поэтому Water Dispenser объединяет их один раз, сразу после закрытия окна обмена. Ни в какое другое время, ни в бою, ни пока вы держите что-то на курсоре, он их не объединяет."
-L["OPTIONS_HOLD_MASTER_LOOT"] = "Не заполнять, пока вы ответственный за добычу"
+L["OPTIONS_HOLD_MASTER_LOOT"] = "Откладывать, пока вы ответственный за добычу"
 -- "Fill Trade Window" must match BUTTON_FILL.
 L["OPTIONS_HOLD_MASTER_LOOT_DESC"] =
 	"Оставляет окно обмена пустым, пока вы ответственный за добычу в подземелье, ведь такие обмены нужны для раздачи добычи. Заполнить окно обмена по-прежнему добавляет ваши обычные количества."
@@ -188,8 +190,8 @@ L["OPTIONS_MISSING_STACK_WARNINGS"] =
 L["OPTIONS_MISSING_STACK_WARNINGS_DESC"] =
 	"Выводит заметку в чат, когда в сумках не хватает настроенного предмета, чтобы выдать заданное количество."
 
--- Leads the silver line under a setting that shows the exact chat line it prints.
-L["OPTIONS_EXAMPLE"] = "Пример:"
+-- The silver line under a setting that shows the exact chat line it prints; %s is that line.
+L["SAMPLE_EXAMPLE"] = "Пример: %s"
 
 L["OPTIONS_COMBAT_HEADER"] = "Бой"
 L["OPTIONS_COMBAT_DESC"] =
@@ -320,7 +322,7 @@ L["OPTIONS_ANNOUNCEMENTS_PREVIEW_EMPTY"] =
 L["OPTIONS_ANNOUNCEMENTS_PREVIEW_DISPENSE_OFF"] =
 	"Нечего анонсировать, пока Включить раздачу отключено. Включите это в Water Dispenser > Раздача."
 
--- Macro message template (%s is the item list) and the connector before the last list entry.
+-- Macro message template (%s is the item list) and the connector before the last list entry, which the trade status line's list uses too.
 L["ANNOUNCEMENTS_BODY"] = "У меня есть %s. Кидайте обмен!"
 L["ANNOUNCEMENTS_AND"] = "и"
 

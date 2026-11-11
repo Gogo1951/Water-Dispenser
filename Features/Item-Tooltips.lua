@@ -84,7 +84,7 @@ local function BuildLine(itemId)
 		return nil
 	end
 
-	return ns.BuildBrandedLine(GetColor("TEXT") .. L["TOOLTIP_WILL_DISPENSE"] .. "|r")
+	return ns.BuildTooltipBrandedLine(GetColor("TEXT") .. L["TOOLTIP_WILL_DISPENSE"] .. "|r")
 end
 
 -- Adds the line under a blank spacer so it reads as a footer. True when something was added.
