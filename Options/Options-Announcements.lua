@@ -45,9 +45,12 @@ local function GetPreviewText()
 			--[[
 				HELP, not TEXT: this line is helper text -- a preview of what the macro
 				would say -- and white reads as the panel's own body copy, as though the
-				add-on were stating it rather than showing it.
+				add-on were stating it rather than showing it. The marker token is drawn
+				as the mark, and the tint re-opens after each item link's |r.
 			]]
-			return GetColor("HELP") .. message .. "|r"
+			local help = GetColor("HELP")
+			message = message:gsub(ns.TARGET_MARKER:gsub("%p", "%%%0"), ns.TARGET_MARKER_TEXTURE, 1)
+			return help .. message:gsub("|r", "|r" .. help) .. "|r"
 		end
 	end
 	return GetColor("MUTED") .. L["OPTIONS_ANNOUNCEMENTS_PREVIEW_EMPTY"] .. "|r"

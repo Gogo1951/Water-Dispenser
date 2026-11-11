@@ -52,8 +52,7 @@ local GetAreaInfo = type(_G.C_Map) == "table" and _G.C_Map.GetAreaInfo or nil
     copy of an item rather than the record are left out. Each is resolved once
     at load, so a reader this client lacks leaves blank cells, and each gets an
     API Endpoints row of its own wherever the data uses its kind, added at the
-    end of that list below. A table
-    return prints as sorted key=value pairs.
+    end of that list below. A table return prints as sorted key=value pairs.
 ]]
 local ITEM_READERS = {
 	{ "C_Item", "GetItemNameByID", "BYID_NAME" },

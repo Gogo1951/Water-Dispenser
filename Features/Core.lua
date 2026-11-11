@@ -117,12 +117,69 @@ end)
 -- Addon Lifecycle
 --------------------------------------------------------------------------------
 
--- MIGRATION (remove after 2026-11-07): user-added items stored their Name and Icon; both are now read from the client.
-local function DropStoredItemNames()
-	for key, itemConfig in pairs(ns.db.profile.Items) do
-		if type(key) == "number" and type(itemConfig) == "table" then
-			itemConfig.Name = nil
-			itemConfig.Icon = nil
+--[[
+    Characters from another game version, dropped without a word. AceDB keys
+    a character "Name - Realm" on realm clients and "First Last" on the
+    realm-free ones (WoW Forever), so a saved key shaped the other way from
+    the one being played came from a copied WTF folder: its char section,
+    its profile choice and, unless someone still uses it, its own profile go.
+]]
+local REALM_KEY_SEPARATOR = " - "
+
+---@param characterKey any
+---@param realmClient boolean
+---@return boolean
+local function IsOtherClientKey(characterKey, realmClient)
+	if type(characterKey) ~= "string" then
+		return true
+	end
+	return (characterKey:find(REALM_KEY_SEPARATOR, 1, true) ~= nil) ~= realmClient
+end
+
+---@param sv table # the saved table, or one of its namespaces
+---@param realmClient boolean
+---@param profilesInUse table<string, boolean>
+---@return nil
+local function PruneSavedTable(sv, realmClient, profilesInUse)
+	local pruned = {}
+	for _, section in ipairs({ "char", "profileKeys" }) do
+		local characters = sv[section]
+		if type(characters) == "table" then
+			for characterKey in pairs(characters) do
+				if IsOtherClientKey(characterKey, realmClient) then
+					characters[characterKey] = nil
+					pruned[characterKey] = true
+				end
+			end
+		end
+	end
+	if type(sv.profiles) == "table" then
+		for characterKey in pairs(pruned) do
+			if not profilesInUse[characterKey] then
+				sv.profiles[characterKey] = nil
+			end
+		end
+	end
+end
+
+---@return nil
+local function PruneOtherClientCharacters()
+	local currentKey = ns.db.keys and ns.db.keys.char
+	local sv = ns.db.sv
+	if type(currentKey) ~= "string" or type(sv) ~= "table" then
+		return
+	end
+	local realmClient = currentKey:find(REALM_KEY_SEPARATOR, 1, true) ~= nil
+	local profilesInUse = { [ns.db.keys.profile or ""] = true }
+	for characterKey, profileName in pairs(sv.profileKeys or {}) do
+		if not IsOtherClientKey(characterKey, realmClient) then
+			profilesInUse[profileName] = true
+		end
+	end
+	PruneSavedTable(sv, realmClient, profilesInUse)
+	for _, namespace in pairs(sv.namespaces or {}) do
+		if type(namespace) == "table" then
+			PruneSavedTable(namespace, realmClient, profilesInUse)
 		end
 	end
 end
@@ -134,8 +191,8 @@ end
 ]]
 local function SetupDatabase()
 	ns.db = LibStub("AceDB-3.0"):New(ns.SAVED_VARIABLES_NAME, ns.DATABASE_DEFAULTS, true)
+	PruneOtherClientCharacters()
 
-	DropStoredItemNames() -- MIGRATION (remove after 2026-11-07)
 	ns.RefreshCollectionMeta()
 
 	-- Re-applies everything the profile drives on any profile switch, copy or reset.
@@ -145,7 +202,6 @@ local function SetupDatabase()
 end
 
 function ns:ApplyProfile()
-	DropStoredItemNames() -- MIGRATION (remove after 2026-11-07)
 	ns.RefreshCollectionMeta()
 	if ns.RebuildDispensedItemsOptions then
 		ns.RebuildDispensedItemsOptions()
@@ -167,6 +223,13 @@ function ns:ApplyProfile()
 	if LDBIcon:IsRegistered(ns.LOCALE_NAME) then
 		LDBIcon:Refresh(ns.LOCALE_NAME, ns.db.profile.minimap)
 	end
+end
+
+local function PrintWelcome()
+	if not ns.db.profile.showWelcome then
+		return
+	end
+	ns.PrintMessage(format(L["CHAT_LOADED"], ns.Version))
 end
 
 -- PLAYER_LOGIN: saved variables are loaded and caches are warm enough for a first-pass scan.
@@ -203,7 +266,5 @@ ns.RegisterEvent("PLAYER_LOGIN", function()
 	if ns.SetupItemTooltips then
 		C_Timer.After(0, ns.SetupItemTooltips)
 	end
-	if ns.db.profile.showWelcome then
-		ns.PrintMessage(format(L["CHAT_LOADED"], ns.Version))
-	end
+	PrintWelcome()
 end)

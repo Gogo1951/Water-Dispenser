@@ -8,6 +8,7 @@ end
 --------------------------------------------------------------------------------
 
 L["ADDON_TITLE"] = "Water Dispenser"
+L["ADDON_SHORT_NAME"] = "Water Dispenser"
 
 --------------------------------------------------------------------------------
 -- Shared Formats
@@ -75,9 +76,9 @@ L["BUTTON_FILL"] = "Handelsfenster füllen"
 
 --[[
 	The silver status line under the trade panel's buttons. "Fill Trade Window" must
-	match BUTTON_FILL, and "Dispense" must match TAB_DISPENSE. ADDED's %s is the window's contents, each FORMAT_ITEM_COUNT,
-	joined like the announcement's list. In the rest, %s is an item or collection
-	name unless noted.
+	match BUTTON_FILL, and "Dispense" must match TAB_DISPENSE. ADDED's %s is the
+	window's contents, each FORMAT_ITEM_COUNT, joined like the announcement's list.
+	In the rest, %s is an item or collection name unless noted.
 ]]
 L["TRADE_STATUS_ADDED"] = "%s hinzugefügt."
 -- %d is how many short.
@@ -119,7 +120,8 @@ L["TRADE_CONJURE_MAKES_LOWEST"] = "Erzeugt %s, den niedrigsten Rang, den du kenn
 
 --[[
 	The tooltip's feature row reuses TAB_DISPENSE for its name and
-	OPTIONS_DISPENSE_MASTER_DESC for its description; these are its state and click words.
+	OPTIONS_DISPENSE_MASTER_DESC for its description; the UI_ keys are its state and
+	click words.
 ]]
 L["UI_ENABLED"] = "Aktiviert"
 L["UI_DISABLED"] = "Deaktiviert"
@@ -183,8 +185,8 @@ L["OPTIONS_MISSING_STACK_WARNINGS"] = "Warnungen aktivieren, wenn dir etwas ausg
 L["OPTIONS_MISSING_STACK_WARNINGS_DESC"] =
 	"Gibt einen Hinweis in deinem Chatfenster aus, wenn du nicht genug von einem eingerichteten Gegenstand in deinen Taschen hast, um die eingestellte Menge zu geben."
 
--- Leads the silver line under a setting that shows the exact chat line it prints.
-L["OPTIONS_EXAMPLE"] = "Beispiel:"
+-- The silver line under a setting that shows the exact chat line it prints; %s is that line.
+L["SAMPLE_EXAMPLE"] = "Beispiel: %s"
 
 L["OPTIONS_COMBAT_HEADER"] = "Kampf"
 L["OPTIONS_COMBAT_DESC"] = "WoW hindert Add-ons daran, im Kampf Gegenstände in einen Handel zu legen."
@@ -305,7 +307,7 @@ L["OPTIONS_ANNOUNCEMENTS_PREVIEW_EMPTY"] =
 L["OPTIONS_ANNOUNCEMENTS_PREVIEW_DISPENSE_OFF"] =
 	"Nichts anzukündigen, solange Ausgabe aktivieren ausgeschaltet ist. Schalte es unter Water Dispenser > Ausgabe ein."
 
--- Macro message template (%s is the item list) and the connector before the last list entry.
+-- Macro message template (%s is the item list) and the connector before the last list entry, which the trade status line's list uses too.
 L["ANNOUNCEMENTS_BODY"] = "Ich habe %s. Handel öffnen!"
 L["ANNOUNCEMENTS_AND"] = "und"
 

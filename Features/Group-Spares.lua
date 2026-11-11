@@ -336,9 +336,10 @@ end
 	The roster is read through real unit tokens rather than by asking the client to
 	find a player by a name we spelled ourselves. That keeps the whole feature on
 	one assumption, that UnitKey's output matches CHAT_MSG_ADDON's sender spelling,
-	which the tooltip lookup already depends on. Getting the second one wrong is
-	silent: every member reads as ungrouped and their spares are dropped on any
-	roster change, then quietly reappear when everyone rebroadcasts.
+	which the tooltip lookup already depends on. A self-spelled lookup would add a
+	second spelling to get right, and getting it wrong is silent: every member reads
+	as ungrouped and their spares are dropped on any roster change, then quietly
+	reappear when everyone rebroadcasts.
 ]]
 -- Every grouped player's key, the player's own included, as a set.
 local function RosterKeys()
@@ -467,12 +468,12 @@ local function AddSpareBlock(tooltip, unit)
 	end
 
 	--[[
-		The same branded line a chat print carries: blue name, gray separator, white
-		body. Item names keep their quality color rather than the silver other add-ons
-		use for a plain label, because here the label is an item.
+		The branded line a chat print carries, led by the Short Name: blue name, gray
+		separator, white body. Item names keep their quality color rather than the
+		silver other add-ons use for a plain label, because here the label is an item.
 	]]
 	tooltip:AddLine(" ")
-	tooltip:AddLine(ns.BuildBrandedLine(L["TOOLTIP_OPEN_TRADE"]))
+	tooltip:AddLine(ns.BuildTooltipBrandedLine(L["TOOLTIP_OPEN_TRADE"]))
 	for _, row in ipairs(rows) do
 		-- Quantity switched off keeps the name column and drops the number.
 		tooltip:AddDoubleLine(

@@ -135,8 +135,10 @@ function ns.InitMinimap()
 		return
 	end
 	LDBIcon:Register(ns.LOCALE_NAME, ldbObject, ns.db.profile.minimap)
-	-- Fitted by hand, not SetButtonIcon: its ResetButtonIcon calls icon:UpdateCoord(),
-	-- which errors when another add-on has replaced the button's icon.
+	--[[
+		Fitted by hand, not SetButtonIcon: its ResetButtonIcon calls icon:UpdateCoord(),
+		which errors when another add-on has replaced the button's icon.
+	]]
 	local button = LDBIcon:GetMinimapButton(ns.LOCALE_NAME)
 	if (ns.FLAVOR == "Camelot" or ns.FLAVOR == "Mainline") and button and button.icon then
 		button.icon:SetSize(20, 20)

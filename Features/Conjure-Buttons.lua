@@ -75,8 +75,12 @@ end
 --[[
 	Secure buttons, so they live in their own holder parented to UIParent: a frame
 	with protected children becomes protected itself, and the trade panel has to
-	stay free to show and hide at any time. Attributes and visibility only ever
-	change out of combat.
+	stay free to show and hide at any time. Attributes, visibility and position
+	only ever change out of combat.
+
+	The holder is placed under Fill by screen position, never anchored to it: a
+	protected frame anchored to another protects that frame too, and with it the
+	trade panel and the Blizzard trade window it anchors to.
 
 	Registered for both up and down clicks. Every client decides whether a secure
 	button acts on the down or the up stroke from the ActionButtonUseKeyDown
@@ -112,10 +116,36 @@ local function ShowButtonTooltip(button)
 	GameTooltip:Show()
 end
 
+local placedX, placedY
+local retryQueued = false
+
+-- Puts the holder 8 below Fill in UIParent coordinates. False while the trade panel has no position yet.
+local function PlaceHolder()
+	local fill = ns.TradeUI and ns.TradeUI.fillButton
+	local left, bottom = fill and fill:GetLeft(), fill and fill:GetBottom()
+	if not (left and bottom) then
+		return false
+	end
+	local ratio = fill:GetEffectiveScale() / holder:GetEffectiveScale()
+	local x, y = left * ratio, bottom * ratio - 8
+	if x ~= placedX or y ~= placedY then
+		placedX, placedY = x, y
+		holder:ClearAllPoints()
+		holder:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", x, y)
+	end
+	return true
+end
+
 local function CreateButtons()
 	holder = CreateFrame("Frame", nil, UIParent)
 	holder:SetSize(160, 1)
 	holder:Hide()
+	-- Follows the trade window when another panel opening beside it shifts it; in combat it waits.
+	holder:SetScript("OnUpdate", function()
+		if not ns.IsInCombat() then
+			PlaceHolder()
+		end
+	end)
 
 	local previous
 	for _, key in ipairs(ns.BUILTIN_ORDER) do
@@ -202,8 +232,18 @@ function ns.RefreshConjureButtons()
 		return
 	end
 	holder:SetHeight(shown * 24)
-	holder:ClearAllPoints()
-	holder:SetPoint("TOPLEFT", ns.TradeUI.fillButton, "BOTTOMLEFT", 0, -8)
+	placedX, placedY = nil, nil
+	if not PlaceHolder() then
+		-- The panel was anchored this frame and has no position yet; try again next frame.
+		if not retryQueued then
+			retryQueued = true
+			C_Timer.After(0, function()
+				retryQueued = false
+				ns.RefreshConjureButtons()
+			end)
+		end
+		return
+	end
 	holder:SetFrameStrata(ns.TradeUI:GetFrameStrata())
 	holder:Show()
 	ns.TradeUI:SetStatusAnchor(holder)

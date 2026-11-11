@@ -2,79 +2,71 @@
 
 Effortless mage and warlock consumable distribution. Auto-fill trade windows with conjured water, food, and healthstones at the right rank and amount for each player. Add any item, from Hourglass Sand to potions, and distribute a raid's worth in seconds.
 
-**TL;DR**: For the mage or warlock the whole raid lines up to trade. Stop counting stacks and digging through bags, just open the trade and it's already filled.
+**TL;DR:** Stop counting stacks and digging through bags every time the raid lines up for water. Open the trade and the right stuff is already in it.
+
+### Dispense
 
 <img width="800" src="https://github.com/user-attachments/assets/c147d00f-a753-4e08-b316-94735f276b8d" />
 
-## Features
+* **Open Trade, Already Filled** // The right water, food, or healthstone for their class lands in the window the moment a trade opens.
+* **Right Rank for Their Level** // A level 38 hunter gets Mineral Water they can actually drink, not your top rank.
+* **Hand Out Anything** // Add any tradable item, from Hourglass Sand to potions, with its own amounts for strangers, party, and raid.
+* **Your Stash Stays Yours** // Set a reserve so you never trade away your own last stack.
+* **Safety First** // Only trades the items you've set up, and never touches your bags in combat.
 
-⚙️ **Your Rules, Your Stash** // Pick how much each class gets, and keep a reserve so you never trade away your own last stack.
+#### Example Messages
 
-✨ **Conjure on the Spot** // Ran dry mid-trade? One click conjures the right rank and drops it straight into the window.
+> **A Player Hits Their Limit, Self:** Water Dispenser // Conjured Crystal Water not added: Katz has already had 40 from you. Counts start over when you log out or reload.
 
-👀 **Know Who Has What** // Hover a groupmate to see what they can hand out, or click one macro to tell the raid what you've got left.
+> **Trading in Combat, Self:** Water Dispenser // WoW blocks automated trades during combat.
 
-🦺 **Safety First** // Only trades the items you've set up, and never touches your bags in combat.
+### Conjure Buttons
+
+* **Ran Dry Mid-Trade?** // One click conjures water, food, or a healthstone and drops it straight into the open trade.
+* **Made for Them** // Each button picks the best rank your trade partner can use at their level.
+
+### Inventory Tooltips
+
+<img width="300" src="https://github.com/user-attachments/assets/6771d79f-8415-4fff-8731-06f095c2bbee" />
+
+* **See What Your Group Can Give** // Hover a groupmate running Water Dispenser to see exactly what they have to hand out.
+* **Healthstone Ranks at a Glance** // A warlock's tooltip shows their Improved Healthstone rank, so the raid knows whose stones heal most.
+* **Spot Your Giveaways** // Items you hand out are marked in your own bags.
+
+### Announcements
+
+* **One Click, Whole Raid Knows** // The `- Dispenser` macro posts what you have left to give, with clickable item links.
+* **Always the Right Channel** // Say when solo, Party, Raid, or Instance in a group, with counts straight from your bags.
+
+#### Example Messages
+
+> **Click the `- Dispenser` Macro, Raid:** I have [Conjured Crystal Water] x120 and [Conjured Cinnamon Roll] x60. Open trade! // Water Dispenser
 
 ## Setup
 
 1. Install the add-on, ideally using [CurseForge](https://www.curseforge.com/wow/addons/water-dispenser-revisited) or [Wago](https://addons.wago.io/addons/water-dispenser).
-2. Log in. Mages and warlocks come preconfigured, so it works right away.
-3. Open a trade and watch the right amounts drop in.
-4. Want different amounts? Type `/wd` and open Dispensed Items.
-5. Optional: drag the `- Dispenser` macro to your action bar to announce your leftovers.
-6. _"You had me at H₂O."_
+2. Type `/wd`, or Shift + Middle-Click the mini-map button, to open the Options Interface.
+3. Open a trade. Mages and warlocks come set up already, so the right amounts drop right in.
+4. Drag the `- Dispenser` macro to your action bar to announce your leftovers.
+5. _"You had me at H₂O."_
 
-## How It Works
-
-### Class Defaults
-
-| Item        | Conjured by | Strangers / Party / Raid           |
-| ----------- | ----------- | ---------------------------------- |
-| Water       | Mage        | 20 / 20 / 40 to mana users         |
-| Food        | Mage        | 20 / 20 / 40 to everyone but mages |
-| Healthstone | Warlock     | 1 to everyone but warlocks         |
-
-* Counts are single items, so 20 is one conjured stack. Mages keep 20 water for themselves.
-
-### In the Trade Window
-
-* **Fill** and **Clear** buttons let you redo any trade by hand.
-* **Conjure** buttons make the best rank your partner can use, so a level 38 hunter gets Mineral Water.
-* A short line says what went in, or why nothing did.
-
-### Seeing What Everyone Has
-
-Hover a groupmate to see what they can give out, or click the `- Dispenser` macro to post your leftovers to Say, Party, or Raid.
-
-<img width="300" src="https://github.com/user-attachments/assets/6771d79f-8415-4fff-8731-06f095c2bbee" />
-
-<img width="300" src="https://github.com/user-attachments/assets/07ddf682-4e0b-4044-950e-80c34d219126" />
-
-<img width="300" src="https://github.com/user-attachments/assets/959c50d3-cec9-415f-a5b7-3cbefdfd4717" />
+## Tips & Tricks
 
 ### Mini-Map Button
 
-| Click                | What happens                                           |
-| -------------------- | ------------------------------------------------------ |
-| Left-Click           | Toggles Dispense on or off                             |
-| Shift + Middle-Click | Opens the Options Interface, the same as typing `/wd`  |
-| Hover                | Shows whether Dispense is on, and what you can give    |
+| Click                | What Happens                |
+| -------------------- | --------------------------- |
+| Left-Click           | Turns Dispense on or off    |
+| Shift + Middle-Click | Opens the Options Interface |
 
-<img width="300" src="https://github.com/user-attachments/assets/8ef56312-1f0a-44b9-87b2-049acd80393e" />
+Hover it to see whether Dispense is on and what you have left to give.
 
-### Options
+### Good to Know
 
-* **Water Dispenser** // The welcome message, the mini-map button, and the main feature switches.
-* **Dispense** // Who you trade with, low-supply warnings, restacking, conjure buttons, and holding off while you're Master Looter.
-* **Dispensed Items** // Your item list, per-class amounts, reserves, and per-player limits.
-* **Announcements** // The `- Dispenser` macro, with a live preview.
-* **Inventory Tooltips** // See what your group can give, and choose whether to share your own.
-* **Profiles** // One set of rules for every character, or one per character.
-* **Feedback & Support** // Links to report a bug, share an idea, or help spread the word.
-* **Diagnostic Tools** // Read-only reports to paste into a bug report.
-
-<img width="800" src="https://github.com/user-attachments/assets/b978dc1f-6bd7-48b0-a147-c3c9475b8bb1" />
+* **Master Looter Friendly** // While you're master looter in an instance, trades stay empty so boss loot never gets buried under water.
+* **Guild and Instance Rules** // Keep an item for guildies only, or hand it out only in dungeons and raids.
+* **Fair Shares** // Cap how many of an item any one player gets from you in a session.
+* **Tidy Bags** // Loose conjured stacks get merged back together after each trade.
 
 ## Testing & Localization Status
 
@@ -115,24 +107,17 @@ Hover a groupmate to see what they can give out, or click the `- Dispenser` macr
 
 ### 🟢 Pairs With
 
-* artscout375's [Broker_Portals](https://www.curseforge.com/wow/addons/broker-portals)
 * Gogo1951's [Connoisseur & Restocker](https://www.curseforge.com/wow/addons/connoisseur-restocker)
+* Gogo1951's [Good to Go](https://www.curseforge.com/wow/addons/good-to-go)
 * Venomisto's [Nova Consumes Helper](https://www.curseforge.com/wow/addons/nova-consumes-helper)
 * Gogo1951's [Play It Forward](https://www.curseforge.com/wow/addons/play-it-forward)
 * Vampyr7887's [Portal Mage](https://www.curseforge.com/wow/addons/portal-mage)
 
 ### 🟡 Overlaps
 
-* afrugalpenguin's [MageTools](https://www.curseforge.com/wow/addons/magetools)
 * lanscetre's [Necrosis all version](https://www.curseforge.com/wow/addons/necrosis-tbc-classic-bcc-for)
-* Shadrizz's [Necrosis TBC Anniversary](https://www.curseforge.com/wow/addons/necrosis-tbc-anniversary)
-* Vatik's [Shard Grid](https://www.curseforge.com/wow/addons/shard-grid)
 * luvaboyy's [Thic-Portals](https://www.curseforge.com/wow/addons/thic-portals-your-portal-shop-helper)
 
 ### 🔴 Alternatives
 
-* Vatik's [Conjurer](https://www.curseforge.com/wow/addons/conjurer)
-* Loyftwa's [ForeverConsumables](https://www.curseforge.com/wow/addons/foreverconsumables)
-* HazeSuite's [HazeWaterBoy](https://www.curseforge.com/wow/addons/hazewaterboy)
 * Mafkees's [TradeFill](https://www.curseforge.com/wow/addons/tradefill)
-* enshadowed\_'s [Water Dispenser BCC](https://www.curseforge.com/wow/addons/water-dispenser-bcc)

@@ -81,9 +81,9 @@ ns.DiagnosticsStrings = {
 	EVENT_LOG_STOP_DESCRIPTION = "Stops capturing and keeps what was captured, ready to show.",
 	EVENT_LOG_SHOW = "Show",
 	EVENT_LOG_SHOW_DESCRIPTION = "Prints the captured events in the box below, ready to copy.",
-	EVENT_LOG_PRIVACY = "The log includes "
+	EVENT_LOG_PRIVACY = "The log includes add-on messages from your group: "
 		.. TITLE
-		.. "'s add-on messages, which carry your groupmates' names and what they have to give. Read it through before you paste it anywhere.",
+		.. "'s name your groupmates and what they have to give, and other add-ons' can say anything. Read it through before you paste it anywhere.",
 	TAINT_TITLE = "Taint Log",
 	TAINT_INTRO = 'Seeing "action blocked" or "interface action failed" errors? Turn this on and the game records the cause to a file. Send the file along with your bug report.',
 	TAINT_STATE = "Taint logging is currently set to level %d (0 = off, 2 = verbose).",

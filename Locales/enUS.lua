@@ -8,6 +8,7 @@ end
 --------------------------------------------------------------------------------
 
 L["ADDON_TITLE"] = "Water Dispenser"
+L["ADDON_SHORT_NAME"] = "Water Dispenser"
 
 --------------------------------------------------------------------------------
 -- Shared Formats
@@ -74,9 +75,9 @@ L["BUTTON_FILL"] = "Fill Trade Window"
 
 --[[
 	The silver status line under the trade panel's buttons. "Fill Trade Window" must
-	match BUTTON_FILL, and "Dispense" must match TAB_DISPENSE. ADDED's %s is the window's contents, each FORMAT_ITEM_COUNT,
-	joined like the announcement's list. In the rest, %s is an item or collection
-	name unless noted.
+	match BUTTON_FILL, and "Dispense" must match TAB_DISPENSE. ADDED's %s is the
+	window's contents, each FORMAT_ITEM_COUNT, joined like the announcement's list.
+	In the rest, %s is an item or collection name unless noted.
 ]]
 L["TRADE_STATUS_ADDED"] = "Added %s."
 -- %d is how many short.
@@ -113,7 +114,8 @@ L["TRADE_CONJURE_MAKES_LOWEST"] = "Makes %s, the lowest rank you know."
 
 --[[
 	The tooltip's feature row reuses TAB_DISPENSE for its name and
-	OPTIONS_DISPENSE_MASTER_DESC for its description; these are its state and click words.
+	OPTIONS_DISPENSE_MASTER_DESC for its description; the UI_ keys are its state and
+	click words.
 ]]
 L["UI_ENABLED"] = "Enabled"
 L["UI_DISABLED"] = "Disabled"
@@ -162,7 +164,7 @@ L["OPTIONS_DISPENSE_RAID_DESC"] = "Fills the trade window automatically when tra
 L["OPTIONS_RESTACK"] = "Combine Partial Stacks After a Trade"
 L["OPTIONS_RESTACK_DESC"] =
 	"Conjured water and food land in a new bag slot every cast and the game never puts them back together, so Water Dispenser merges them once, just after a trade window closes. It never merges at any other time, in combat, or while you're holding something on your cursor."
-L["OPTIONS_HOLD_MASTER_LOOT"] = "Hold Off While You're Master Looter"
+L["OPTIONS_HOLD_MASTER_LOOT"] = "Hold Back While You're Master Looter"
 -- "Fill Trade Window" must match BUTTON_FILL.
 L["OPTIONS_HOLD_MASTER_LOOT_DESC"] =
 	"Leaves the trade window empty while you're master looter in an instance, since those trades are for handing out loot. Fill Trade Window still adds your usual amounts."
@@ -174,8 +176,8 @@ L["OPTIONS_MISSING_STACK_WARNINGS"] = "Enable Warnings When You Run Short"
 L["OPTIONS_MISSING_STACK_WARNINGS_DESC"] =
 	"Prints a note in your chat frame when you don't have enough of a configured item in your bags to give the amount you set."
 
--- Leads the silver line under a setting that shows the exact chat line it prints.
-L["OPTIONS_EXAMPLE"] = "Example:"
+-- The silver line under a setting that shows the exact chat line it prints; %s is that line.
+L["SAMPLE_EXAMPLE"] = "Example: %s"
 
 L["OPTIONS_COMBAT_HEADER"] = "Combat"
 L["OPTIONS_COMBAT_DESC"] = "WoW blocks add-ons from moving items into a trade during combat."
@@ -293,7 +295,7 @@ L["OPTIONS_ANNOUNCEMENTS_PREVIEW_EMPTY"] =
 L["OPTIONS_ANNOUNCEMENTS_PREVIEW_DISPENSE_OFF"] =
 	"Nothing to announce while Enable Dispense is off. Turn it on under Water Dispenser > Dispense."
 
--- Macro message template (%s is the item list) and the connector before the last list entry.
+-- Macro message template (%s is the item list) and the connector before the last list entry, which the trade status line's list uses too.
 L["ANNOUNCEMENTS_BODY"] = "I have %s. Open trade!"
 L["ANNOUNCEMENTS_AND"] = "and"
 

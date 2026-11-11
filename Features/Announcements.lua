@@ -15,14 +15,14 @@ local AceConfigRegistry = LibStub("AceConfigRegistry-3.0")
 --------------------------------------------------------------------------------
 
 --[[
-	The add-on's one branded line: |cff[INFO]Add-on Name|r |cff[SEPARATOR]//|r
-	|cff[TEXT]Message|r. Features/Group-Spares.lua heads its tooltip block with the
-	same line, so the two can never brand the add-on differently, and a locale body
-	stays the body alone.
+	The add-on's one branded line: |cff[INFO]Name|r |cff[SEPARATOR]//|r
+	|cff[TEXT]Message|r, so prints and tooltip blocks can never brand the add-on
+	differently, and a locale body stays the body alone. Prints lead with the Full
+	Name; a block added to another tooltip leads with the Short Name.
 ]]
-function ns.BuildBrandedLine(message)
+local function BrandedLine(name, message)
 	return GetColor("INFO")
-		.. L["ADDON_TITLE"]
+		.. name
 		.. "|r "
 		.. GetColor("SEPARATOR")
 		.. "//"
@@ -30,6 +30,15 @@ function ns.BuildBrandedLine(message)
 		.. GetColor("TEXT")
 		.. tostring(message)
 		.. "|r"
+end
+
+function ns.BuildBrandedLine(message)
+	return BrandedLine(L["ADDON_TITLE"], message)
+end
+
+-- Heads the blocks Features/Group-Spares.lua and Features/Item-Tooltips.lua add to other tooltips.
+function ns.BuildTooltipBrandedLine(message)
+	return BrandedLine(L["ADDON_SHORT_NAME"], message)
 end
 
 -- The chat print's full line, title // message [detail]; the options panel's Example lines show exactly this.
@@ -146,34 +155,38 @@ local function BuildAnnouncementParts()
 end
 
 --[[
-	Shared lead for the full message and macro body: "{marker} {title} // " (assembled
-	here, not per locale). WoW Forever blocks raid-marker tokens in chat, so there the
-	marker is left off and the rest of the format stands.
+	The sent format, "{rtN} Message // Short Name", is assembled here rather than per
+	locale: the marker leads and the Short Name trails on every client.
 ]]
 local function AnnouncementPrefix()
-	local marker = ns.FLAVOR == "Camelot" and "" or (ns.TARGET_MARKER .. " ")
-	return marker .. L["ADDON_TITLE"] .. " // "
+	return ns.TARGET_MARKER .. " "
+end
+
+local function AnnouncementSuffix()
+	return " // " .. L["ADDON_SHORT_NAME"]
 end
 
 --[[
 	Splits the localized body template around its %s into the text before the item
 	list and the text after it. Kept as two pieces rather than one string.format so
 	the macro builder can lay the lead down once and truncate at part boundaries.
-	A template without %s degrades to lead-only, never an error.
+	A template without %s degrades to lead-only, never an error. A sent body drops
+	its closing period, so a trailing ASCII or full-width period comes off the tail.
 ]]
 local function BodyTemplateParts()
 	local template = L["ANNOUNCEMENTS_BODY"]
 	local head, tail = template:match("^(.-)%%s(.*)$")
 	if not head then
-		return template, ""
+		head, tail = template, ""
 	end
+	tail = tail:gsub("%s*%.$", ""):gsub("\227\128\130$", "")
 	return head, tail
 end
 
 --[[
-	Full announcement body (no channel slash, no truncation) for the live preview:
-	prefix, then the template wrapped around the list joined with a localized "and".
-	Nil if nothing to give.
+	Full announcement message (no channel slash, no truncation) for the live preview
+	and Diagnostics: marker, the template wrapped around the list joined with a
+	localized "and", then the Short Name. Nil if nothing to give.
 ]]
 function ns.BuildAnnouncementMessage()
 	local parts = BuildAnnouncementParts()
@@ -181,7 +194,7 @@ function ns.BuildAnnouncementMessage()
 		return nil
 	end
 	local head, tail = BodyTemplateParts()
-	return AnnouncementPrefix() .. head .. ns.JoinList(parts) .. tail
+	return AnnouncementPrefix() .. head .. ns.JoinList(parts) .. tail .. AnnouncementSuffix()
 end
 
 --------------------------------------------------------------------------------
@@ -196,8 +209,9 @@ local TRUNCATION_SUFFIX = " ..."
 	message. When the full message fits the 255-byte SendChatMessage limit it is
 	sent as-is; otherwise it is rebuilt from the parts list -- lead laid down once,
 	whole item parts appended with ", " joiners while the running byte total stays
-	within the limit minus the " ..." reserve -- and closed with " ...", dropping
-	the template's trailing text. Truncation happens only at part boundaries: never
+	within the limit minus the " ..." and " // Short Name" reserves -- and closed
+	with " ..." and the Short Name, dropping the template's trailing text.
+	Truncation happens only at part boundaries: never
 	inside an item link (SendChatMessage rejects a broken link), and never via a
 	comma search, since item names can contain commas.
 
@@ -208,12 +222,13 @@ local TRUNCATION_SUFFIX = " ..."
 function ns.BuildAnnouncementMacroBody(parts, channelSlash)
 	local head, tail = BodyTemplateParts()
 	local lead = channelSlash .. AnnouncementPrefix() .. head
-	local full = lead .. ns.JoinList(parts) .. tail
+	local suffix = AnnouncementSuffix()
+	local full = lead .. ns.JoinList(parts) .. tail .. suffix
 	if #full <= MACRO_BODY_LIMIT then
 		return full, #parts, #full
 	end
 
-	local budget = MACRO_BODY_LIMIT - #TRUNCATION_SUFFIX
+	local budget = MACRO_BODY_LIMIT - #TRUNCATION_SUFFIX - #suffix
 	local body = lead
 	local appended = 0
 	for _, part in ipairs(parts) do
@@ -224,7 +239,7 @@ function ns.BuildAnnouncementMacroBody(parts, channelSlash)
 		body = body .. piece
 		appended = appended + 1
 	end
-	return body .. TRUNCATION_SUFFIX, appended, #full
+	return body .. TRUNCATION_SUFFIX .. suffix, appended, #full
 end
 
 local function BuildMacroBody()

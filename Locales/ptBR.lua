@@ -8,6 +8,7 @@ end
 --------------------------------------------------------------------------------
 
 L["ADDON_TITLE"] = "Water Dispenser"
+L["ADDON_SHORT_NAME"] = "Water Dispenser"
 
 --------------------------------------------------------------------------------
 -- Shared Formats
@@ -75,9 +76,9 @@ L["BUTTON_FILL"] = "Preencher Janela de Troca"
 
 --[[
 	The silver status line under the trade panel's buttons. "Fill Trade Window" must
-	match BUTTON_FILL, and "Dispense" must match TAB_DISPENSE. ADDED's %s is the window's contents, each FORMAT_ITEM_COUNT,
-	joined like the announcement's list. In the rest, %s is an item or collection
-	name unless noted.
+	match BUTTON_FILL, and "Dispense" must match TAB_DISPENSE. ADDED's %s is the
+	window's contents, each FORMAT_ITEM_COUNT, joined like the announcement's list.
+	In the rest, %s is an item or collection name unless noted.
 ]]
 L["TRADE_STATUS_ADDED"] = "Adicionado: %s."
 -- %d is how many short.
@@ -119,7 +120,8 @@ L["TRADE_CONJURE_MAKES_LOWEST"] = "Cria %s, o grau mais baixo que você conhece.
 
 --[[
 	The tooltip's feature row reuses TAB_DISPENSE for its name and
-	OPTIONS_DISPENSE_MASTER_DESC for its description; these are its state and click words.
+	OPTIONS_DISPENSE_MASTER_DESC for its description; the UI_ keys are its state and
+	click words.
 ]]
 L["UI_ENABLED"] = "Ativado"
 L["UI_DISABLED"] = "Desativado"
@@ -170,7 +172,7 @@ L["OPTIONS_DISPENSE_RAID_DESC"] = "Preenche a janela de troca automaticamente ao
 L["OPTIONS_RESTACK"] = "Juntar Pilhas Parciais Depois de uma Troca"
 L["OPTIONS_RESTACK_DESC"] =
 	"Água e comida conjuradas caem em um novo espaço da bolsa a cada conjuração e o jogo nunca as junta de volta, então o Water Dispenser as junta uma vez, logo depois que uma janela de troca é fechada. Ele nunca as junta em nenhum outro momento, nem em combate, nem enquanto você segura algo no cursor."
-L["OPTIONS_HOLD_MASTER_LOOT"] = "Segurar Enquanto Você For o Mestre Saqueador"
+L["OPTIONS_HOLD_MASTER_LOOT"] = "Reter Enquanto Você For o Mestre Saqueador"
 -- "Fill Trade Window" must match BUTTON_FILL.
 L["OPTIONS_HOLD_MASTER_LOOT_DESC"] =
 	"Deixa a janela de troca vazia enquanto você é o mestre saqueador em uma instância, já que essas trocas servem para distribuir o saque. Preencher Janela de Troca ainda adiciona suas quantidades de sempre."
@@ -182,8 +184,8 @@ L["OPTIONS_MISSING_STACK_WARNINGS"] = "Ativar Avisos Quando Faltar Estoque"
 L["OPTIONS_MISSING_STACK_WARNINGS_DESC"] =
 	"Mostra um aviso na sua janela de chat quando você não tem o suficiente de um item configurado nas bolsas para dar a quantidade definida."
 
--- Leads the silver line under a setting that shows the exact chat line it prints.
-L["OPTIONS_EXAMPLE"] = "Exemplo:"
+-- The silver line under a setting that shows the exact chat line it prints; %s is that line.
+L["SAMPLE_EXAMPLE"] = "Exemplo: %s"
 
 L["OPTIONS_COMBAT_HEADER"] = "Combate"
 L["OPTIONS_COMBAT_DESC"] = "O WoW impede que add-ons movam itens para uma troca durante o combate."
@@ -304,7 +306,7 @@ L["OPTIONS_ANNOUNCEMENTS_PREVIEW_EMPTY"] =
 L["OPTIONS_ANNOUNCEMENTS_PREVIEW_DISPENSE_OFF"] =
 	"Nada a anunciar enquanto Ativar Distribuição estiver desligado. Ligue em Water Dispenser > Distribuir."
 
--- Macro message template (%s is the item list) and the connector before the last list entry.
+-- Macro message template (%s is the item list) and the connector before the last list entry, which the trade status line's list uses too.
 L["ANNOUNCEMENTS_BODY"] = "Eu tenho %s. Abra troca!"
 L["ANNOUNCEMENTS_AND"] = "e"
 

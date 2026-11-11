@@ -8,6 +8,7 @@ end
 --------------------------------------------------------------------------------
 
 L["ADDON_TITLE"] = "Water Dispenser"
+L["ADDON_SHORT_NAME"] = "Water Dispenser"
 
 --------------------------------------------------------------------------------
 -- Shared Formats
@@ -74,9 +75,9 @@ L["BUTTON_FILL"] = "거래 창 채우기"
 
 --[[
 	The silver status line under the trade panel's buttons. "Fill Trade Window" must
-	match BUTTON_FILL, and "Dispense" must match TAB_DISPENSE. ADDED's %s is the window's contents, each FORMAT_ITEM_COUNT,
-	joined like the announcement's list. In the rest, %s is an item or collection
-	name unless noted.
+	match BUTTON_FILL, and "Dispense" must match TAB_DISPENSE. ADDED's %s is the
+	window's contents, each FORMAT_ITEM_COUNT, joined like the announcement's list.
+	In the rest, %s is an item or collection name unless noted.
 ]]
 L["TRADE_STATUS_ADDED"] = "%s 추가됨."
 -- %d is how many short.
@@ -118,7 +119,8 @@ L["TRADE_CONJURE_MAKES_LOWEST"] = "%s 생성: 알고 있는 가장 낮은 등급
 
 --[[
 	The tooltip's feature row reuses TAB_DISPENSE for its name and
-	OPTIONS_DISPENSE_MASTER_DESC for its description; these are its state and click words.
+	OPTIONS_DISPENSE_MASTER_DESC for its description; the UI_ keys are its state and
+	click words.
 ]]
 L["UI_ENABLED"] = "활성화됨"
 L["UI_DISABLED"] = "비활성화됨"
@@ -180,8 +182,8 @@ L["OPTIONS_MISSING_STACK_WARNINGS"] = "수량이 부족할 때 경고 사용"
 L["OPTIONS_MISSING_STACK_WARNINGS_DESC"] =
 	"설정한 수량을 줄 만큼 해당 아이템이 가방에 없을 때 대화창에 알림을 출력합니다."
 
--- Leads the silver line under a setting that shows the exact chat line it prints.
-L["OPTIONS_EXAMPLE"] = "예시:"
+-- The silver line under a setting that shows the exact chat line it prints; %s is that line.
+L["SAMPLE_EXAMPLE"] = "예시: %s"
 
 L["OPTIONS_COMBAT_HEADER"] = "전투"
 L["OPTIONS_COMBAT_DESC"] =
@@ -305,7 +307,7 @@ L["OPTIONS_ANNOUNCEMENTS_PREVIEW_EMPTY"] =
 L["OPTIONS_ANNOUNCEMENTS_PREVIEW_DISPENSE_OFF"] =
 	"분배 활성화가 꺼져 있는 동안에는 알릴 내용이 없습니다. Water Dispenser > 분배에서 켜세요."
 
--- Macro message template (%s is the item list) and the connector before the last list entry.
+-- Macro message template (%s is the item list) and the connector before the last list entry, which the trade status line's list uses too.
 L["ANNOUNCEMENTS_BODY"] = "%s 보유 중입니다. 거래를 거세요!"
 L["ANNOUNCEMENTS_AND"] = "및"
 

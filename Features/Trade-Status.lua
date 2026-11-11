@@ -28,6 +28,39 @@ local function FirstInItemOrder(byKey)
 	return keys[1] and byKey[keys[1]]
 end
 
+-- Item IDs the status line showed with the Loading placeholder; their arrival redraws it with the real names.
+local pendingNames = {}
+
+-- Whether GET_ITEM_INFO_RECEIVED is registered; it is only while a name is pending.
+local watchingNames = false
+
+local function OnItemInfoReceived(_, itemId)
+	if not pendingNames[itemId] then
+		return
+	end
+	pendingNames[itemId] = nil
+	if next(pendingNames) == nil then
+		ns.UnregisterEvent("GET_ITEM_INFO_RECEIVED", OnItemInfoReceived)
+		watchingNames = false
+	end
+	ns.RefreshTradeStatus()
+end
+
+-- The client's name, or the Loading placeholder while the item is uncached, watched so the line redraws.
+local function StatusItemName(itemId)
+	local name = C_Item.GetItemInfo(itemId)
+	if name then
+		return name
+	end
+	C_Item.RequestLoadItemDataByID(itemId)
+	pendingNames[itemId] = true
+	if not watchingNames then
+		watchingNames = true
+		ns.RegisterEvent("GET_ITEM_INFO_RECEIVED", OnItemInfoReceived)
+	end
+	return format(L["ITEM_LOADING"], itemId)
+end
+
 --[[
 	"Added" plus what the player's side of the window holds, read from the window
 	itself so a stack dragged in by hand or conjured mid-trade counts too. With the
@@ -57,8 +90,7 @@ function ns.RefreshTradeStatus()
 	if #order > 0 then
 		local parts = {}
 		for _, itemId in ipairs(order) do
-			local name = C_Item.GetItemInfo(itemId) or ("item:" .. itemId)
-			parts[#parts + 1] = format(L["FORMAT_ITEM_COUNT"], name, totals[itemId])
+			parts[#parts + 1] = format(L["FORMAT_ITEM_COUNT"], StatusItemName(itemId), totals[itemId])
 		end
 		text = format(L["TRADE_STATUS_ADDED"], ns.JoinList(parts))
 		local short = FirstInItemOrder(trade.ShortNotes)

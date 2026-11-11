@@ -101,8 +101,8 @@ local function ByCountDescending(a, b)
 end
 
 --[[
-	Moves the smallest partial onto the largest: the one most likely to vanish
-	completely, onto the one closest to being a full stack the fill can use.
+	Moves (src) onto (dst), whichever two slots the caller picked, and puts any
+	leftover back. The callers choose the pairing; this only makes the move.
 ]]
 local function Merge(src, dst)
 	ClearCursor()
@@ -124,7 +124,8 @@ ns.MergeSlots = Merge
 --[[
 	Every merge one item's partials allow in a single pass without reusing a slot,
 	returning how many were issued. The fill runs it over the loose slots of the one
-	item it is shaping a stack for, and nothing else calls it.
+	item it is shaping a stack for, and the after-trade restack over each item's
+	partials.
 
 	The "one move per pass" rule exists because a slot locks for its server round
 	trip and a second move against a locked slot is dropped with no error. That
