@@ -2,8 +2,6 @@ local _, ns = ...
 
 local L = ns.L
 
-local AceConfigRegistry = LibStub("AceConfigRegistry-3.0")
-
 --------------------------------------------------------------------------------
 -- Constants
 --------------------------------------------------------------------------------
@@ -64,9 +62,9 @@ end
 
 --[[
 	The only place the master Dispense switch is written. The Dispense panel's toggle,
-	the front page's Features switch and the mini-map button all route through here, so
-	none can pick up a step another forgets: telling the group what is on offer, and
-	repainting whichever options panel is already open on the switch just flipped.
+	the front page's Features switch, the mini-map menu's Toggle row and the button's
+	Left-Click all route through here, so none can pick up a step another forgets:
+	telling the group what is on offer, and repainting every panel and the open menu.
 ]]
 function ns.SetDispense(value)
 	if not ns.db then
@@ -77,8 +75,7 @@ function ns.SetDispense(value)
 	ns.RefreshGiveaways()
 	-- The conjure buttons hide with Dispense, so nothing acts from behind a switch that is off.
 	ns.RefreshConjureButtons()
-	AceConfigRegistry:NotifyChange(ns.OPTIONS_REGISTRY.Dispenser)
-	AceConfigRegistry:NotifyChange(ns.OPTIONS_REGISTRY.General)
+	ns.RefreshSettings()
 end
 
 --------------------------------------------------------------------------------

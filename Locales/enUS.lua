@@ -55,7 +55,7 @@ L["CHAT_MACRO_FULL"] = "Could not create the announcement macro: all character m
 -- Player Tooltips
 --------------------------------------------------------------------------------
 
-L["TOOLTIP_OPEN_TRADE"] = "Open trade!"
+L["TOOLTIP_OPEN_TRADE"] = "Open Trade!"
 -- %s is the Improved Healthstone talent's name from the client, then the warlock's rank out of its maximum.
 L["TOOLTIP_HEALTHSTONE_TALENT"] = "%s %d/%d"
 
@@ -109,21 +109,34 @@ L["TRADE_CONJURE_MAKES"] = "Makes %s, the best %s (level %d) can use."
 L["TRADE_CONJURE_MAKES_LOWEST"] = "Makes %s, the lowest rank you know."
 
 --------------------------------------------------------------------------------
--- Minimap Button
+-- Mini-map Menu
 --------------------------------------------------------------------------------
 
 --[[
-	The tooltip's feature row reuses TAB_DISPENSE for its name and
-	OPTIONS_DISPENSE_MASTER_DESC for its description; the UI_ keys are its state and
-	click words.
+	The Dispense block reuses TAB_DISPENSE for its title, OPTIONS_DISPENSE_MASTER_DESC
+	for its description, and the Enable Dispense switch for its Toggle row's tooltip.
+	The MENU_ keys are the words every Gogo add-on's menu shares.
 ]]
-L["UI_ENABLED"] = "Enabled"
-L["UI_DISABLED"] = "Disabled"
-L["UI_LEFT_CLICK"] = "Left-Click"
-L["UI_TOGGLE"] = "Toggle"
-L["MINIMAP_OPTIONS"] = "Water Dispenser Options"
-L["MINIMAP_OPTIONS_KEYBIND"] = "Shift + Middle-Click"
--- Heads the tooltip section listing what the player can give right now.
+L["MENU_ON"] = "On"
+L["MENU_OFF"] = "Off"
+L["MENU_TOGGLE"] = "Toggle"
+L["MENU_CLICK_LEFT"] = "Left-Click"
+L["MENU_CLICK_SHIFT_MIDDLE"] = "Shift + Middle-Click"
+L["MENU_OPTIONS"] = "Water Dispenser Options"
+-- %d is how many rows a long list leaves out.
+L["MENU_MORE"] = "%d more"
+L["MENU_MORE_FEATURES"] = "More Features"
+-- The More Features row's count of its switches, read together as "2 On, 1 Off".
+L["MENU_FEATURE_COUNT_ON"] = "%d On"
+L["MENU_FEATURE_COUNT_OFF"] = "%d Off"
+--[[
+	More Features rows, each a feature's name: its switch's caption without
+	Enable. The third reuses TAB_INVENTORY_TOOLTIPS. "Open Trade!" names the
+	header TOOLTIP_OPEN_TRADE puts in player tooltips.
+]]
+L["FEATURE_ANNOUNCEMENT_MACRO"] = "Announcement Macro"
+L["FEATURE_OPEN_TRADE_TOOLTIPS"] = "Open Trade! in Player Tooltips"
+-- Heads the menu section listing what the player can give right now.
 L["MINIMAP_DISPENSE_REPORT"] = "Dispense Report"
 
 --------------------------------------------------------------------------------
@@ -148,10 +161,10 @@ L["OPTIONS_COMMAND_DESCRIPTION"] = "Opens the Options Interface for this add-on.
 -- Options — Dispense
 --------------------------------------------------------------------------------
 
--- Names the panel and the mini-map tooltip's feature row.
+-- Names the panel and the mini-map menu's Dispense block.
 L["TAB_DISPENSE"] = "Dispense"
 L["OPTIONS_DISPENSE_MASTER"] = "Enable Dispense"
--- Also the panel's intro line, the General panel's Features switch tooltip and the mini-map tooltip's feature description.
+-- Also the panel's intro line, the General panel's Features switch tooltip and the mini-map menu's Dispense description.
 L["OPTIONS_DISPENSE_MASTER_DESC"] = "Automatically fills the trade window when a trade opens, based on your settings."
 L["OPTIONS_DISPENSE_SOLO"] = "Enable for Strangers"
 L["OPTIONS_DISPENSE_SOLO_DESC"] =
@@ -174,7 +187,7 @@ L["OPTIONS_CONJURE_BUTTONS_DESC"] =
 	"Adds buttons under Fill Trade Window that conjure water, food, or a healthstone your trade partner can use at their level. What you make goes straight into the open trade."
 L["OPTIONS_MISSING_STACK_WARNINGS"] = "Enable Warnings When You Run Short"
 L["OPTIONS_MISSING_STACK_WARNINGS_DESC"] =
-	"Prints a note in your chat frame when you don't have enough of a configured item in your bags to give the amount you set."
+	"Prints a note in your chat frame when your bags don't hold enough of an item you've set up to give the amount you set."
 
 -- The silver line under a setting that shows the exact chat line it prints; %s is that line.
 L["SAMPLE_EXAMPLE"] = "Example: %s"
@@ -191,10 +204,10 @@ L["OPTIONS_COMBAT_NOTIFY_DESC"] = "Prints a note in your chat frame when combat 
 L["TAB_INVENTORY_TOOLTIPS"] = "Inventory Tooltips"
 L["OPTIONS_TOOLTIPS_DESC"] =
 	"Shows on player tooltips what group members running Water Dispenser have set up to give out, and marks the items you give out in your own bags."
-L["OPTIONS_SHOW_INVENTORY"] = "Show Inventory in Player Tooltips"
+L["OPTIONS_SHOW_INVENTORY"] = "Enable Open Trade! in Player Tooltips"
 L["OPTIONS_SHOW_INVENTORY_DESC"] =
 	"Adds a Water Dispenser block to player tooltips listing what they have set up to give out and how many they have to give. Your own always shows, whether you're grouped or not."
-L["OPTIONS_BAG_TOOLTIPS"] = "Show Bag Tooltips for Dispensed Items"
+L["OPTIONS_BAG_TOOLTIPS"] = "Enable Inventory Tooltips"
 L["OPTIONS_BAG_TOOLTIPS_DESC"] =
 	"Adds a Water Dispenser line to a bag item's tooltip when that item is set to be given out, so you can tell at a glance what the add-on will hand over."
 L["OPTIONS_SHARE_INVENTORY"] = "Share My Inventory"
@@ -207,10 +220,10 @@ L["OPTIONS_SHARE_INVENTORY_DESC"] =
 
 L["TAB_DISPENSED_ITEMS"] = "Dispensed Items"
 L["OPTIONS_ITEMS_DESC"] =
-	"Configure how many of each item to dispense. Amounts are counted in individual items, so 20 water means 20 water, and 1 potion means 1 potion. A stack is split down to the exact amount if it has to be."
+	"Set how many of each item to dispense. Amounts are counted in individual items, so 20 water means 20 water, and 1 potion means 1 potion. A stack is split down to the exact amount if it has to be."
 -- "Add an Item" must match OPTIONS_ADD_ITEM.
 L["OPTIONS_ITEMS_EMPTY"] =
-	"No items configured. Select Add an Item in the list to add anything tradable from your bags."
+	"No items set up yet. Select Add an Item in the list to add anything tradable from your bags."
 
 --[[
 	The silver line opening an item's page while nothing of it would go out. In
@@ -272,7 +285,7 @@ L["OPTIONS_SCOPE_RAID"] = "Raid"
 
 L["OPTIONS_ADD_ITEM"] = "Add an Item"
 L["OPTIONS_ADD_DESC"] =
-	"Select any tradable item from your bags to add to your dispensed items. Items that are already configured or soulbound will not appear."
+	"Select any tradable item from your bags to add to your dispensed items. Items that are already set up or soulbound will not appear."
 L["OPTIONS_ADD_SELECT"] = "Available Items"
 L["OPTIONS_ADD_BUTTON"] = "Add to Dispensed Items"
 L["OPTIONS_ADD_EMPTY"] = "No tradable items found in your bags."
@@ -290,7 +303,7 @@ L["OPTIONS_ANNOUNCEMENTS_ENABLE_DESC"] =
 	'Keeps a character-specific macro named "- Dispenser" up to date with your current dispensed items, and deletes the macro when you turn this off.'
 -- "Enable Reserves" must match OPTIONS_ITEM_RESERVE.
 L["OPTIONS_ANNOUNCEMENTS_PREVIEW_EMPTY"] =
-	"Nothing to announce. Configure items, restock your bags, or lower a reserve under Enable Reserves."
+	"Nothing to announce. Set up items, restock your bags, or lower a reserve under Enable Reserves."
 -- "Enable Dispense" must match OPTIONS_DISPENSE_MASTER, "Water Dispenser" ADDON_TITLE, and "Dispense" TAB_DISPENSE.
 L["OPTIONS_ANNOUNCEMENTS_PREVIEW_DISPENSE_OFF"] =
 	"Nothing to announce while Enable Dispense is off. Turn it on under Water Dispenser > Dispense."

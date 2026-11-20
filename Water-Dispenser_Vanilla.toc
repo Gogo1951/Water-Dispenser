@@ -73,6 +73,8 @@ Features/Trade-UI.lua
 Features/Conjure-Buttons.lua
 Features/Group-Spares.lua
 Features/Item-Tooltips.lua
+Features/Menu-Kit.lua
+Features/Minimap-Menu.lua
 Features/Minimap-Button.lua
 
 # Diagnostics

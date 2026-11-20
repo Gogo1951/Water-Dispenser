@@ -118,21 +118,34 @@ L["TRADE_CONJURE_MAKES"] =
 L["TRADE_CONJURE_MAKES_LOWEST"] = "Создает %s, самый низкий известный вам ранг."
 
 --------------------------------------------------------------------------------
--- Minimap Button
+-- Mini-map Menu
 --------------------------------------------------------------------------------
 
 --[[
-	The tooltip's feature row reuses TAB_DISPENSE for its name and
-	OPTIONS_DISPENSE_MASTER_DESC for its description; the UI_ keys are its state and
-	click words.
+	The Dispense block reuses TAB_DISPENSE for its title, OPTIONS_DISPENSE_MASTER_DESC
+	for its description, and the Enable Dispense switch for its Toggle row's tooltip.
+	The MENU_ keys are the words every Gogo add-on's menu shares.
 ]]
-L["UI_ENABLED"] = "Включено"
-L["UI_DISABLED"] = "Отключено"
-L["UI_LEFT_CLICK"] = "ЛКМ"
-L["UI_TOGGLE"] = "Переключить"
-L["MINIMAP_OPTIONS"] = "Настройки Water Dispenser"
-L["MINIMAP_OPTIONS_KEYBIND"] = "Shift + СКМ"
--- Heads the tooltip section listing what the player can give right now.
+L["MENU_ON"] = "Вкл."
+L["MENU_OFF"] = "Выкл."
+L["MENU_TOGGLE"] = "Переключить"
+L["MENU_CLICK_LEFT"] = "ЛКМ"
+L["MENU_CLICK_SHIFT_MIDDLE"] = "Shift + СКМ"
+L["MENU_OPTIONS"] = "Настройки Water Dispenser"
+-- %d is how many rows a long list leaves out.
+L["MENU_MORE"] = "Еще: %d"
+L["MENU_MORE_FEATURES"] = "Другие функции"
+-- The More Features row's count of its switches, read together as "2 On, 1 Off".
+L["MENU_FEATURE_COUNT_ON"] = "Вкл.: %d"
+L["MENU_FEATURE_COUNT_OFF"] = "Выкл.: %d"
+--[[
+	More Features rows, each a feature's name: its switch's caption without
+	Enable. The third reuses TAB_INVENTORY_TOOLTIPS. "Open Trade!" names the
+	header TOOLTIP_OPEN_TRADE puts in player tooltips.
+]]
+L["FEATURE_ANNOUNCEMENT_MACRO"] = "Макрос анонса"
+L["FEATURE_OPEN_TRADE_TOOLTIPS"] = '"Кидайте обмен!" в подсказках игроков'
+-- Heads the menu section listing what the player can give right now.
 L["MINIMAP_DISPENSE_REPORT"] = "Отчет о раздаче"
 
 --------------------------------------------------------------------------------
@@ -158,10 +171,10 @@ L["OPTIONS_COMMAND_DESCRIPTION"] = "Открывает окно настроек
 -- Options — Dispense
 --------------------------------------------------------------------------------
 
--- Names the panel and the mini-map tooltip's feature row.
+-- Names the panel and the mini-map menu's Dispense block.
 L["TAB_DISPENSE"] = "Раздача"
 L["OPTIONS_DISPENSE_MASTER"] = "Включить раздачу"
--- Also the panel's intro line, the General panel's Features switch tooltip and the mini-map tooltip's feature description.
+-- Also the panel's intro line, the General panel's Features switch tooltip and the mini-map menu's Dispense description.
 L["OPTIONS_DISPENSE_MASTER_DESC"] =
 	"Автоматически заполняет окно обмена при его открытии на основе ваших настроек."
 L["OPTIONS_DISPENSE_SOLO"] = "Включить для незнакомцев"
@@ -188,7 +201,7 @@ L["OPTIONS_CONJURE_BUTTONS_DESC"] =
 L["OPTIONS_MISSING_STACK_WARNINGS"] =
 	"Включить предупреждения, когда запасы на исходе"
 L["OPTIONS_MISSING_STACK_WARNINGS_DESC"] =
-	"Выводит заметку в чат, когда в сумках не хватает настроенного предмета, чтобы выдать заданное количество."
+	"Выводит заметку в чат, когда в сумках не хватает предмета, который вы настроили, чтобы выдать заданное количество."
 
 -- The silver line under a setting that shows the exact chat line it prints; %s is that line.
 L["SAMPLE_EXAMPLE"] = "Пример: %s"
@@ -208,12 +221,10 @@ L["OPTIONS_COMBAT_NOTIFY_DESC"] =
 L["TAB_INVENTORY_TOOLTIPS"] = "Подсказки с запасами"
 L["OPTIONS_TOOLTIPS_DESC"] =
 	"Показывает в подсказках игроков, что участники вашей группы с установленным Water Dispenser настроили для раздачи, и отмечает в ваших собственных сумках предметы, которые раздаете вы."
-L["OPTIONS_SHOW_INVENTORY"] =
-	"Показывать запасы во всплывающих подсказках игроков"
+L["OPTIONS_SHOW_INVENTORY"] = 'Включить "Кидайте обмен!" в подсказках игроков'
 L["OPTIONS_SHOW_INVENTORY_DESC"] =
 	"Добавляет блок Water Dispenser в подсказки игроков со списком того, что они настроили для раздачи, и сколько они готовы отдать. Ваш собственный список показывается всегда, в группе вы или нет."
-L["OPTIONS_BAG_TOOLTIPS"] =
-	"Показывать подсказки в сумках для раздаваемых предметов"
+L["OPTIONS_BAG_TOOLTIPS"] = "Включить подсказки с запасами"
 L["OPTIONS_BAG_TOOLTIPS_DESC"] =
 	"Добавляет строку Water Dispenser в подсказку предмета в сумке, когда этот предмет настроен для раздачи, чтобы вы сразу видели, что аддон отдаст."
 L["OPTIONS_SHARE_INVENTORY"] = "Делиться своими запасами"
@@ -226,10 +237,10 @@ L["OPTIONS_SHARE_INVENTORY_DESC"] =
 
 L["TAB_DISPENSED_ITEMS"] = "Раздаваемые предметы"
 L["OPTIONS_ITEMS_DESC"] =
-	"Настройте, сколько каждого предмета раздавать. Количество считается в отдельных предметах, поэтому 20 воды означают 20 воды, а 1 зелье означает 1 зелье. При необходимости стопка делится до точного количества."
+	"Укажите, сколько каждого предмета раздавать. Количество считается в отдельных предметах, поэтому 20 воды означают 20 воды, а 1 зелье означает 1 зелье. При необходимости стопка делится до точного количества."
 -- "Add an Item" must match OPTIONS_ADD_ITEM.
 L["OPTIONS_ITEMS_EMPTY"] =
-	"Нет настроенных предметов. Выберите Добавить предмет в списке, чтобы добавить любой передаваемый предмет из ваших сумок."
+	"Пока нет настроенных предметов. Выберите Добавить предмет в списке, чтобы добавить любой передаваемый предмет из ваших сумок."
 
 --[[
 	The silver line opening an item's page while nothing of it would go out. In

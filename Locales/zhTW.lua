@@ -110,21 +110,34 @@ L["TRADE_CONJURE_MAKES"] = "製造 %s，%s（%d 級）能使用的最高等級�
 L["TRADE_CONJURE_MAKES_LOWEST"] = "製造 %s，你已知的最低等級。"
 
 --------------------------------------------------------------------------------
--- Minimap Button
+-- Mini-map Menu
 --------------------------------------------------------------------------------
 
 --[[
-	The tooltip's feature row reuses TAB_DISPENSE for its name and
-	OPTIONS_DISPENSE_MASTER_DESC for its description; the UI_ keys are its state and
-	click words.
+	The Dispense block reuses TAB_DISPENSE for its title, OPTIONS_DISPENSE_MASTER_DESC
+	for its description, and the Enable Dispense switch for its Toggle row's tooltip.
+	The MENU_ keys are the words every Gogo add-on's menu shares.
 ]]
-L["UI_ENABLED"] = "已啟用"
-L["UI_DISABLED"] = "已停用"
-L["UI_LEFT_CLICK"] = "左鍵點擊"
-L["UI_TOGGLE"] = "切換"
-L["MINIMAP_OPTIONS"] = "Water Dispenser 選項"
-L["MINIMAP_OPTIONS_KEYBIND"] = "Shift + 中鍵點擊"
--- Heads the tooltip section listing what the player can give right now.
+L["MENU_ON"] = "開啟"
+L["MENU_OFF"] = "關閉"
+L["MENU_TOGGLE"] = "切換"
+L["MENU_CLICK_LEFT"] = "左鍵點擊"
+L["MENU_CLICK_SHIFT_MIDDLE"] = "Shift + 中鍵點擊"
+L["MENU_OPTIONS"] = "Water Dispenser 選項"
+-- %d is how many rows a long list leaves out.
+L["MENU_MORE"] = "還有 %d 件"
+L["MENU_MORE_FEATURES"] = "更多功能"
+-- The More Features row's count of its switches, read together as "2 On, 1 Off".
+L["MENU_FEATURE_COUNT_ON"] = "%d 項開啟"
+L["MENU_FEATURE_COUNT_OFF"] = "%d 項關閉"
+--[[
+	More Features rows, each a feature's name: its switch's caption without
+	Enable. The third reuses TAB_INVENTORY_TOOLTIPS. "Open Trade!" names the
+	header TOOLTIP_OPEN_TRADE puts in player tooltips.
+]]
+L["FEATURE_ANNOUNCEMENT_MACRO"] = "喊話巨集"
+L["FEATURE_OPEN_TRADE_TOOLTIPS"] = '玩家提示中的"點我交易！"'
+-- Heads the menu section listing what the player can give right now.
 L["MINIMAP_DISPENSE_REPORT"] = "分發報告"
 
 --------------------------------------------------------------------------------
@@ -149,10 +162,10 @@ L["OPTIONS_COMMAND_DESCRIPTION"] = "開啟本插件的選項介面。"
 -- Options — Dispense
 --------------------------------------------------------------------------------
 
--- Names the panel and the mini-map tooltip's feature row.
+-- Names the panel and the mini-map menu's Dispense block.
 L["TAB_DISPENSE"] = "分發"
 L["OPTIONS_DISPENSE_MASTER"] = "啟用分發"
--- Also the panel's intro line, the General panel's Features switch tooltip and the mini-map tooltip's feature description.
+-- Also the panel's intro line, the General panel's Features switch tooltip and the mini-map menu's Dispense description.
 L["OPTIONS_DISPENSE_MASTER_DESC"] = "開啟交易時根據你的設定自動填充交易視窗。"
 L["OPTIONS_DISPENSE_SOLO"] = "對陌生人啟用"
 L["OPTIONS_DISPENSE_SOLO_DESC"] = "當與不在隊伍或團隊中的玩家交易時，自動填充交易視窗。"
@@ -174,7 +187,7 @@ L["OPTIONS_CONJURE_BUTTONS_DESC"] =
 	"在填充交易視窗下方加入按鈕，用於製造你的交易對象在其等級可以使用的水、食物或治療石。製造出的物品會直接放入目前的交易。"
 L["OPTIONS_MISSING_STACK_WARNINGS"] = "庫存不足時啟用警告"
 L["OPTIONS_MISSING_STACK_WARNINGS_DESC"] =
-	"當背包中已設定物品的數量不足以給出你設定的數量時，在聊天框中輸出提示。"
+	"當背包中你設定好的物品不足以給出設定的數量時，在聊天框中輸出提示。"
 
 -- The silver line under a setting that shows the exact chat line it prints; %s is that line.
 L["SAMPLE_EXAMPLE"] = "範例：%s"
@@ -191,10 +204,10 @@ L["OPTIONS_COMBAT_NOTIFY_DESC"] = "當戰鬥導致交易無法填充時，在聊
 L["TAB_INVENTORY_TOOLTIPS"] = "庫存提示"
 L["OPTIONS_TOOLTIPS_DESC"] =
 	"在玩家提示資訊中顯示使用 Water Dispenser 的隊友設定為分發的內容，並在你自己的背包中標記你要分發的物品。"
-L["OPTIONS_SHOW_INVENTORY"] = "在玩家提示中顯示庫存"
+L["OPTIONS_SHOW_INVENTORY"] = '啟用玩家提示中的"點我交易！"'
 L["OPTIONS_SHOW_INVENTORY_DESC"] =
 	"在玩家提示資訊中加入一個 Water Dispenser 區塊，列出他們設定為分發的內容以及可以送出的數量。無論是否組隊，你自己的都會永遠顯示。"
-L["OPTIONS_BAG_TOOLTIPS"] = "為分發物品顯示背包提示"
+L["OPTIONS_BAG_TOOLTIPS"] = "啟用庫存提示"
 L["OPTIONS_BAG_TOOLTIPS_DESC"] =
 	"當背包中的某個物品被設定為分發時，在它的提示資訊中加入一行 Water Dispenser 說明，讓你一眼就能看出插件會送出什麼。"
 L["OPTIONS_SHARE_INVENTORY"] = "分享我的庫存"
@@ -210,7 +223,7 @@ L["OPTIONS_ITEMS_DESC"] =
 	"設定每種物品分發多少。數量按單個物品計算，所以 20 個水就是 20 個水，1 個藥水就是 1 個藥水。必要時會把一疊拆分到精確數量。"
 -- "Add an Item" must match OPTIONS_ADD_ITEM.
 L["OPTIONS_ITEMS_EMPTY"] =
-	"未設定物品。請在清單中選擇新增物品，從背包中加入任何可交易的物品。"
+	"尚未設定物品。請在清單中選擇新增物品，從背包中加入任何可交易的物品。"
 
 --[[
 	The silver line opening an item's page while nothing of it would go out. In

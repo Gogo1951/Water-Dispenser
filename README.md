@@ -14,16 +14,11 @@ Effortless mage and warlock consumable distribution. Auto-fill trade windows wit
 * **Your Stash Stays Yours** // Set a reserve so you never trade away your own last stack.
 * **Safety First** // Only trades the items you've set up, and never touches your bags in combat.
 
-#### Example Messages
-
-> **A Player Hits Their Limit, Self:** Water Dispenser // Conjured Crystal Water not added: Katz has already had 40 from you. Counts start over when you log out or reload.
-
-> **Trading in Combat, Self:** Water Dispenser // WoW blocks automated trades during combat.
-
 ### Conjure Buttons
 
 * **Ran Dry Mid-Trade?** // One click conjures water, food, or a healthstone and drops it straight into the open trade.
 * **Made for Them** // Each button picks the best rank your trade partner can use at their level.
+* **Hide Them If You Like** // Switch the buttons off and trades still fill on their own.
 
 ### Inventory Tooltips
 
@@ -32,34 +27,36 @@ Effortless mage and warlock consumable distribution. Auto-fill trade windows wit
 * **See What Your Group Can Give** // Hover a groupmate running Water Dispenser to see exactly what they have to hand out.
 * **Healthstone Ranks at a Glance** // A warlock's tooltip shows their Improved Healthstone rank, so the raid knows whose stones heal most.
 * **Spot Your Giveaways** // Items you hand out are marked in your own bags.
+* **Share Only If You Want** // Keep your stock to yourself and still see what your group has.
 
 ### Announcements
 
 * **One Click, Whole Raid Knows** // The `- Dispenser` macro posts what you have left to give, with clickable item links.
 * **Always the Right Channel** // Say when solo, Party, Raid, or Instance in a group, with counts straight from your bags.
+* **Your Call** // Don't want the macro? Switch it off and it's gone.
 
-#### Example Messages
+> Sample Messages
 
 > **Click the `- Dispenser` Macro, Raid:** I have [Conjured Crystal Water] x120 and [Conjured Cinnamon Roll] x60. Open trade! // Water Dispenser
 
 ## Setup
 
 1. Install the add-on, ideally using [CurseForge](https://www.curseforge.com/wow/addons/water-dispenser-revisited) or [Wago](https://addons.wago.io/addons/water-dispenser).
-2. Type `/wd`, or Shift + Middle-Click the mini-map button, to open the Options Interface.
+2. Type `/wd`, or pick Water Dispenser Options in the mini-map menu, to open the Options Interface.
 3. Open a trade. Mages and warlocks come set up already, so the right amounts drop right in.
 4. Drag the `- Dispenser` macro to your action bar to announce your leftovers.
 5. _"You had me at H₂O."_
 
 ## Tips & Tricks
 
-### Mini-Map Button
+### Mini-map Button
 
-| Click                | What Happens                |
-| -------------------- | --------------------------- |
-| Left-Click           | Turns Dispense on or off    |
-| Shift + Middle-Click | Opens the Options Interface |
+| Action     | What Happens             |
+| ---------- | ------------------------ |
+| Hover      | Opens the mini-map menu  |
+| Left-Click | Turns Dispense on or off |
 
-Hover it to see whether Dispense is on and what you have left to give.
+The menu shows whether Dispense is on, lists what you have left to give, and holds the switches for the macro and tooltips.
 
 ### Good to Know
 
@@ -107,17 +104,8 @@ Hover it to see whether Dispense is on and what you have left to give.
 
 ### 🟢 Pairs With
 
-* Gogo1951's [Connoisseur & Restocker](https://www.curseforge.com/wow/addons/connoisseur-restocker)
+* artscout375's [Broker_Portals](https://www.curseforge.com/wow/addons/broker-portals)
 * Gogo1951's [Good to Go](https://www.curseforge.com/wow/addons/good-to-go)
 * Venomisto's [Nova Consumes Helper](https://www.curseforge.com/wow/addons/nova-consumes-helper)
 * Gogo1951's [Play It Forward](https://www.curseforge.com/wow/addons/play-it-forward)
 * Vampyr7887's [Portal Mage](https://www.curseforge.com/wow/addons/portal-mage)
-
-### 🟡 Overlaps
-
-* lanscetre's [Necrosis all version](https://www.curseforge.com/wow/addons/necrosis-tbc-classic-bcc-for)
-* luvaboyy's [Thic-Portals](https://www.curseforge.com/wow/addons/thic-portals-your-portal-shop-helper)
-
-### 🔴 Alternatives
-
-* Mafkees's [TradeFill](https://www.curseforge.com/wow/addons/tradefill)

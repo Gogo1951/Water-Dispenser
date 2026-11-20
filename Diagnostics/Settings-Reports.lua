@@ -1,5 +1,7 @@
 local _, ns = ...
 
+-- luacheck: read globals UISpecialFrames
+
 local GetClientHeader = ns.GetDiagnosticClientHeader
 
 --------------------------------------------------------------------------------
@@ -7,10 +9,25 @@ local GetClientHeader = ns.GetDiagnosticClientHeader
 --------------------------------------------------------------------------------
 
 --[[
-    Answers "the mini-map button is gone / off-screen" reports: screen size, UI
-    scale, and the button's saved placement. Read-only. The button is registered
-    with LibDBIcon under ns.LOCALE_NAME, and its placement lives in the profile.
+    Answers "the mini-map button is gone / off-screen", "hovering the button
+    shows nothing" and "Shift + Middle-Click opens nothing" reports: screen size,
+    UI scale, the button's saved placement, whether its menu loaded and is wired
+    to the button, and whether the options panel registered. Read-only. The
+    button is registered with LibDBIcon under ns.LOCALE_NAME, and its placement
+    lives in the profile.
 ]]
+
+-- True when Escape's list of frames to close holds the menu (Features/Minimap-Menu.lua).
+local function MenuClosesOnEscape()
+	local menuName = ns.LOCALE_NAME .. "Menu"
+	for _, name in ipairs(type(UISpecialFrames) == "table" and UISpecialFrames or {}) do
+		if name == menuName then
+			return true
+		end
+	end
+	return false
+end
+
 function ns:BuildDisplayContextReport()
 	local lines = { GetClientHeader(), "" }
 
@@ -23,13 +40,18 @@ function ns:BuildDisplayContextReport()
 	local LDB = LibStub("LibDataBroker-1.1", true)
 	local LibDBIcon = LibStub("LibDBIcon-1.0")
 	local button = LibDBIcon:GetMinimapButton(ns.LOCALE_NAME)
+	local broker = LDB and LDB:GetDataObjectByName(ns.LOCALE_NAME)
 	-- Without the data object, login never registers a button.
-	lines[#lines + 1] = string.format(
-		"Data broker object: %s",
-		(LDB and LDB:GetDataObjectByName(ns.LOCALE_NAME)) and "present" or "MISSING"
-	)
+	lines[#lines + 1] = string.format("Data broker object: %s", broker and "present" or "MISSING")
 	lines[#lines + 1] = string.format("Minimap button registered: %s", tostring(LibDBIcon:IsRegistered(ns.LOCALE_NAME)))
 	lines[#lines + 1] = string.format("Minimap button created: %s", button and "yes" or "no")
+	if button then
+		lines[#lines + 1] = string.format(
+			"Minimap button shown: %s, visible: %s",
+			tostring(button:IsShown() and true or false),
+			tostring(button:IsVisible() and true or false)
+		)
+	end
 
 	local minimap = ns.db and ns.db.profile.minimap
 	if type(minimap) == "table" then
@@ -38,6 +60,52 @@ function ns:BuildDisplayContextReport()
 	else
 		lines[#lines + 1] = "Minimap saved position: (none yet)"
 	end
+
+	--[[
+	    The menu opens from the data object's OnEnter through the menu's Show,
+	    which returns early until the database is open; a TOC missing the menu's
+	    files leaves ns.Menu nil and the hover does nothing. A click runs the menu
+	    row that names it, so Left-Click and Shift + Middle-Click need the menu too.
+	]]
+	local menu = ns.Menu
+	lines[#lines + 1] = ""
+	lines[#lines + 1] = string.format(
+		"Menu loaded: %s, database open: %s",
+		(type(menu) == "table" and type(menu.Show) == "function") and "yes" or "MISSING",
+		ns.db and "yes" or "no"
+	)
+	lines[#lines + 1] = string.format(
+		"Button hover opens menu: %s, click runs menu clicks: %s",
+		tostring(type(broker) == "table" and type(broker.OnEnter) == "function"),
+		tostring(
+			type(broker) == "table"
+				and type(broker.OnClick) == "function"
+				and type(menu) == "table"
+				and type(menu.HandleClick) == "function"
+		)
+	)
+	lines[#lines + 1] = string.format(
+		"Menu open now: %s, closes on Escape: %s",
+		tostring(type(ns.IsMenuShown) == "function" and ns.IsMenuShown() or false),
+		tostring(MenuClosesOnEscape())
+	)
+	-- Dispense is the menu's own block, so More Features lists every other feature.
+	local moreFeatures = 0
+	for _, feature in ipairs(ns.FEATURES or {}) do
+		if not feature.block then
+			moreFeatures = moreFeatures + 1
+		end
+	end
+	lines[#lines + 1] = string.format("More Features rows: %d", moreFeatures)
+
+	-- Shift + Middle-Click opens options by the category captured at login, and is refused in combat.
+	local frames = ns.optionsFrames
+	lines[#lines + 1] = string.format(
+		"Options panel registered: %s, category id: %s, in combat: %s",
+		frames and "yes" or "no",
+		tostring(frames and frames.categoryID),
+		tostring(InCombatLockdown() and true or false)
+	)
 
 	--[[
 	    Where a dragged position lives, link by link: LibDBIcon's drag handler

@@ -2,8 +2,6 @@ local ADDON_NAME, ns = ...
 
 local L = ns.L
 
-local AceConfigRegistry = LibStub("AceConfigRegistry-3.0")
-
 --------------------------------------------------------------------------------
 -- State
 --------------------------------------------------------------------------------
@@ -184,11 +182,7 @@ local function PruneOtherClientCharacters()
 	end
 end
 
---[[
-	Creates the AceDB database and wires the refresh that follows a profile switch.
-	The AceDB conversion shipped with no bridge on purpose: a pre-conversion
-	mini-map position and reserve amount fall back to defaults.
-]]
+-- Creates the AceDB database and wires the refresh that follows a profile switch.
 local function SetupDatabase()
 	ns.db = LibStub("AceDB-3.0"):New(ns.SAVED_VARIABLES_NAME, ns.DATABASE_DEFAULTS, true)
 	PruneOtherClientCharacters()
@@ -210,19 +204,14 @@ function ns:ApplyProfile()
 	-- The conjure buttons are shown and hidden imperatively, so they would keep the old profile's switches mid-trade.
 	ns.RefreshConjureButtons()
 
-	-- Every panel reads the profile, so all of them repaint; an open one would otherwise show the old profile's values.
-	for _, registryName in pairs(ns.OPTIONS_REGISTRY) do
-		AceConfigRegistry:NotifyChange(registryName)
-	end
-
 	--[[
 		The button's table moved with the profile, so re-point LibDBIcon at the new
 		one; without this it keeps writing to the old profile's table until a reload.
 	]]
-	local LDBIcon = LibStub("LibDBIcon-1.0")
-	if LDBIcon:IsRegistered(ns.LOCALE_NAME) then
-		LDBIcon:Refresh(ns.LOCALE_NAME, ns.db.profile.minimap)
-	end
+	ns:ApplyMinimapButton()
+
+	-- Every panel and the open menu read the profile; they would otherwise show the old profile's values.
+	ns.RefreshSettings()
 end
 
 local function PrintWelcome()

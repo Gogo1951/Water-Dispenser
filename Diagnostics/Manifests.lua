@@ -1,5 +1,7 @@
 local _, ns = ...
 
+-- luacheck: read globals GetCursorPosition UISpecialFrames
+
 local GetClientHeader = ns.GetDiagnosticClientHeader
 
 --------------------------------------------------------------------------------
@@ -392,6 +394,43 @@ ns.DIAGNOSTIC_API_CHECKS = {
 		end,
 	},
 	--[[
+		The mini-map menu's reads (Features/Minimap-Menu.lua and Menu-Kit.lua): the
+		cursor position that keeps it open while hovered, the tooltip and quality
+		color an item row shows, the Escape list it joins, and the Shift key the
+		button's Shift + Middle-Click reads. Without the cursor read the menu
+		closes the moment it opens.
+	]]
+	{
+		"GetCursorPosition",
+		function()
+			return type(GetCursorPosition) == "function"
+		end,
+	},
+	{
+		"GameTooltip.SetItemByID",
+		function()
+			return type(GameTooltip) == "table" and type(GameTooltip.SetItemByID) == "function"
+		end,
+	},
+	{
+		"C_Item.GetItemQualityColor",
+		function()
+			return type(C_Item) == "table" and type(C_Item.GetItemQualityColor) == "function"
+		end,
+	},
+	{
+		"UISpecialFrames",
+		function()
+			return type(UISpecialFrames) == "table"
+		end,
+	},
+	{
+		"IsShiftKeyDown",
+		function()
+			return type(IsShiftKeyDown) == "function"
+		end,
+	},
+	--[[
 		Validate Data's extra reads and its tooltip pair. One a client lacks leaves
 		its columns blank; the tooltip text needs either both C_TooltipInfo getters
 		or the hidden scan tooltip, picked by ns.GetTooltipLines.
@@ -669,6 +708,8 @@ local function AppendTrade(lines, trade)
 		lines[#lines + 1] = "  Partner level unknown: the fill uses your level + 10"
 	end
 	lines[#lines + 1] = "Scope: " .. PickScope(trade)
+	-- The trade-wide reason (automatic fill off, the window just cleared) the status line shows when the window is empty.
+	lines[#lines + 1] = "Trade-wide note: " .. Plain(trade.Note or "none")
 	lines[#lines + 1] = "Status line: " .. Plain(trade.Status)
 	for _, field in ipairs({ "HoldReasons", "ShortNotes" }) do
 		local keys = {}

@@ -115,21 +115,34 @@ L["TRADE_CONJURE_MAKES"] = "Erzeugt %s, das Beste, was %s (Stufe %d) benutzen ka
 L["TRADE_CONJURE_MAKES_LOWEST"] = "Erzeugt %s, den niedrigsten Rang, den du kennst."
 
 --------------------------------------------------------------------------------
--- Minimap Button
+-- Mini-map Menu
 --------------------------------------------------------------------------------
 
 --[[
-	The tooltip's feature row reuses TAB_DISPENSE for its name and
-	OPTIONS_DISPENSE_MASTER_DESC for its description; the UI_ keys are its state and
-	click words.
+	The Dispense block reuses TAB_DISPENSE for its title, OPTIONS_DISPENSE_MASTER_DESC
+	for its description, and the Enable Dispense switch for its Toggle row's tooltip.
+	The MENU_ keys are the words every Gogo add-on's menu shares.
 ]]
-L["UI_ENABLED"] = "Aktiviert"
-L["UI_DISABLED"] = "Deaktiviert"
-L["UI_LEFT_CLICK"] = "Linksklick"
-L["UI_TOGGLE"] = "Umschalten"
-L["MINIMAP_OPTIONS"] = "Water Dispenser-Optionen"
-L["MINIMAP_OPTIONS_KEYBIND"] = "Umschalt + Mittelklick"
--- Heads the tooltip section listing what the player can give right now.
+L["MENU_ON"] = "An"
+L["MENU_OFF"] = "Aus"
+L["MENU_TOGGLE"] = "Umschalten"
+L["MENU_CLICK_LEFT"] = "Linksklick"
+L["MENU_CLICK_SHIFT_MIDDLE"] = "Umschalt + Mittelklick"
+L["MENU_OPTIONS"] = "Water Dispenser-Optionen"
+-- %d is how many rows a long list leaves out.
+L["MENU_MORE"] = "%d weitere"
+L["MENU_MORE_FEATURES"] = "Weitere Funktionen"
+-- The More Features row's count of its switches, read together as "2 On, 1 Off".
+L["MENU_FEATURE_COUNT_ON"] = "%d an"
+L["MENU_FEATURE_COUNT_OFF"] = "%d aus"
+--[[
+	More Features rows, each a feature's name: its switch's caption without
+	Enable. The third reuses TAB_INVENTORY_TOOLTIPS. "Open Trade!" names the
+	header TOOLTIP_OPEN_TRADE puts in player tooltips.
+]]
+L["FEATURE_ANNOUNCEMENT_MACRO"] = "Ankündigungs-Makro"
+L["FEATURE_OPEN_TRADE_TOOLTIPS"] = '"Handel öffnen!" in Spieler-Tooltips'
+-- Heads the menu section listing what the player can give right now.
 L["MINIMAP_DISPENSE_REPORT"] = "Ausgabebericht"
 
 --------------------------------------------------------------------------------
@@ -155,10 +168,10 @@ L["OPTIONS_COMMAND_DESCRIPTION"] = "Öffnet das Optionsfenster dieses Add-ons."
 -- Options — Dispense
 --------------------------------------------------------------------------------
 
--- Names the panel and the mini-map tooltip's feature row.
+-- Names the panel and the mini-map menu's Dispense block.
 L["TAB_DISPENSE"] = "Ausgabe"
 L["OPTIONS_DISPENSE_MASTER"] = "Ausgabe aktivieren"
--- Also the panel's intro line, the General panel's Features switch tooltip and the mini-map tooltip's feature description.
+-- Also the panel's intro line, the General panel's Features switch tooltip and the mini-map menu's Dispense description.
 L["OPTIONS_DISPENSE_MASTER_DESC"] =
 	"Füllt das Handelsfenster automatisch nach deinen Einstellungen, sobald ein Handel geöffnet wird."
 L["OPTIONS_DISPENSE_SOLO"] = "Für Fremde aktivieren"
@@ -183,7 +196,7 @@ L["OPTIONS_CONJURE_BUTTONS_DESC"] =
 	"Fügt unter Handelsfenster füllen Schaltflächen hinzu, die Wasser, Essen oder einen Gesundheitsstein herbeizaubern, den dein Handelspartner auf seiner Stufe benutzen kann. Was du herstellst, landet direkt im offenen Handel."
 L["OPTIONS_MISSING_STACK_WARNINGS"] = "Warnungen aktivieren, wenn dir etwas ausgeht"
 L["OPTIONS_MISSING_STACK_WARNINGS_DESC"] =
-	"Gibt einen Hinweis in deinem Chatfenster aus, wenn du nicht genug von einem eingerichteten Gegenstand in deinen Taschen hast, um die eingestellte Menge zu geben."
+	"Gibt einen Hinweis in deinem Chatfenster aus, wenn deine Taschen nicht genug von einem eingerichteten Gegenstand enthalten, um die eingestellte Menge zu geben."
 
 -- The silver line under a setting that shows the exact chat line it prints; %s is that line.
 L["SAMPLE_EXAMPLE"] = "Beispiel: %s"
@@ -201,10 +214,10 @@ L["OPTIONS_COMBAT_NOTIFY_DESC"] =
 L["TAB_INVENTORY_TOOLTIPS"] = "Inventar-Tooltips"
 L["OPTIONS_TOOLTIPS_DESC"] =
 	"Zeigt in Spieler-Tooltips, was Gruppenmitglieder, die Water Dispenser verwenden, zum Verschenken eingerichtet haben, und markiert die Gegenstände, die du selbst verschenkst, in deinen eigenen Taschen."
-L["OPTIONS_SHOW_INVENTORY"] = "Inventar in Spieler-Tooltips anzeigen"
+L["OPTIONS_SHOW_INVENTORY"] = '"Handel öffnen!" in Spieler-Tooltips aktivieren'
 L["OPTIONS_SHOW_INVENTORY_DESC"] =
 	"Fügt Spieler-Tooltips einen Water Dispenser-Block hinzu, der auflistet, was sie zum Verschenken eingerichtet haben und wie viele sie davon abgeben können. Dein eigener wird immer angezeigt, ob du in einer Gruppe bist oder nicht."
-L["OPTIONS_BAG_TOOLTIPS"] = "Taschen-Tooltips für ausgegebene Gegenstände anzeigen"
+L["OPTIONS_BAG_TOOLTIPS"] = "Inventar-Tooltips aktivieren"
 L["OPTIONS_BAG_TOOLTIPS_DESC"] =
 	"Fügt dem Tooltip eines Taschengegenstands eine Water Dispenser-Zeile hinzu, wenn dieser Gegenstand zum Verschenken eingestellt ist, damit du auf einen Blick siehst, was das Add-on herausgeben wird."
 L["OPTIONS_SHARE_INVENTORY"] = "Mein Inventar teilen"
@@ -220,7 +233,7 @@ L["OPTIONS_ITEMS_DESC"] =
 	"Lege fest, wie viele von jedem Gegenstand ausgegeben werden. Mengen zählen einzelne Gegenstände, 20 Wasser bedeutet also 20 Wasser, und 1 Trank bedeutet 1 Trank. Ein Stapel wird bei Bedarf auf die genaue Menge aufgeteilt."
 -- "Add an Item" must match OPTIONS_ADD_ITEM.
 L["OPTIONS_ITEMS_EMPTY"] =
-	"Keine Gegenstände konfiguriert. Wähle Gegenstand hinzufügen in der Liste, um beliebige handelbare Gegenstände aus deinen Taschen hinzuzufügen."
+	"Noch keine Gegenstände eingerichtet. Wähle Gegenstand hinzufügen in der Liste, um beliebige handelbare Gegenstände aus deinen Taschen hinzuzufügen."
 
 --[[
 	The silver line opening an item's page while nothing of it would go out. In
@@ -284,7 +297,7 @@ L["OPTIONS_SCOPE_RAID"] = "Schlachtzug"
 
 L["OPTIONS_ADD_ITEM"] = "Gegenstand hinzufügen"
 L["OPTIONS_ADD_DESC"] =
-	"Wähle einen beliebigen handelbaren Gegenstand aus deinen Taschen, um ihn zu deinen ausgegebenen Gegenständen hinzuzufügen. Bereits konfigurierte oder seelengebundene Gegenstände erscheinen nicht."
+	"Wähle einen beliebigen handelbaren Gegenstand aus deinen Taschen, um ihn zu deinen ausgegebenen Gegenständen hinzuzufügen. Bereits eingerichtete oder seelengebundene Gegenstände erscheinen nicht."
 L["OPTIONS_ADD_SELECT"] = "Verfügbare Gegenstände"
 L["OPTIONS_ADD_BUTTON"] = "Zu ausgegebenen Gegenständen hinzufügen"
 L["OPTIONS_ADD_EMPTY"] = "Keine handelbaren Gegenstände in deinen Taschen gefunden."
@@ -302,7 +315,7 @@ L["OPTIONS_ANNOUNCEMENTS_ENABLE_DESC"] =
 	'Hält ein charakterspezifisches Makro namens "- Dispenser" mit deinen aktuellen ausgegebenen Gegenständen auf dem neuesten Stand und löscht das Makro, wenn du dies deaktivierst.'
 -- "Enable Reserves" must match OPTIONS_ITEM_RESERVE.
 L["OPTIONS_ANNOUNCEMENTS_PREVIEW_EMPTY"] =
-	"Nichts anzukündigen. Konfiguriere Gegenstände, fülle deine Taschen auf oder senke eine Reserve unter Reserven aktivieren."
+	"Nichts anzukündigen. Richte Gegenstände ein, fülle deine Taschen auf oder senke eine Reserve unter Reserven aktivieren."
 -- "Enable Dispense" must match OPTIONS_DISPENSE_MASTER, "Water Dispenser" ADDON_TITLE, and "Dispense" TAB_DISPENSE.
 L["OPTIONS_ANNOUNCEMENTS_PREVIEW_DISPENSE_OFF"] =
 	"Nichts anzukündigen, solange Ausgabe aktivieren ausgeschaltet ist. Schalte es unter Water Dispenser > Ausgabe ein."

@@ -142,6 +142,7 @@ function ns.OptionsSubToggle(key, name, desc, onSet)
 			if onSet then
 				onSet()
 			end
+			ns.RefreshSettings()
 		end,
 	}
 end
@@ -157,6 +158,111 @@ end
 
 function ns.OptionsSetDB(info, value)
 	ns.db.profile[info[#info]] = value
+	ns.RefreshSettings()
+end
+
+--------------------------------------------------------------------------------
+-- Features
+--------------------------------------------------------------------------------
+
+--[[
+	The root panel's Features section and the mini-map menu are one list: Dispense
+	is the menu's block, the rest its More Features rows, in this order on both.
+	setting is a path under ns.db[store]; apply writes it with any side effects.
+]]
+ns.FEATURES = {
+	{
+		store = "profile",
+		setting = "Dispense",
+		name = "TAB_DISPENSE",
+		caption = "OPTIONS_DISPENSE_MASTER",
+		desc = "OPTIONS_DISPENSE_MASTER_DESC",
+		block = true,
+		click = "LeftButton",
+		apply = function(value)
+			ns.SetDispense(value)
+		end,
+	},
+	{
+		store = "profile",
+		setting = "Announcements.Enabled",
+		name = "FEATURE_ANNOUNCEMENT_MACRO",
+		caption = "OPTIONS_ANNOUNCEMENTS_ENABLE",
+		desc = "OPTIONS_ANNOUNCEMENTS_ENABLE_DESC",
+		apply = function(value)
+			ns.SetAnnouncementsEnabled(value)
+		end,
+	},
+	{
+		store = "profile",
+		setting = "ShowInventoryTooltips",
+		name = "FEATURE_OPEN_TRADE_TOOLTIPS",
+		caption = "OPTIONS_SHOW_INVENTORY",
+		desc = "OPTIONS_SHOW_INVENTORY_DESC",
+		apply = function(value)
+			ns.db.profile.ShowInventoryTooltips = value
+			-- It gates sharing too, so the group needs telling either way.
+			ns.RefreshGiveaways()
+		end,
+	},
+	{
+		store = "profile",
+		setting = "ShowBagTooltips",
+		name = "TAB_INVENTORY_TOOLTIPS",
+		caption = "OPTIONS_BAG_TOOLTIPS",
+		desc = "OPTIONS_BAG_TOOLTIPS_DESC",
+		apply = function(value)
+			ns.db.profile.ShowBagTooltips = value
+		end,
+	},
+}
+
+local FEATURE_BY_SETTING = {}
+for _, feature in ipairs(ns.FEATURES) do
+	FEATURE_BY_SETTING[feature.setting] = feature
+end
+
+local function FeatureValue(feature)
+	local node = ns.db and ns.db[feature.store]
+	for part in feature.setting:gmatch("[^%.]+") do
+		node = type(node) == "table" and node[part] or nil
+	end
+	return node and true or false
+end
+
+--[[
+	A feature's switch, drawn on the root page and atop its own panel from the same
+	record, so both share one caption, one tooltip and one setter.
+]]
+function ns.OptionsFeatureSwitch(setting, order, width)
+	local feature = FEATURE_BY_SETTING[setting]
+	return {
+		type = "toggle",
+		name = L[feature.caption],
+		desc = L[feature.desc],
+		width = width or "full",
+		order = order,
+		get = function()
+			return FeatureValue(feature)
+		end,
+		set = function(_, value)
+			if ns.db then
+				feature.apply(value)
+			end
+			ns.RefreshSettings()
+		end,
+	}
+end
+
+--[[
+	The root panel's Features switches, two to a line in ns.FEATURES order, taking
+	startOrder and the orders after it.
+]]
+function ns.OptionsFeatureSwitches(args, startOrder)
+	for index, feature in ipairs(ns.FEATURES) do
+		args["feature" .. index] =
+			ns.OptionsFeatureSwitch(feature.setting, startOrder + index - 1, ns.OPTIONS_ROW_WIDTH / 2)
+	end
 end
 
 --------------------------------------------------------------------------------

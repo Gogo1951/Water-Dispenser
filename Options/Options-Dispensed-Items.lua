@@ -6,7 +6,6 @@ local CLASS_COLORS = ns.CLASS_COLORS
 
 local AceConfig = LibStub("AceConfig-3.0")
 local AceConfigDialog = LibStub("AceConfigDialog-3.0")
-local AceConfigRegistry = LibStub("AceConfigRegistry-3.0")
 
 local Header = ns.OptionsHeader
 local Desc = ns.OptionsDesc
@@ -179,6 +178,7 @@ local function SetDistribute(info, value)
 	end
 	-- The macro and the group's tooltips both hide a gated item, so both need telling.
 	ns.RefreshGiveaways()
+	ns.RefreshSettings()
 end
 
 --[[
@@ -197,6 +197,7 @@ local function SetGuildiesOnly(info, value)
 	if config then
 		config.GuildiesOnly = value and true or false
 	end
+	ns.RefreshSettings()
 end
 
 --[[
@@ -226,6 +227,7 @@ local function SetFactorLevel(info, value)
 	if config then
 		config.FactorLevel = value and true or false
 	end
+	ns.RefreshSettings()
 end
 
 local function GetIncludeQuantity(info)
@@ -239,6 +241,7 @@ local function SetIncludeQuantity(info, value)
 	end
 	-- Live-update the announcement macro so the change shows without a bag event.
 	ns.RefreshGiveaways()
+	ns.RefreshSettings()
 end
 
 -- Player-class filter accessors; info[#info] is the class token.
@@ -263,6 +266,7 @@ local function SetPlayerClass(info, value)
 	]]
 	config.PlayerClasses[info[#info]] = value and true or false
 	ns.RefreshGiveaways()
+	ns.RefreshSettings()
 end
 
 --------------------------------------------------------------------------------
@@ -350,6 +354,7 @@ local function CountCell(itemKey, scopeKey, class, maxCount)
 			config[scopeKey] = config[scopeKey] or {}
 			config[scopeKey][class] = ns.OptionsParseCount(value, maxCount) or 0
 			AmountChanged(itemKey)
+			ns.RefreshSettings()
 		end,
 	}
 end
@@ -382,6 +387,7 @@ local function AmountRow(order, enabledField, amountField, nameKey, descKey)
 		else
 			ns.RefreshGiveaways()
 		end
+		ns.RefreshSettings()
 	end
 
 	return TableRow(order, {
@@ -473,7 +479,7 @@ end
 
 local function RefreshItemPanel()
 	ns.RefreshGiveaways()
-	AceConfigRegistry:NotifyChange(ns.OPTIONS_REGISTRY.DispensedItems)
+	ns.RefreshSettings()
 end
 
 --[[
@@ -999,7 +1005,7 @@ end
 function ns.RebuildDispensedItemsOptions()
 	local appName = ns.OPTIONS_REGISTRY.DispensedItems
 	AceConfig:RegisterOptionsTable(appName, ns.BuildDispensedItemsOptions())
-	AceConfigRegistry:NotifyChange(appName)
+	ns.RefreshSettings()
 end
 
 --------------------------------------------------------------------------------

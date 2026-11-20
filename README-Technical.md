@@ -43,7 +43,7 @@ Water-Dispenser/
 ├── Diagnostics/                       Copied framework; Manifests.lua is this add-on's part
 ├── Features/
 │   ├── Core.lua                       ns.State, version, the event dispatcher, AceDB setup, other-client prune, login sequence
-│   ├── Utilities.lua                  Combat and hidden-value guards, colors, reverse-lookups, amount readers, item gates
+│   ├── Utilities.lua                  Combat and hidden-value guards, colors, reverse-lookups, amount readers, item gates, ns.RefreshSettings
 │   ├── Announcements.lua              Branded print lines, group-channel resolver, the "- Dispenser" macro
 │   ├── Inventory-Scanner.lua          Bag scan and cache, rank pickers, the macro and tooltip snapshots
 │   ├── Bag-Moves.lua                  The only bag writes: merge, split, stow, and the post-trade restack
@@ -55,9 +55,13 @@ Water-Dispenser/
 │   ├── Conjure-Buttons.lua            Secure conjure buttons under Fill, ranked for the partner
 │   ├── Group-Spares.lua               Addon-message broadcast of the offer, and the unit-tooltip block
 │   ├── Item-Tooltips.lua              The bag-item tooltip line
-│   └── Minimap-Button.lua             LDB launcher, tooltip with the Dispense Report, clicks
+│   ├── Menu-Kit.lua                   Shared Common-Core kit: the menu renderer, copied unchanged
+│   ├── Minimap-Menu.lua               What the mini-map menu holds: Dispense block, Dispense Report, More Features, Options
+│   └── Minimap-Button.lua             LDB launcher handing hover and clicks to the menu; ns:ApplyMinimapButton
 ├── Includes/
 │   ├── Images/
+│   │   ├── Menu-Arrow.tga             Menu-Kit's sub-menu arrow
+│   │   ├── Menu-Plate.tga             Menu-Kit's plate
 │   │   └── Water-Dispenser.tga        TOC icon
 │   └── Libraries/                     Vendored; refreshed from .pkgmeta on every tag
 ├── Locales/
@@ -73,8 +77,8 @@ Water-Dispenser/
 │   ├── zhCN.lua
 │   └── zhTW.lua
 ├── Options/
-│   ├── Options-Utilities.lua          Shared row builders, sub-option rows, number parsing, the number-box widget
-│   ├── Options-General.lua            Root panel; Features section mirrors four master switches
+│   ├── Options-Utilities.lua          Shared row builders, ns.FEATURES and its switches, number parsing, the number-box widget
+│   ├── Options-General.lua            Root panel; Features section built from ns.FEATURES
 │   ├── Options-Dispenser.lua          Dispense master and its sub-toggles, Combat section
 │   ├── Options-Dispensed-Items.lua    Item tree: per-class grid, amounts, gates, Add an Item
 │   ├── Options-Announcements.lua      Macro switch and live preview
@@ -103,6 +107,8 @@ TOC blocks: `Includes → Locales → Data → Features → Diagnostics → Opti
 - `Locales` before `Data`: `Data/Data.lua` calls `GetLocale` on `ns.LOCALE_NAME`.
 - `Data/Flavor.lua` first in Data: the Vanilla and Discovery data files both load on the Vanilla TOC and each returns early on `ns.IS_DISCOVERY`, so exactly one builds the tables.
 - Flavor folder before `Features/Utilities.lua`, which builds `ns.ITEM_TO_COLLECTION`, `ns.ITEM_RANK`, `ns.ITEM_LEVEL`, `ns.SPELL_TO_COLLECTION`, `ns.SPELL_TO_ITEMS` and `ns.COLLECTION_NAME_ITEM_ID` at file scope. `Features/Conjure-Buttons.lua` builds its `RANKS` lists from those at file scope too.
+- `Features/Menu-Kit.lua` after `Utilities.lua`, then `Minimap-Menu.lua` (calls `Kit.SetText` and `Kit.CreateMenu` at file scope), then `Minimap-Button.lua`.
+- `ns.FEATURES` is defined in `Options/Options-Utilities.lua`, which loads after every Features file: the menu reads it only when it builds, never at file scope.
 - `Options-Utilities.lua` first in Options (panels alias its helpers at file scope); `Options.lua` last (`ns.RegisterOptionsPanels` needs every `ns.Build*Options`).
 - Nothing touching `ns.db` runs at file scope; everything initializes from the `PLAYER_LOGIN` handler in `Features/Core.lua`.
 
@@ -136,6 +142,8 @@ Registered events:
 | `GET_ITEM_INFO_RECEIVED` | Dispensed Items panel, Trade Status | Only while a Loading placeholder is pending; each unregisters itself when its pending set empties |
 
 No `PLAYER_REGEN_DISABLED` handler: protected paths check `ns.IsInCombat()` when they run. `LEARNED_SPELL_IN_TAB` is deliberately not registered (redundant with `SPELLS_CHANGED`, invalid on TBC Anniversary).
+
+Outside the dispatcher: Menu-Kit registers `GET_ITEM_INFO_RECEIVED` on a frame of its own (`WatchItem`) for the menu's item rows, so that registration is never in `ns.EVENT_NAMES`.
 
 ### Combat Lockdown
 
@@ -211,6 +219,7 @@ A `Distribute` or `GuildiesOnly` gate that empties the window prints nothing; th
 - `ns.ITEM_LEVEL` overrides `itemMinLevel` for built-ins (some conjured items report 0); the scan's `Level` field already folds it in.
 - `BuildInventory` calls `C_Item.RequestLoadItemDataByID` for an uncached item, distrusts that pass's other returns, and later scans backfill only missing fields. Uncached `StackSize` reads as `Full` so a real full stack isn't skipped.
 - Names shown to the player are never stored: `ns.GetItemConfigName` returns the client's name or the `ITEM_LOADING` placeholder. Two places watch for the real name with a temporary `GET_ITEM_INFO_RECEIVED` handler and their own pending set: the Dispensed Items tree (`Options-Dispensed-Items.lua`, rebuilds since a name can change sort order) and the trade status line (`StatusItemName` in `Trade-Status.lua`, repaints).
+- The mini-map menu's Dispense Report rows are item links; Menu-Kit draws `ITEM_LOADING` (handed over in `Kit.SetText`) for an uncached one and redraws every open menu when it arrives.
 
 Inventory cache (`Inventory-Scanner.lua`):
 
@@ -285,12 +294,15 @@ Conjured items land as small partial stacks, and shaping can't invent items, so 
 - Path picked by `GameTooltip:HasScript("OnTooltipSetItem")`. Era/TBC: `hooksecurefunc(GameTooltip, "SetBagItem")`, bag-scoped by its own arguments with `ns.LAST_BAG_INDEX`, so it survives replacement bag add-ons. Forever: an Item post-call gated by `GetCarriedBagSlot`. Recorded in `ns.bagTooltipPath`.
 - Hooking the setter, not `OnTooltipSetItem`, keeps the line when a tooltip add-on clears and refills. Installed one frame after `PLAYER_LOGIN` so it wraps everyone else's hooks and lands last; it re-`Show()`s the tooltip after adding.
 
-### Mini-map Button
+### Mini-map Button and Menu
 
-- `Features/Minimap-Button.lua`: one LDB launcher under `ns.LOCALE_NAME`; LibDBIcon gets `ns.db.profile.minimap`. Left-click → `ns.SetDispense`; Shift + Middle-Click → `ns:OpenOptionsPanel`.
-- `ns.ToggleMinimapButton` writes `minimap.hide` and applies it through `LDBIcon:Refresh`, the same call the profile switch uses.
+- `Features/Minimap-Button.lua`: one LDB launcher under `ns.LOCALE_NAME`; LibDBIcon gets `ns.db.profile.minimap`. `OnEnter` → `ns.Menu:Show(self, "hover")`; `OnClick` → `ns.Menu:HandleClick`. `OnLeave` is empty on purpose: the menu closes itself once the cursor leaves.
+- `ns:ApplyMinimapButton` is the one show/hide path: `LDBIcon:Refresh` with the current profile's `minimap` table. Called by the General panel's Enable Mini-map Button switch (after writing `minimap.hide`) and by `ns:ApplyProfile`.
 - On Camelot and Mainline the icon is fitted by hand rather than `SetButtonIcon`, whose reset errors when another add-on replaced the icon.
-- **Dispense Report** (README-Notes exception): `ns.BuildAnnouncementSnapshot(true)`, the macro's entries with the reserve *not* subtracted; left out when empty or `Dispense` off.
+- **Menu-Kit** (`Features/Menu-Kit.lua`) is a shared Common-Core kit, checked byte for byte by CI. It reads `ns.PALETTE`, `ns.L`, `ns.db`, `ns.FEATURES`, `ns:OpenOptionsPanel`, and publishes `ns.RefreshMenu`, `ns.IsMenuShown`, `ns.ShowMenu`, `ns.HideMenu`. It adds the menu frame to `UISpecialFrames` (Escape closes it).
+- **`Features/Minimap-Menu.lua`** hands the kit its localized words (`Kit.SetText`) and builds the entries on every render (`BuildMainEntries`): header with `ns.Version`, the Dispense block (`Kit.FeatureBlock`; its Toggle row carries `click = "LeftButton"` from the Dispense record in `ns.FEATURES`), the Dispense Report, More Features (`Kit.MoreFeatures`: every non-`block` record in `ns.FEATURES`), then the Options row (Shift + Middle-Click). `afterChange = ns.RefreshSettings`.
+- **Clicks route through the rows.** `HandleClick` rebuilds the entries and runs the row whose `click` matches the button (Shift prefixed), so Left-Click flips Dispense because the Toggle row names it, and Shift + Middle-Click is the Options row. Both do nothing until `ns.db` exists.
+- **Dispense Report** (README-Notes exception): `ns.BuildAnnouncementSnapshot(true)`, the macro's entries with the reserve *not* subtracted; left out when empty or `Dispense` off. Capped at `Kit.LIST_MAX` rows plus a "N more" note; the count shows only with `IncludeQuantity`.
 
 ### Announcement Macro
 
@@ -305,14 +317,16 @@ Conjured items land as small partial stacks, and shaping can't invent items, so 
 ### Single Entry Points
 
 - `ns.RefreshGiveaways` (`Utilities.lua`): "what I have to give changed". It refreshes the macro and the group broadcast together.
-- `ns.SetDispense` (`Dispenser.lua`): the only writer of `Dispense`. It is shared by the Dispense panel, the General panel's Features switch and the mini-map click, and it refreshes giveaways and conjure buttons and notifies both panels.
-- `ns.SetAnnouncementsEnabled` (`Announcements.lua`): the same shape for the macro switch.
+- `ns.RefreshSettings` (`Utilities.lua`): "a setting changed". `NotifyChange` on every `ns.OPTIONS_REGISTRY` panel, then `ns.RefreshMenu` (a no-op while the menu is closed). Every setter ends here: `ns.OptionsSetDB`, `ns.OptionsSubToggle`, every feature switch, the Dispensed Items setters, the menu's `afterChange`, `ns:ApplyProfile`. The only place the add-on's own code calls `NotifyChange` (the diagnostics framework repaints its own panel).
+- `ns.SetDispense` (`Dispenser.lua`): the only writer of `Dispense`. It is shared by the Dispense panel, the General panel's Features switch, the menu's Toggle row and the button's Left-Click, and it refreshes giveaways and conjure buttons, then calls `ns.RefreshSettings`.
+- `ns.SetAnnouncementsEnabled` (`Announcements.lua`): the same shape for the macro switch, also reached from the menu's More Features row.
+- `ns.FEATURES` (`Options-Utilities.lua`): the one list of feature switches, in order. Each record: `store` + `setting` (a dotted path under `ns.db[store]`), `name` (menu label, no "Enable"), `caption` and `desc` (the options switch and every tooltip), `apply` (the write and its side effects). Dispense alone is `block = true` with `click = "LeftButton"`; the rest are the menu's More Features rows.
 
 ### Options Panels
 
 - `ns:OpenOptionsPanel` routes by `ns.optionsFrames.categoryID` captured from `AddToBlizOptions` (`Settings.OpenToCategory`), with `AceConfigDialog:Open` as last resort. Never by display name.
 - `ns.RegisterOptionsPanels` runs from `PLAYER_LOGIN` (Profiles needs `ns.db`). Child order is the call order in `Options/Options.lua`; Diagnostic Tools registers its builder function, so every repaint rebuilds it.
-- Mirrored switches: the General panel's Features section repeats Dispense, the macro, Show Inventory in Player Tooltips and the bag tooltips. Each copy notifies the other panel's registry.
+- Feature switches: `ns.OptionsFeatureSwitch(setting, order, width)` builds a toggle from its `ns.FEATURES` record (looked up by `setting`), so the copy atop a feature's own panel and the General panel's copy (`ns.OptionsFeatureSwitches`, two to a line in list order) share caption, tooltip and setter. The setter calls the record's `apply`, then `ns.RefreshSettings`, which repaints the other copy and the menu.
 - **Dispensed Items** (`Options-Dispensed-Items.lua`), the one `childGroups = "tree"` panel:
     - One flat page per item: built-ins in `ns.BUILTIN_ORDER`, user items by name, Add an Item last. `TreeSpacer` adds the vertical gap AceGUI lacks.
     - Arg keys must be strings: user items are `item_<id>` (`EncodeItemKey` / decode).
@@ -329,7 +343,7 @@ Conjured items land as small partial stacks, and shaping can't invent items, so 
 
 ### Identity Constants
 
-- Folder and packaged name `Water-Dispenser`; in-Lua identity `WaterDispenser` = `ns.LOCALE_NAME` (`Data/Data.lua`). It backs `GetLocale`, the LDB object, the LibDBIcon key and the number-box widget type. `ns.SAVED_VARIABLES_NAME` spells the saved global once.
+- Folder and packaged name `Water-Dispenser`; in-Lua identity `WaterDispenser` = `ns.LOCALE_NAME` (`Data/Data.lua`). It backs `GetLocale`, the LDB object, the LibDBIcon key, the number-box widget type and the menu frame's name (`ns.LOCALE_NAME .. "Menu"`, which the Display Context report looks up in `UISpecialFrames`). `ns.SAVED_VARIABLES_NAME` spells the saved global once.
 - `ADDON_NAME` (the vararg) still keys `C_AddOns.GetAddOnMetadata` (version, flavor) and `ns.OPTIONS_REGISTRY`.
 - `Locales/*.lua` repeat the literal (they load before `Data.lua`).
 - `ns.ADDON_MESSAGE_PREFIX` shares the spelling but is a separate constant, read by Group Spares' send and receive paths and the event log's filter.
@@ -339,7 +353,8 @@ Conjured items land as small partial stacks, and shaping can't invent items, so 
 
 Copied framework (Style Guide → DIAGNOSTIC TOOLS); this add-on's surface is `Diagnostics/Manifests.lua` plus the event filters in `Event-Log.lua`.
 
-- `ns.DIAGNOSTIC_API_CHECKS`: existence and shape checks for every API the add-on reads.
+- `ns.DIAGNOSTIC_API_CHECKS`: existence and shape checks for every API the add-on reads, the menu's included (cursor position, `GameTooltip.SetItemByID`, `C_Item.GetItemQualityColor`, `UISpecialFrames`, `IsShiftKeyDown`).
+- The framework's Display Context report reads the menu through `ns.Menu`, `ns.IsMenuShown`, `ns.FEATURES` and `ns.optionsFrames`, so renaming any of them blanks its menu lines.
 - Four context reports, each answering one silent failure: `ns:BuildTradeFillReport`, `ns:BuildConjureRestackReport`, `ns:BuildAnnouncementReport`, `ns:BuildInventoryTooltipsReport`. They read through the copy-returning state getters (`ns.GetFillState`, `ns.GetShapingState`, `ns.GetConjureButtonsState`, `ns.GetRestackState`, `ns.GetAnnouncementState`, `ns.GetGroupSparesState`) and never change state. They never call `ns.ScanInventory` (it moves `fillBaseline`): Trade & Fill walks the bags itself, and the Announcement report builds its would-be body only with no trade open.
 - `ns.DIAGNOSTIC_SPELLS`, `ns.DIAGNOSTIC_NAME_LOOKUPS`, `ns.DIAGNOSTIC_DATA_SOURCES`: built from the data by path, so no ID lives in the diagnostics files. `ns.COLLECTIONS` rows are read by position (`RowField`).
 - Event log: `ns.DIAGNOSTIC_EVENT_EXCLUDE` drops `BAG_UPDATE`; the fill writes its own trail through `ns:LogEventNow` (`BAG_UPDATE`, `PLACE`, `SHAPE`, `FILL`, `SPLIT`), each only while logging. `ns.MESSAGE_ID_FILTERED_EVENTS` filters `CHAT_MSG_ADDON` and `GET_ITEM_INFO_RECEIVED`; `CORRELATED_IDS` keeps a firing on `ns.ADDON_MESSAGE_PREFIX` or for an item `ns.IsItemNamePending` reports (the Dispensed Items tree only, not the status line), and counts the rest.
@@ -349,7 +364,8 @@ Copied framework (Style Guide → DIAGNOSTIC TOOLS); this add-on's surface is `D
 
 - **New built-in collection**: `ns.COLLECTIONS` in every flavor folder's `Collections-<Folder>.lua` (positional `Items` rows read by index in `Features/Utilities.lua` and by `RowField` in `Manifests.lua`); `ns.COLLECTION_META` (`Icon`, `Unique`) and `ns.BUILTIN_ORDER` in `Data/Data.lua`; a block in `ns.DATABASE_DEFAULTS.profile.Items`. Its label, spells, Validate Data rows and name lookups follow automatically.
 - **New registered event**: `ns.RegisterEvent` in the owning `Init*`. A firehose also goes in `ns.MESSAGE_ID_FILTERED_EVENTS` + `CORRELATED_IDS`, or `ns.DIAGNOSTIC_EVENT_EXCLUDE` + `ns:LogEventNow` in its handler (`Diagnostics/Event-Log.lua`).
-- **New setting**: its key in `ns.DATABASE_DEFAULTS.profile`, its options row, its label and `desc` in `Locales/enUS.lua`. It also needs `ns.RefreshGiveaways()` in `set` if it changes what's on offer, and `NotifyChange` on both registries if it's mirrored on the General panel.
+- **New setting**: its key in `ns.DATABASE_DEFAULTS.profile`, its options row, its label and `desc` in `Locales/enUS.lua`. It also needs `ns.RefreshGiveaways()` in `set` if it changes what's on offer. A hand-written `set` ends with `ns.RefreshSettings()`; `ns.OptionsSetDB` and `ns.OptionsSubToggle` already do.
+- **New feature switch**: a record in `ns.FEATURES` (order there is order on the General panel and in More Features); its `FEATURE_*` name key plus caption and `desc` keys in every locale; `ns.OptionsFeatureSwitch(setting, order)` atop its own panel. The General panel, the menu and the Display Context count pick it up from the list.
 - **New per-item field**: each built-in block under `Items` in `Data/Default-Settings.lua`, *and* the literal the Add an Item button writes in `Options/Options-Dispensed-Items.lua`; readers tolerate nil (older user items). A field that changes amounts calls `ns.ResetSessionLedger(key)`.
 - **New `Distribute` mode**: `ns.DISTRIBUTE_MODES`, `ns.IsItemDistributableNow`, and an `OPTIONS_ITEM_DISTRIBUTE_<MODE>` key (looked up by composed name).
 - **Announcement format**: `AnnouncementPrefix` / `AnnouncementSuffix` / `BodyTemplateParts` in `Announcements.lua`; the preview's marker swap in `Options-Announcements.lua` (`ns.TARGET_MARKER` and `ns.TARGET_MARKER_TEXTURE` must name the same mark); the Announcement report in `Manifests.lua`.
@@ -360,7 +376,7 @@ Copied framework (Style Guide → DIAGNOSTIC TOOLS); this add-on's surface is `D
 - `WaterDispenserDB` (`ns.SAVED_VARIABLES_NAME`): the whole configuration, via AceDB-3.0 in `SetupDatabase` at `PLAYER_LOGIN`.
 - **Model: Simple.** One shared `"Default"` profile; everything in `ns.db.profile`, `ns.db.global` unused. Nothing stored differs by character, so a new setting is a profile key. **Reset Profile clears everything**: mini-map position, every per-item amount, and every user-added item.
 - `PruneOtherClientCharacters` runs right after `AceDB:New` (Style Guide → SAVED VARIABLES → Other-Client Characters).
-- `ns:ApplyProfile` (on `OnProfileChanged` / `OnProfileReset` / `OnProfileCopied`) re-stamps collection meta, rebuilds the item tree, refreshes giveaways and conjure buttons, notifies every panel, and re-points LibDBIcon at the new `minimap` table (LibDBIcon keeps the table it was registered with).
+- `ns:ApplyProfile` (on `OnProfileChanged` / `OnProfileReset` / `OnProfileCopied`) re-stamps collection meta, rebuilds the item tree, refreshes giveaways and conjure buttons, re-points LibDBIcon at the new `minimap` table through `ns:ApplyMinimapButton` (LibDBIcon keeps the table it was registered with), then `ns.RefreshSettings` repaints every panel and the open menu.
 - **No default-list seeding.** The three built-ins are AceDB table defaults, physically copied into the profile when first read. `ns.RefreshCollectionMeta` reads each (re-stamping `NoRemove`), which is what puts them in `FillTrade`'s `pairs()` walk; don't make that a lazy metatable. User items get no AceDB defaults. Nothing refills on empty.
 - `Items` is keyed by collection name (built-ins) or numeric item ID (user items). No name or icon is stored.
 - `PlayerClasses` stores an unchecked class as explicit `false`; a missing key would be re-supplied from the built-in default.
@@ -402,5 +418,11 @@ Copied framework (Style Guide → DIAGNOSTIC TOOLS); this add-on's surface is `D
 - **Measuring the macro body in characters**: always bytes (`#body`); ruRU is the widest. Truncate only at part boundaries.
 - **Renaming `MACRO_NAME` past 16 characters**: the client silently truncates it.
 - **Expecting the event log to keep every `GET_ITEM_INFO_RECEIVED` the add-on handles**: the trade status line's pending names aren't in `ns.IsItemNamePending`, so they're counted, not logged.
+- **Writing a setting without `ns.RefreshSettings`**: the open menu and the other copy of a feature switch keep showing the old value until something else redraws them.
+- **Calling `NotifyChange` directly**: misses the menu. Go through `ns.RefreshSettings`.
+- **Editing `Features/Menu-Kit.lua`**: CI fails the add-on on any byte that differs from Common-Core's kit. Change what the menu holds in `Minimap-Menu.lua`; a kit change goes to Common-Core.
+- **Filling in the LDB object's empty `OnLeave`**: deliberate. The menu closes itself after the cursor has left both button and menu for its close delay, so the cursor can cross from one to the other.
+- **Handling a button click outside the menu's rows**: `HandleClick` finds the click by the row that names it, so the menu's click labels and the button's behavior stay one. A new click is a row with `click` set.
+- **Mixing a feature's `name` and `caption`**: `name` is the menu's compact label, `caption` the "Enable …" options switch and every tooltip title.
 - **Calling a legacy global**: Forever lacks them; `C_Item`, `C_Spell`, `C_Container`, `C_AddOns` are called directly. Only stats (`ns.GetItemStats`) and tooltip text (`ns.GetTooltipLines`) resolve per client, modern first.
 - **Translated words for game names**: never in `Locales/`. Collection labels come from `ns.COLLECTION_NAME_ITEM_ID`, conjure labels from `C_Spell.GetSpellName`, classes from `ns.GetClassName`.

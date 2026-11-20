@@ -6,27 +6,6 @@ local GetColor = ns.GetColor
 local Desc, Spacer = ns.OptionsDesc, ns.OptionsSpacer
 
 --------------------------------------------------------------------------------
--- DB Accessors
---------------------------------------------------------------------------------
-
--- Lazy-fetched so a profile switch between opens can't leave a stale reference.
-local function GetAnnouncements()
-	if not ns.db then
-		return nil
-	end
-	return ns.db.profile.Announcements
-end
-
-local function GetEnabled()
-	local a = GetAnnouncements()
-	return a and a.Enabled and true or false
-end
-
-local function SetEnabled(_, value)
-	ns.SetAnnouncementsEnabled(value)
-end
-
---------------------------------------------------------------------------------
 -- Live Preview
 --------------------------------------------------------------------------------
 
@@ -69,15 +48,7 @@ function ns.BuildAnnouncementsOptions()
 			intro = Desc(L["OPTIONS_ANNOUNCEMENTS_DESC"], 1),
 			spaceIntro = Spacer(2),
 			-- Enable toggle
-			enable = {
-				type = "toggle",
-				width = "full",
-				name = L["OPTIONS_ANNOUNCEMENTS_ENABLE"],
-				desc = L["OPTIONS_ANNOUNCEMENTS_ENABLE_DESC"],
-				order = 3,
-				get = GetEnabled,
-				set = SetEnabled,
-			},
+			enable = ns.OptionsFeatureSwitch("Announcements.Enabled", 3),
 			--[[
 				The announcement as it will read, unlabeled: it is plainly the macro, and
 				the section text above already says what it is. Built without the channel

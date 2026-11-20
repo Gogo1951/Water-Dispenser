@@ -115,21 +115,34 @@ L["TRADE_CONJURE_MAKES"] = "Crea %s, il migliore che %s (livello %d) può usare.
 L["TRADE_CONJURE_MAKES_LOWEST"] = "Crea %s, il grado più basso che conosci."
 
 --------------------------------------------------------------------------------
--- Minimap Button
+-- Mini-map Menu
 --------------------------------------------------------------------------------
 
 --[[
-	The tooltip's feature row reuses TAB_DISPENSE for its name and
-	OPTIONS_DISPENSE_MASTER_DESC for its description; the UI_ keys are its state and
-	click words.
+	The Dispense block reuses TAB_DISPENSE for its title, OPTIONS_DISPENSE_MASTER_DESC
+	for its description, and the Enable Dispense switch for its Toggle row's tooltip.
+	The MENU_ keys are the words every Gogo add-on's menu shares.
 ]]
-L["UI_ENABLED"] = "Abilitato"
-L["UI_DISABLED"] = "Disabilitato"
-L["UI_LEFT_CLICK"] = "Tasto sinistro"
-L["UI_TOGGLE"] = "Attiva/Disattiva"
-L["MINIMAP_OPTIONS"] = "Opzioni di Water Dispenser"
-L["MINIMAP_OPTIONS_KEYBIND"] = "Maiusc + Clic centrale"
--- Heads the tooltip section listing what the player can give right now.
+L["MENU_ON"] = "Attivo"
+L["MENU_OFF"] = "Disattivo"
+L["MENU_TOGGLE"] = "Attiva/Disattiva"
+L["MENU_CLICK_LEFT"] = "Tasto sinistro"
+L["MENU_CLICK_SHIFT_MIDDLE"] = "Maiusc + Clic centrale"
+L["MENU_OPTIONS"] = "Opzioni di Water Dispenser"
+-- %d is how many rows a long list leaves out.
+L["MENU_MORE"] = "Altri %d"
+L["MENU_MORE_FEATURES"] = "Altre Funzionalità"
+-- The More Features row's count of its switches, read together as "2 On, 1 Off".
+L["MENU_FEATURE_COUNT_ON"] = "%d attive"
+L["MENU_FEATURE_COUNT_OFF"] = "%d disattivate"
+--[[
+	More Features rows, each a feature's name: its switch's caption without
+	Enable. The third reuses TAB_INVENTORY_TOOLTIPS. "Open Trade!" names the
+	header TOOLTIP_OPEN_TRADE puts in player tooltips.
+]]
+L["FEATURE_ANNOUNCEMENT_MACRO"] = "Macro di Annuncio"
+L["FEATURE_OPEN_TRADE_TOOLTIPS"] = '"Apri lo scambio!" nei Suggerimenti Giocatore'
+-- Heads the menu section listing what the player can give right now.
 L["MINIMAP_DISPENSE_REPORT"] = "Resoconto Distribuzione"
 
 --------------------------------------------------------------------------------
@@ -155,10 +168,10 @@ L["OPTIONS_COMMAND_DESCRIPTION"] = "Apre l'interfaccia delle opzioni di questo a
 -- Options — Dispense
 --------------------------------------------------------------------------------
 
--- Names the panel and the mini-map tooltip's feature row.
+-- Names the panel and the mini-map menu's Dispense block.
 L["TAB_DISPENSE"] = "Distribuisci"
 L["OPTIONS_DISPENSE_MASTER"] = "Abilita Distribuzione"
--- Also the panel's intro line, the General panel's Features switch tooltip and the mini-map tooltip's feature description.
+-- Also the panel's intro line, the General panel's Features switch tooltip and the mini-map menu's Dispense description.
 L["OPTIONS_DISPENSE_MASTER_DESC"] =
 	"Riempie automaticamente la finestra di scambio quando si apre uno scambio, in base alle tue impostazioni."
 L["OPTIONS_DISPENSE_SOLO"] = "Abilita per gli Sconosciuti"
@@ -184,7 +197,7 @@ L["OPTIONS_CONJURE_BUTTONS_DESC"] =
 	"Aggiunge sotto Riempi finestra di scambio dei pulsanti che evocano acqua, cibo o una pietra della salute che il tuo compagno di scambio può usare al suo livello. Ciò che crei finisce direttamente nello scambio aperto."
 L["OPTIONS_MISSING_STACK_WARNINGS"] = "Abilita Avvisi Quando Rimani a Corto"
 L["OPTIONS_MISSING_STACK_WARNINGS_DESC"] =
-	"Mostra una nota nella tua finestra di chat quando non hai abbastanza di un oggetto configurato nelle borse per dare la quantità impostata."
+	"Mostra una nota nella tua finestra di chat quando le tue borse non contengono abbastanza di un oggetto che hai impostato per dare la quantità scelta."
 
 -- The silver line under a setting that shows the exact chat line it prints; %s is that line.
 L["SAMPLE_EXAMPLE"] = "Esempio: %s"
@@ -202,10 +215,10 @@ L["OPTIONS_COMBAT_NOTIFY_DESC"] =
 L["TAB_INVENTORY_TOOLTIPS"] = "Suggerimenti Inventario"
 L["OPTIONS_TOOLTIPS_DESC"] =
 	"Mostra nei suggerimenti giocatore ciò che i membri del gruppo che usano Water Dispenser hanno impostato per la distribuzione, e segnala nelle tue borse gli oggetti che distribuisci tu."
-L["OPTIONS_SHOW_INVENTORY"] = "Mostra Inventario nei Suggerimenti Giocatore"
+L["OPTIONS_SHOW_INVENTORY"] = 'Abilita "Apri lo scambio!" nei Suggerimenti Giocatore'
 L["OPTIONS_SHOW_INVENTORY_DESC"] =
 	"Aggiunge un blocco Water Dispenser ai suggerimenti dei giocatori elencando ciò che hanno impostato per la distribuzione e quanti ne possono dare. Il tuo viene sempre mostrato, che tu sia in gruppo o no."
-L["OPTIONS_BAG_TOOLTIPS"] = "Mostra i Suggerimenti nelle Borse per gli Oggetti Distribuiti"
+L["OPTIONS_BAG_TOOLTIPS"] = "Abilita Suggerimenti Inventario"
 L["OPTIONS_BAG_TOOLTIPS_DESC"] =
 	"Aggiunge una riga Water Dispenser al suggerimento di un oggetto nelle borse quando quell'oggetto è impostato per essere distribuito, così vedi a colpo d'occhio cosa consegnerà l'add-on."
 L["OPTIONS_SHARE_INVENTORY"] = "Condividi il Mio Inventario"
@@ -218,10 +231,10 @@ L["OPTIONS_SHARE_INVENTORY_DESC"] =
 
 L["TAB_DISPENSED_ITEMS"] = "Oggetti Distribuiti"
 L["OPTIONS_ITEMS_DESC"] =
-	"Configura quanti oggetti distribuire di ciascun tipo. Le quantità si contano in singoli oggetti, quindi 20 acque sono 20 acque, e 1 pozione è 1 pozione. Una pila viene divisa fino alla quantità esatta se serve."
+	"Imposta quanti oggetti distribuire di ciascun tipo. Le quantità si contano in singoli oggetti, quindi 20 acque sono 20 acque, e 1 pozione è 1 pozione. Una pila viene divisa fino alla quantità esatta se serve."
 -- "Add an Item" must match OPTIONS_ADD_ITEM.
 L["OPTIONS_ITEMS_EMPTY"] =
-	"Nessun oggetto configurato. Seleziona Aggiungi Oggetto nell'elenco per aggiungere qualsiasi oggetto scambiabile dalle tue borse."
+	"Nessun oggetto impostato per ora. Seleziona Aggiungi Oggetto nell'elenco per aggiungere qualsiasi oggetto scambiabile dalle tue borse."
 
 --[[
 	The silver line opening an item's page while nothing of it would go out. In
@@ -285,7 +298,7 @@ L["OPTIONS_SCOPE_RAID"] = "Incursione"
 
 L["OPTIONS_ADD_ITEM"] = "Aggiungi Oggetto"
 L["OPTIONS_ADD_DESC"] =
-	"Seleziona un qualsiasi oggetto scambiabile dalle tue borse per aggiungerlo ai tuoi oggetti distribuiti. Gli oggetti già configurati o vincolati non appariranno."
+	"Seleziona un qualsiasi oggetto scambiabile dalle tue borse per aggiungerlo ai tuoi oggetti distribuiti. Gli oggetti già impostati o vincolati non appariranno."
 L["OPTIONS_ADD_SELECT"] = "Oggetti Disponibili"
 L["OPTIONS_ADD_BUTTON"] = "Aggiungi agli Oggetti Distribuiti"
 L["OPTIONS_ADD_EMPTY"] = "Nessun oggetto scambiabile trovato nelle tue borse."
@@ -303,7 +316,7 @@ L["OPTIONS_ANNOUNCEMENTS_ENABLE_DESC"] =
 	'Mantiene aggiornata una macro specifica del personaggio chiamata "- Dispenser" con i tuoi oggetti distribuiti attuali, ed elimina la macro quando la disattivi.'
 -- "Enable Reserves" must match OPTIONS_ITEM_RESERVE.
 L["OPTIONS_ANNOUNCEMENTS_PREVIEW_EMPTY"] =
-	"Niente da annunciare. Configura oggetti, riempi le borse o abbassa una riserva in Abilita Riserve."
+	"Niente da annunciare. Imposta degli oggetti, riempi le borse o abbassa una riserva in Abilita Riserve."
 -- "Enable Dispense" must match OPTIONS_DISPENSE_MASTER, "Water Dispenser" ADDON_TITLE, and "Dispense" TAB_DISPENSE.
 L["OPTIONS_ANNOUNCEMENTS_PREVIEW_DISPENSE_OFF"] =
 	"Niente da annunciare finché Abilita Distribuzione è disattivata. Attivala in Water Dispenser > Distribuisci."
