@@ -79,7 +79,7 @@ The menu shows whether Dispense is on, lists what you have left to give, and hol
 
 🟢 World of Warcraft: Forever // 1.60.1
 
-🟡 World of Warcraft: Season of Discovery // 1.15.9
+🟢 World of Warcraft: Season of Discovery // 1.15.9
 
 🟢 World of Warcraft: Classic // 1.15.9
 
