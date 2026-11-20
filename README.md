@@ -1,4 +1,3 @@
-<img width="3200" height="1128" alt="README-Infographic-Conjure-Buttons" src="https://github.com/user-attachments/assets/a1f8573b-c92d-4710-8d89-1c6e396a34f4" />
 # Water Dispenser
 
 Effortless mage and warlock consumable distribution. Auto-fill trade windows with conjured water, food, and healthstones at the right rank and amount for each player. Add any item, from Hourglass Sand to potions, and distribute a raid's worth in seconds.
