@@ -1,3 +1,4 @@
+<img width="3200" height="1128" alt="README-Infographic-Conjure-Buttons" src="https://github.com/user-attachments/assets/a1f8573b-c92d-4710-8d89-1c6e396a34f4" />
 # Water Dispenser
 
 Effortless mage and warlock consumable distribution. Auto-fill trade windows with conjured water, food, and healthstones at the right rank and amount for each player. Add any item, from Hourglass Sand to potions, and distribute a raid's worth in seconds.
@@ -16,6 +17,8 @@ Effortless mage and warlock consumable distribution. Auto-fill trade windows wit
 
 ### Conjure Buttons
 
+<img width="800" alt="README-Infographic-Conjure-Buttons" src="https://github.com/user-attachments/assets/250a17f9-894d-476e-873c-1d499fdd7c49" />
+
 * **Ran Dry Mid-Trade?** // One click conjures water, food, or a healthstone and drops it straight into the open trade.
 * **Made for Them** // Each button picks the best rank your trade partner can use at their level.
 * **Hide Them If You Like** // Switch the buttons off and trades still fill on their own.
@@ -30,6 +33,8 @@ Effortless mage and warlock consumable distribution. Auto-fill trade windows wit
 * **Share Only If You Want** // Keep your stock to yourself and still see what your group has.
 
 ### Announcements
+
+<img width="800" alt="README-Infographic-Announcements" src="https://github.com/user-attachments/assets/e3c43d33-469e-4bd7-bf51-fd7a28cdb574" />
 
 * **One Click, Whole Raid Knows** // The `- Dispenser` macro posts what you have left to give, with clickable item links.
 * **Always the Right Channel** // Say when solo, Party, Raid, or Instance in a group, with counts straight from your bags.
