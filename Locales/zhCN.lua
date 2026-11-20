@@ -110,21 +110,34 @@ L["TRADE_CONJURE_MAKES"] = "制造 %s，%s（%d 级）能使用的最高等级�
 L["TRADE_CONJURE_MAKES_LOWEST"] = "制造 %s，你已知的最低等级。"
 
 --------------------------------------------------------------------------------
--- Minimap Button
+-- Mini-map Menu
 --------------------------------------------------------------------------------
 
 --[[
-	The tooltip's feature row reuses TAB_DISPENSE for its name and
-	OPTIONS_DISPENSE_MASTER_DESC for its description; the UI_ keys are its state and
-	click words.
+	The Dispense block reuses TAB_DISPENSE for its title, OPTIONS_DISPENSE_MASTER_DESC
+	for its description, and the Enable Dispense switch for its Toggle row's tooltip.
+	The MENU_ keys are the words every Gogo add-on's menu shares.
 ]]
-L["UI_ENABLED"] = "已启用"
-L["UI_DISABLED"] = "已禁用"
-L["UI_LEFT_CLICK"] = "左键点击"
-L["UI_TOGGLE"] = "切换"
-L["MINIMAP_OPTIONS"] = "Water Dispenser 选项"
-L["MINIMAP_OPTIONS_KEYBIND"] = "Shift + 中键点击"
--- Heads the tooltip section listing what the player can give right now.
+L["MENU_ON"] = "开启"
+L["MENU_OFF"] = "关闭"
+L["MENU_TOGGLE"] = "切换"
+L["MENU_CLICK_LEFT"] = "左键点击"
+L["MENU_CLICK_SHIFT_MIDDLE"] = "Shift + 中键点击"
+L["MENU_OPTIONS"] = "Water Dispenser 选项"
+-- %d is how many rows a long list leaves out.
+L["MENU_MORE"] = "还有%d件"
+L["MENU_MORE_FEATURES"] = "更多功能"
+-- The More Features row's count of its switches, read together as "2 On, 1 Off".
+L["MENU_FEATURE_COUNT_ON"] = "%d 项开启"
+L["MENU_FEATURE_COUNT_OFF"] = "%d 项关闭"
+--[[
+	More Features rows, each a feature's name: its switch's caption without
+	Enable. The third reuses TAB_INVENTORY_TOOLTIPS. "Open Trade!" names the
+	header TOOLTIP_OPEN_TRADE puts in player tooltips.
+]]
+L["FEATURE_ANNOUNCEMENT_MACRO"] = "喊话宏"
+L["FEATURE_OPEN_TRADE_TOOLTIPS"] = '玩家提示中的"点我交易！"'
+-- Heads the menu section listing what the player can give right now.
 L["MINIMAP_DISPENSE_REPORT"] = "分发报告"
 
 --------------------------------------------------------------------------------
@@ -149,10 +162,10 @@ L["OPTIONS_COMMAND_DESCRIPTION"] = "打开本插件的选项界面。"
 -- Options — Dispense
 --------------------------------------------------------------------------------
 
--- Names the panel and the mini-map tooltip's feature row.
+-- Names the panel and the mini-map menu's Dispense block.
 L["TAB_DISPENSE"] = "分发"
 L["OPTIONS_DISPENSE_MASTER"] = "启用分发"
--- Also the panel's intro line, the General panel's Features switch tooltip and the mini-map tooltip's feature description.
+-- Also the panel's intro line, the General panel's Features switch tooltip and the mini-map menu's Dispense description.
 L["OPTIONS_DISPENSE_MASTER_DESC"] = "打开交易时根据你的设置自动填充交易窗口。"
 L["OPTIONS_DISPENSE_SOLO"] = "对陌生人启用"
 L["OPTIONS_DISPENSE_SOLO_DESC"] = "当与不在队伍或团队中的玩家交易时，自动填充交易窗口。"
@@ -174,7 +187,7 @@ L["OPTIONS_CONJURE_BUTTONS_DESC"] =
 	"在填充交易窗口下方添加按钮，用于制造你的交易对象在其等级可以使用的水、食物或治疗石。制造出的物品会直接放入当前交易。"
 L["OPTIONS_MISSING_STACK_WARNINGS"] = "库存不足时启用警告"
 L["OPTIONS_MISSING_STACK_WARNINGS_DESC"] =
-	"当背包中已配置物品的数量不足以给出你设定的数量时，在聊天框中输出提示。"
+	"当背包中你设置好的物品不足以给出设定的数量时，在聊天框中输出提示。"
 
 -- The silver line under a setting that shows the exact chat line it prints; %s is that line.
 L["SAMPLE_EXAMPLE"] = "示例：%s"
@@ -191,10 +204,10 @@ L["OPTIONS_COMBAT_NOTIFY_DESC"] = "当战斗导致交易无法填充时，在聊
 L["TAB_INVENTORY_TOOLTIPS"] = "库存提示"
 L["OPTIONS_TOOLTIPS_DESC"] =
 	"在玩家提示信息中显示使用 Water Dispenser 的队友设置为分发的内容，并在你自己的背包中标记你要分发的物品。"
-L["OPTIONS_SHOW_INVENTORY"] = "在玩家提示中显示库存"
+L["OPTIONS_SHOW_INVENTORY"] = '启用玩家提示中的"点我交易！"'
 L["OPTIONS_SHOW_INVENTORY_DESC"] =
 	"在玩家提示信息中添加一个 Water Dispenser 区块，列出他们设置为分发的内容以及可以送出的数量。无论是否组队，你自己的都会始终显示。"
-L["OPTIONS_BAG_TOOLTIPS"] = "为分发物品显示背包提示"
+L["OPTIONS_BAG_TOOLTIPS"] = "启用库存提示"
 L["OPTIONS_BAG_TOOLTIPS_DESC"] =
 	"当背包中的某个物品被设置为分发时，在它的提示信息中添加一行 Water Dispenser 说明，让你一眼就能看出插件会送出什么。"
 L["OPTIONS_SHARE_INVENTORY"] = "分享我的库存"
@@ -210,7 +223,7 @@ L["OPTIONS_ITEMS_DESC"] =
 	"设置每种物品分发多少。数量按单个物品计算，所以 20 个水就是 20 个水，1 个药水就是 1 个药水。必要时会把一堆拆分到精确数量。"
 -- "Add an Item" must match OPTIONS_ADD_ITEM.
 L["OPTIONS_ITEMS_EMPTY"] =
-	"未配置物品。请在列表中选择添加物品，从背包中添加任何可交易的物品。"
+	"尚未设置物品。请在列表中选择添加物品，从背包中添加任何可交易的物品。"
 
 --[[
 	The silver line opening an item's page while nothing of it would go out. In
@@ -274,7 +287,7 @@ L["OPTIONS_SCOPE_RAID"] = "团队"
 
 L["OPTIONS_ADD_ITEM"] = "添加物品"
 L["OPTIONS_ADD_DESC"] =
-	"从背包中选择任意可交易物品加入你的分发物品。已配置或已灵魂绑定的物品不会出现在这里。"
+	"从背包中选择任意可交易物品加入你的分发物品。已设置或已灵魂绑定的物品不会出现在这里。"
 L["OPTIONS_ADD_SELECT"] = "可用物品"
 L["OPTIONS_ADD_BUTTON"] = "添加到分发物品"
 L["OPTIONS_ADD_EMPTY"] = "背包中没有找到可交易的物品。"
@@ -292,7 +305,7 @@ L["OPTIONS_ANNOUNCEMENTS_ENABLE_DESC"] =
 	'维护一个名为 "- Dispenser" 的角色专属宏，使其与你当前的分发物品保持同步，并在你关闭此选项时删除该宏。'
 -- "Enable Reserves" must match OPTIONS_ITEM_RESERVE.
 L["OPTIONS_ANNOUNCEMENTS_PREVIEW_EMPTY"] =
-	"没有可喊话的内容。配置物品，补充背包，或在启用保留数量中调低保留值。"
+	"没有可喊话的内容。设置物品，补充背包，或在启用保留数量中调低保留值。"
 -- "Enable Dispense" must match OPTIONS_DISPENSE_MASTER, "Water Dispenser" ADDON_TITLE, and "Dispense" TAB_DISPENSE.
 L["OPTIONS_ANNOUNCEMENTS_PREVIEW_DISPENSE_OFF"] =
 	"启用分发处于关闭状态时，没有可喊话的内容。请在 Water Dispenser > 分发 中开启。"

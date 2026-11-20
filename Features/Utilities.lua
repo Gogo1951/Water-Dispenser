@@ -224,6 +224,26 @@ function ns.RefreshGiveaways()
 end
 
 --------------------------------------------------------------------------------
+-- Settings Refresh
+--------------------------------------------------------------------------------
+
+--[[
+	Every settings change ends here, from options, the mini-map menu, the button's
+	clicks or a profile switch. AceConfig only re-reads a widget's get, name or
+	hidden when it redraws, so every registered panel is told, and the open menu
+	redraws with the new value (a no-op while it's closed).
+]]
+function ns.RefreshSettings()
+	local registry = LibStub("AceConfigRegistry-3.0")
+	for _, name in pairs(ns.OPTIONS_REGISTRY) do
+		registry:NotifyChange(name)
+	end
+	if ns.RefreshMenu then
+		ns.RefreshMenu()
+	end
+end
+
+--------------------------------------------------------------------------------
 -- Spells
 --------------------------------------------------------------------------------
 

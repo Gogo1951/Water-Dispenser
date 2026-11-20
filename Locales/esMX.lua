@@ -114,21 +114,34 @@ L["TRADE_CONJURE_MAKES"] = "Crea %s, lo mejor que %s (nivel %d) puede usar."
 L["TRADE_CONJURE_MAKES_LOWEST"] = "Crea %s, el rango más bajo que conoces."
 
 --------------------------------------------------------------------------------
--- Minimap Button
+-- Mini-map Menu
 --------------------------------------------------------------------------------
 
 --[[
-	The tooltip's feature row reuses TAB_DISPENSE for its name and
-	OPTIONS_DISPENSE_MASTER_DESC for its description; the UI_ keys are its state and
-	click words.
+	The Dispense block reuses TAB_DISPENSE for its title, OPTIONS_DISPENSE_MASTER_DESC
+	for its description, and the Enable Dispense switch for its Toggle row's tooltip.
+	The MENU_ keys are the words every Gogo add-on's menu shares.
 ]]
-L["UI_ENABLED"] = "Activado"
-L["UI_DISABLED"] = "Desactivado"
-L["UI_LEFT_CLICK"] = "Clic izquierdo"
-L["UI_TOGGLE"] = "Alternar"
-L["MINIMAP_OPTIONS"] = "Opciones de Water Dispenser"
-L["MINIMAP_OPTIONS_KEYBIND"] = "Mayús + Clic central"
--- Heads the tooltip section listing what the player can give right now.
+L["MENU_ON"] = "Activado"
+L["MENU_OFF"] = "Desactivado"
+L["MENU_TOGGLE"] = "Alternar"
+L["MENU_CLICK_LEFT"] = "Clic izquierdo"
+L["MENU_CLICK_SHIFT_MIDDLE"] = "Mayús + Clic central"
+L["MENU_OPTIONS"] = "Opciones de Water Dispenser"
+-- %d is how many rows a long list leaves out.
+L["MENU_MORE"] = "%d más"
+L["MENU_MORE_FEATURES"] = "Más funciones"
+-- The More Features row's count of its switches, read together as "2 On, 1 Off".
+L["MENU_FEATURE_COUNT_ON"] = "%d activadas"
+L["MENU_FEATURE_COUNT_OFF"] = "%d desactivadas"
+--[[
+	More Features rows, each a feature's name: its switch's caption without
+	Enable. The third reuses TAB_INVENTORY_TOOLTIPS. "Open Trade!" names the
+	header TOOLTIP_OPEN_TRADE puts in player tooltips.
+]]
+L["FEATURE_ANNOUNCEMENT_MACRO"] = "Macro de anuncio"
+L["FEATURE_OPEN_TRADE_TOOLTIPS"] = '"¡Abre comercio!" en las descripciones de jugador'
+-- Heads the menu section listing what the player can give right now.
 L["MINIMAP_DISPENSE_REPORT"] = "Informe de reparto"
 
 --------------------------------------------------------------------------------
@@ -154,10 +167,10 @@ L["OPTIONS_COMMAND_DESCRIPTION"] = "Abre la interfaz de opciones de este accesor
 -- Options — Dispense
 --------------------------------------------------------------------------------
 
--- Names the panel and the mini-map tooltip's feature row.
+-- Names the panel and the mini-map menu's Dispense block.
 L["TAB_DISPENSE"] = "Dispensar"
 L["OPTIONS_DISPENSE_MASTER"] = "Activar dispensado"
--- Also the panel's intro line, the General panel's Features switch tooltip and the mini-map tooltip's feature description.
+-- Also the panel's intro line, the General panel's Features switch tooltip and the mini-map menu's Dispense description.
 L["OPTIONS_DISPENSE_MASTER_DESC"] =
 	"Llena automáticamente la ventana de comercio al abrirse un intercambio, según tus ajustes."
 L["OPTIONS_DISPENSE_SOLO"] = "Activar para desconocidos"
@@ -183,7 +196,7 @@ L["OPTIONS_CONJURE_BUTTONS_DESC"] =
 	"Añade botones bajo Llenar ventana de comercio que conjuran agua, comida o una piedra de salud que tu compañero de comercio puede usar a su nivel. Lo que creas va directo al comercio abierto."
 L["OPTIONS_MISSING_STACK_WARNINGS"] = "Activar avisos cuando te quedes corto"
 L["OPTIONS_MISSING_STACK_WARNINGS_DESC"] =
-	"Muestra un aviso en tu ventana de chat cuando no tienes suficiente de un objeto configurado en tus bolsas para dar la cantidad que fijaste."
+	"Muestra un aviso en tu ventana de chat cuando tus bolsas no tienen suficiente de un objeto que configuraste para dar la cantidad que fijaste."
 
 -- The silver line under a setting that shows the exact chat line it prints; %s is that line.
 L["SAMPLE_EXAMPLE"] = "Ejemplo: %s"
@@ -201,10 +214,10 @@ L["OPTIONS_COMBAT_NOTIFY_DESC"] =
 L["TAB_INVENTORY_TOOLTIPS"] = "Descripciones de inventario"
 L["OPTIONS_TOOLTIPS_DESC"] =
 	"Muestra en las descripciones de jugador lo que los miembros del grupo que usan Water Dispenser tienen configurado para repartir, y marca en tus propias bolsas los objetos que tú repartes."
-L["OPTIONS_SHOW_INVENTORY"] = "Mostrar inventario en las descripciones de jugador"
+L["OPTIONS_SHOW_INVENTORY"] = 'Activar "¡Abre comercio!" en las descripciones de jugador'
 L["OPTIONS_SHOW_INVENTORY_DESC"] =
 	"Añade un bloque de Water Dispenser a las descripciones de jugador con lo que tienen configurado para repartir y cuántos pueden dar. El tuyo siempre se muestra, estés en grupo o no."
-L["OPTIONS_BAG_TOOLTIPS"] = "Mostrar descripciones de bolsa para los objetos dispensados"
+L["OPTIONS_BAG_TOOLTIPS"] = "Activar descripciones de inventario"
 L["OPTIONS_BAG_TOOLTIPS_DESC"] =
 	"Añade una línea de Water Dispenser a la descripción de un objeto de tus bolsas cuando ese objeto está configurado para repartirse, para que veas de un vistazo qué entregará el accesorio."
 L["OPTIONS_SHARE_INVENTORY"] = "Compartir mi inventario"
@@ -217,10 +230,10 @@ L["OPTIONS_SHARE_INVENTORY_DESC"] =
 
 L["TAB_DISPENSED_ITEMS"] = "Objetos dispensados"
 L["OPTIONS_ITEMS_DESC"] =
-	"Configura cuántos de cada objeto dispensar. Las cantidades se cuentan en objetos individuales, así que 20 aguas son 20 aguas, y 1 poción es 1 poción. Una pila se divide hasta la cantidad exacta si hace falta."
+	"Indica cuántos de cada objeto dispensar. Las cantidades se cuentan en objetos individuales, así que 20 aguas son 20 aguas, y 1 poción es 1 poción. Una pila se divide hasta la cantidad exacta si hace falta."
 -- "Add an Item" must match OPTIONS_ADD_ITEM.
 L["OPTIONS_ITEMS_EMPTY"] =
-	"No hay objetos configurados. Selecciona Añadir objeto en la lista para añadir cualquier objeto comerciable de tus bolsas."
+	"Todavía no hay objetos configurados. Selecciona Añadir objeto en la lista para añadir cualquier objeto comerciable de tus bolsas."
 
 --[[
 	The silver line opening an item's page while nothing of it would go out. In
@@ -284,7 +297,7 @@ L["OPTIONS_SCOPE_RAID"] = "Banda"
 
 L["OPTIONS_ADD_ITEM"] = "Añadir objeto"
 L["OPTIONS_ADD_DESC"] =
-	"Selecciona cualquier objeto comerciable de tus bolsas para añadirlo a tus objetos dispensados. Los objetos ya configurados o ligados al alma no aparecerán."
+	"Selecciona cualquier objeto comerciable de tus bolsas para añadirlo a tus objetos dispensados. Los objetos que ya configuraste o que están ligados al alma no aparecerán."
 L["OPTIONS_ADD_SELECT"] = "Objetos disponibles"
 L["OPTIONS_ADD_BUTTON"] = "Añadir a objetos dispensados"
 L["OPTIONS_ADD_EMPTY"] = "No se encontraron objetos comerciables en tus bolsas."

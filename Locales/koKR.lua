@@ -114,21 +114,34 @@ L["TRADE_CONJURE_MAKES"] = "%s 생성: %s님(레벨 %d)이 사용할 수 있는 
 L["TRADE_CONJURE_MAKES_LOWEST"] = "%s 생성: 알고 있는 가장 낮은 등급입니다."
 
 --------------------------------------------------------------------------------
--- Minimap Button
+-- Mini-map Menu
 --------------------------------------------------------------------------------
 
 --[[
-	The tooltip's feature row reuses TAB_DISPENSE for its name and
-	OPTIONS_DISPENSE_MASTER_DESC for its description; the UI_ keys are its state and
-	click words.
+	The Dispense block reuses TAB_DISPENSE for its title, OPTIONS_DISPENSE_MASTER_DESC
+	for its description, and the Enable Dispense switch for its Toggle row's tooltip.
+	The MENU_ keys are the words every Gogo add-on's menu shares.
 ]]
-L["UI_ENABLED"] = "활성화됨"
-L["UI_DISABLED"] = "비활성화됨"
-L["UI_LEFT_CLICK"] = "좌클릭"
-L["UI_TOGGLE"] = "켜기/끄기"
-L["MINIMAP_OPTIONS"] = "Water Dispenser 설정"
-L["MINIMAP_OPTIONS_KEYBIND"] = "Shift + 가운데 클릭"
--- Heads the tooltip section listing what the player can give right now.
+L["MENU_ON"] = "켜짐"
+L["MENU_OFF"] = "꺼짐"
+L["MENU_TOGGLE"] = "켜기/끄기"
+L["MENU_CLICK_LEFT"] = "좌클릭"
+L["MENU_CLICK_SHIFT_MIDDLE"] = "Shift + 가운데 클릭"
+L["MENU_OPTIONS"] = "Water Dispenser 설정"
+-- %d is how many rows a long list leaves out.
+L["MENU_MORE"] = "외 %d개"
+L["MENU_MORE_FEATURES"] = "추가 기능"
+-- The More Features row's count of its switches, read together as "2 On, 1 Off".
+L["MENU_FEATURE_COUNT_ON"] = "%d개 켜짐"
+L["MENU_FEATURE_COUNT_OFF"] = "%d개 꺼짐"
+--[[
+	More Features rows, each a feature's name: its switch's caption without
+	Enable. The third reuses TAB_INVENTORY_TOOLTIPS. "Open Trade!" names the
+	header TOOLTIP_OPEN_TRADE puts in player tooltips.
+]]
+L["FEATURE_ANNOUNCEMENT_MACRO"] = "알림 매크로"
+L["FEATURE_OPEN_TRADE_TOOLTIPS"] = "플레이어 툴팁의 '거래를 거세요!'"
+-- Heads the menu section listing what the player can give right now.
 L["MINIMAP_DISPENSE_REPORT"] = "분배 현황"
 
 --------------------------------------------------------------------------------
@@ -154,10 +167,10 @@ L["OPTIONS_COMMAND_DESCRIPTION"] = "이 애드온의 설정 창을 엽니다."
 -- Options — Dispense
 --------------------------------------------------------------------------------
 
--- Names the panel and the mini-map tooltip's feature row.
+-- Names the panel and the mini-map menu's Dispense block.
 L["TAB_DISPENSE"] = "분배"
 L["OPTIONS_DISPENSE_MASTER"] = "분배 활성화"
--- Also the panel's intro line, the General panel's Features switch tooltip and the mini-map tooltip's feature description.
+-- Also the panel's intro line, the General panel's Features switch tooltip and the mini-map menu's Dispense description.
 L["OPTIONS_DISPENSE_MASTER_DESC"] = "거래가 열리면 설정에 따라 거래 창을 자동으로 채웁니다."
 L["OPTIONS_DISPENSE_SOLO"] = "모르는 사람에게 사용"
 L["OPTIONS_DISPENSE_SOLO_DESC"] =
@@ -180,7 +193,7 @@ L["OPTIONS_CONJURE_BUTTONS_DESC"] =
 	"거래 창 채우기 아래에 거래 상대가 자기 레벨에서 사용할 수 있는 물, 음식, 생명석을 창조하는 버튼을 추가합니다. 만든 것은 열린 거래에 바로 들어갑니다."
 L["OPTIONS_MISSING_STACK_WARNINGS"] = "수량이 부족할 때 경고 사용"
 L["OPTIONS_MISSING_STACK_WARNINGS_DESC"] =
-	"설정한 수량을 줄 만큼 해당 아이템이 가방에 없을 때 대화창에 알림을 출력합니다."
+	"설정해 둔 아이템이 가방에 정한 수량만큼 없을 때 대화창에 알림을 출력합니다."
 
 -- The silver line under a setting that shows the exact chat line it prints; %s is that line.
 L["SAMPLE_EXAMPLE"] = "예시: %s"
@@ -199,10 +212,10 @@ L["OPTIONS_COMBAT_NOTIFY_DESC"] =
 L["TAB_INVENTORY_TOOLTIPS"] = "보유 목록 툴팁"
 L["OPTIONS_TOOLTIPS_DESC"] =
 	"Water Dispenser를 사용하는 파티원이 나눠 주도록 설정한 것을 플레이어 툴팁에 표시하고, 내 가방에서 내가 나눠 주는 아이템에 표시를 남깁니다."
-L["OPTIONS_SHOW_INVENTORY"] = "플레이어 툴팁에 보유 목록 표시"
+L["OPTIONS_SHOW_INVENTORY"] = "플레이어 툴팁의 '거래를 거세요!' 사용"
 L["OPTIONS_SHOW_INVENTORY_DESC"] =
 	"플레이어 툴팁에 Water Dispenser 항목을 추가해 그들이 나눠 주도록 설정한 것과 나눠 줄 수 있는 수량을 보여 줍니다. 본인의 목록은 파티 여부와 관계없이 항상 표시됩니다."
-L["OPTIONS_BAG_TOOLTIPS"] = "분배 아이템에 가방 툴팁 표시"
+L["OPTIONS_BAG_TOOLTIPS"] = "보유 목록 툴팁 사용"
 L["OPTIONS_BAG_TOOLTIPS_DESC"] =
 	"가방 속 아이템이 나눠 주도록 설정되어 있으면 그 아이템 툴팁에 Water Dispenser 줄을 추가해, 애드온이 무엇을 건네줄지 한눈에 알 수 있게 합니다."
 L["OPTIONS_SHARE_INVENTORY"] = "내 보유 목록 공유"
@@ -215,10 +228,10 @@ L["OPTIONS_SHARE_INVENTORY_DESC"] =
 
 L["TAB_DISPENSED_ITEMS"] = "분배 아이템"
 L["OPTIONS_ITEMS_DESC"] =
-	"각 아이템을 얼마나 분배할지 설정하세요. 수량은 묶음이 아니라 개수로 세므로 물 20개는 물 20개, 물약 1개는 물약 1개입니다. 필요하면 묶음을 정확한 수량만큼 쪼갭니다."
+	"각 아이템을 얼마나 분배할지 정하세요. 수량은 묶음이 아니라 개수로 세므로 물 20개는 물 20개, 물약 1개는 물약 1개입니다. 필요하면 묶음을 정확한 수량만큼 쪼갭니다."
 -- "Add an Item" must match OPTIONS_ADD_ITEM.
 L["OPTIONS_ITEMS_EMPTY"] =
-	"설정된 아이템이 없습니다. 목록에서 아이템 추가를 선택하여 가방에 있는 거래 가능한 아이템을 무엇이든 추가하세요."
+	"아직 설정된 아이템이 없습니다. 목록에서 아이템 추가를 선택하여 가방에 있는 거래 가능한 아이템을 무엇이든 추가하세요."
 
 --[[
 	The silver line opening an item's page while nothing of it would go out. In
@@ -284,7 +297,7 @@ L["OPTIONS_SCOPE_RAID"] = "공격대"
 
 L["OPTIONS_ADD_ITEM"] = "아이템 추가"
 L["OPTIONS_ADD_DESC"] =
-	"분배 아이템에 추가할 거래 가능한 아이템을 가방에서 선택하세요. 이미 설정되었거나 귀속된 아이템은 표시되지 않습니다."
+	"분배 아이템에 추가할 거래 가능한 아이템을 가방에서 선택하세요. 이미 설정해 둔 아이템이나 귀속된 아이템은 표시되지 않습니다."
 L["OPTIONS_ADD_SELECT"] = "사용 가능 아이템"
 L["OPTIONS_ADD_BUTTON"] = "분배 아이템에 추가"
 L["OPTIONS_ADD_EMPTY"] = "가방에서 거래 가능한 아이템을 찾을 수 없습니다."

@@ -116,21 +116,34 @@ L["TRADE_CONJURE_MAKES"] = "Crée %s, le meilleur que %s (niveau %d) peut utilis
 L["TRADE_CONJURE_MAKES_LOWEST"] = "Crée %s, le rang le plus bas que vous connaissez."
 
 --------------------------------------------------------------------------------
--- Minimap Button
+-- Mini-map Menu
 --------------------------------------------------------------------------------
 
 --[[
-	The tooltip's feature row reuses TAB_DISPENSE for its name and
-	OPTIONS_DISPENSE_MASTER_DESC for its description; the UI_ keys are its state and
-	click words.
+	The Dispense block reuses TAB_DISPENSE for its title, OPTIONS_DISPENSE_MASTER_DESC
+	for its description, and the Enable Dispense switch for its Toggle row's tooltip.
+	The MENU_ keys are the words every Gogo add-on's menu shares.
 ]]
-L["UI_ENABLED"] = "Activé"
-L["UI_DISABLED"] = "Désactivé"
-L["UI_LEFT_CLICK"] = "Clic gauche"
-L["UI_TOGGLE"] = "Basculer"
-L["MINIMAP_OPTIONS"] = "Options de Water Dispenser"
-L["MINIMAP_OPTIONS_KEYBIND"] = "Maj + Clic central"
--- Heads the tooltip section listing what the player can give right now.
+L["MENU_ON"] = "Activé"
+L["MENU_OFF"] = "Désactivé"
+L["MENU_TOGGLE"] = "Basculer"
+L["MENU_CLICK_LEFT"] = "Clic gauche"
+L["MENU_CLICK_SHIFT_MIDDLE"] = "Maj + Clic central"
+L["MENU_OPTIONS"] = "Options de Water Dispenser"
+-- %d is how many rows a long list leaves out.
+L["MENU_MORE"] = "%d de plus"
+L["MENU_MORE_FEATURES"] = "Autres fonctionnalités"
+-- The More Features row's count of its switches, read together as "2 On, 1 Off".
+L["MENU_FEATURE_COUNT_ON"] = "%d activées"
+L["MENU_FEATURE_COUNT_OFF"] = "%d désactivées"
+--[[
+	More Features rows, each a feature's name: its switch's caption without
+	Enable. The third reuses TAB_INVENTORY_TOOLTIPS. "Open Trade!" names the
+	header TOOLTIP_OPEN_TRADE puts in player tooltips.
+]]
+L["FEATURE_ANNOUNCEMENT_MACRO"] = "Macro d'annonce"
+L["FEATURE_OPEN_TRADE_TOOLTIPS"] = '"Lancez l\'échange !" dans les infobulles de joueur'
+-- Heads the menu section listing what the player can give right now.
 L["MINIMAP_DISPENSE_REPORT"] = "Rapport de distribution"
 
 --------------------------------------------------------------------------------
@@ -156,10 +169,10 @@ L["OPTIONS_COMMAND_DESCRIPTION"] = "Ouvre l'interface des options de cet add-on.
 -- Options — Dispense
 --------------------------------------------------------------------------------
 
--- Names the panel and the mini-map tooltip's feature row.
+-- Names the panel and the mini-map menu's Dispense block.
 L["TAB_DISPENSE"] = "Distribuer"
 L["OPTIONS_DISPENSE_MASTER"] = "Activer la distribution"
--- Also the panel's intro line, the General panel's Features switch tooltip and the mini-map tooltip's feature description.
+-- Also the panel's intro line, the General panel's Features switch tooltip and the mini-map menu's Dispense description.
 L["OPTIONS_DISPENSE_MASTER_DESC"] =
 	"Remplit automatiquement la fenêtre d'échange à son ouverture, selon vos paramètres."
 L["OPTIONS_DISPENSE_SOLO"] = "Activer pour les inconnus"
@@ -185,7 +198,7 @@ L["OPTIONS_CONJURE_BUTTONS_DESC"] =
 	"Ajoute sous Remplir la fenêtre d'échange des boutons qui invoquent de l'eau, de la nourriture ou une pierre de soins que votre partenaire d'échange peut utiliser à son niveau. Ce que vous créez va directement dans l'échange ouvert."
 L["OPTIONS_MISSING_STACK_WARNINGS"] = "Activer les avertissements quand vous êtes à court"
 L["OPTIONS_MISSING_STACK_WARNINGS_DESC"] =
-	"Affiche une note dans votre fenêtre de discussion quand vous n'avez pas assez d'un objet configuré dans vos sacs pour donner la quantité définie."
+	"Affiche une note dans votre fenêtre de discussion quand vos sacs ne contiennent pas assez d'un objet que vous avez configuré pour donner la quantité définie."
 
 -- The silver line under a setting that shows the exact chat line it prints; %s is that line.
 L["SAMPLE_EXAMPLE"] = "Exemple : %s"
@@ -203,10 +216,10 @@ L["OPTIONS_COMBAT_NOTIFY_DESC"] =
 L["TAB_INVENTORY_TOOLTIPS"] = "Infobulles d'inventaire"
 L["OPTIONS_TOOLTIPS_DESC"] =
 	"Affiche dans les infobulles de joueur ce que les membres du groupe qui utilisent Water Dispenser ont configuré à distribuer, et signale dans vos propres sacs les objets que vous distribuez."
-L["OPTIONS_SHOW_INVENTORY"] = "Afficher l'inventaire dans les infobulles de joueur"
+L["OPTIONS_SHOW_INVENTORY"] = 'Activer "Lancez l\'échange !" dans les infobulles de joueur'
 L["OPTIONS_SHOW_INVENTORY_DESC"] =
 	"Ajoute un bloc Water Dispenser aux infobulles de joueur listant ce qu'ils ont configuré à distribuer et combien ils peuvent en donner. Le vôtre s'affiche toujours, que vous soyez en groupe ou non."
-L["OPTIONS_BAG_TOOLTIPS"] = "Afficher les infobulles de sac pour les objets distribués"
+L["OPTIONS_BAG_TOOLTIPS"] = "Activer les infobulles d'inventaire"
 L["OPTIONS_BAG_TOOLTIPS_DESC"] =
 	"Ajoute une ligne Water Dispenser à l'infobulle d'un objet de vos sacs quand cet objet est configuré pour être distribué, afin de voir d'un coup d'œil ce que l'add-on remettra."
 L["OPTIONS_SHARE_INVENTORY"] = "Partager mon inventaire"
@@ -219,10 +232,10 @@ L["OPTIONS_SHARE_INVENTORY_DESC"] =
 
 L["TAB_DISPENSED_ITEMS"] = "Objets distribués"
 L["OPTIONS_ITEMS_DESC"] =
-	"Configurez combien distribuer de chaque objet. Les quantités se comptent en objets individuels, donc 20 eaux signifient 20 eaux, et 1 potion signifie 1 potion. Une pile est découpée à la quantité exacte s'il le faut."
+	"Définissez combien distribuer de chaque objet. Les quantités se comptent en objets individuels, donc 20 eaux signifient 20 eaux, et 1 potion signifie 1 potion. Une pile est découpée à la quantité exacte s'il le faut."
 -- "Add an Item" must match OPTIONS_ADD_ITEM.
 L["OPTIONS_ITEMS_EMPTY"] =
-	"Aucun objet configuré. Sélectionnez Ajouter un objet dans la liste pour ajouter n'importe quel objet échangeable de vos sacs."
+	"Aucun objet configuré pour l'instant. Sélectionnez Ajouter un objet dans la liste pour ajouter n'importe quel objet échangeable de vos sacs."
 
 --[[
 	The silver line opening an item's page while nothing of it would go out. In
@@ -286,7 +299,7 @@ L["OPTIONS_SCOPE_RAID"] = "Raid"
 
 L["OPTIONS_ADD_ITEM"] = "Ajouter un objet"
 L["OPTIONS_ADD_DESC"] =
-	"Sélectionnez n'importe quel objet échangeable dans vos sacs pour l'ajouter à vos objets distribués. Les objets déjà configurés ou liés ne s'affichent pas."
+	"Sélectionnez n'importe quel objet échangeable dans vos sacs pour l'ajouter à vos objets distribués. Les objets déjà configurés ou liés n'apparaissent pas."
 L["OPTIONS_ADD_SELECT"] = "Objets disponibles"
 L["OPTIONS_ADD_BUTTON"] = "Ajouter aux objets distribués"
 L["OPTIONS_ADD_EMPTY"] = "Aucun objet échangeable trouvé dans vos sacs."

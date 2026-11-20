@@ -58,17 +58,7 @@ function ns.BuildDispenserOptions()
 			-- Dispense: the panel's opening section, titled by the tab rather than a header of its own.
 			intro = Desc(L["OPTIONS_DISPENSE_MASTER_DESC"], 1),
 			spaceIntro = Spacer(2),
-			Dispense = {
-				type = "toggle",
-				width = "full",
-				name = L["OPTIONS_DISPENSE_MASTER"],
-				desc = L["OPTIONS_DISPENSE_MASTER_DESC"],
-				order = 3,
-				get = GetDB,
-				set = function(_, value)
-					ns.SetDispense(value)
-				end,
-			},
+			Dispense = ns.OptionsFeatureSwitch("Dispense", 3),
 			-- Same left-to-right order as the Dispensed Items amount grid's columns.
 			rowDispenseSolo = SubRow(4, DispenseOff, {
 				SubToggle("DispenseSolo", L["OPTIONS_DISPENSE_SOLO"], L["OPTIONS_DISPENSE_SOLO_DESC"]),

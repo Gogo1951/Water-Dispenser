@@ -3,8 +3,6 @@ local _, ns = ...
 local L = ns.L
 local GetColor = ns.GetColor
 
-local AceConfigRegistry = LibStub("AceConfigRegistry-3.0")
-
 --[[
 	Water Dispenser never calls SendChatMessage: the player fires the "- Dispenser"
 	macro, so this file has no send path, only ns.PrintMessage.
@@ -330,9 +328,10 @@ end
 ns.RefreshAnnouncementMacro = ScheduleUpdate
 
 --[[
-	The only place the macro switch is written. The Announcements panel and the
-	front page's Features switch both route through here, so each repaints the
-	other. The macro is auto-managed: enabling creates it, disabling deletes it.
+	The only place the macro switch is written. The Announcements panel, the front
+	page's Features switch and the mini-map menu's More Features row all route
+	through here, so each repaints the others. The macro is auto-managed: enabling
+	creates it, disabling deletes it.
 ]]
 function ns.SetAnnouncementsEnabled(value)
 	local announcements = ns.db and ns.db.profile.Announcements
@@ -341,8 +340,7 @@ function ns.SetAnnouncementsEnabled(value)
 	end
 	announcements.Enabled = value and true or false
 	ns.RefreshGiveaways()
-	AceConfigRegistry:NotifyChange(ns.OPTIONS_REGISTRY.Announcements)
-	AceConfigRegistry:NotifyChange(ns.OPTIONS_REGISTRY.General)
+	ns.RefreshSettings()
 end
 
 --------------------------------------------------------------------------------

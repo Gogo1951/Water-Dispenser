@@ -2,14 +2,10 @@ local _, ns = ...
 
 local L = ns.L
 
-local AceConfigRegistry = LibStub("AceConfigRegistry-3.0")
-
 local Desc = ns.OptionsDesc
 local Spacer = ns.OptionsSpacer
 local SubRow = ns.OptionsSubRow
 local SubToggle = ns.OptionsSubToggle
-local GetDB = ns.OptionsGetDB
-local SetDB = ns.OptionsSetDB
 
 --------------------------------------------------------------------------------
 -- Tooltip Sharing
@@ -27,35 +23,11 @@ function ns.BuildGroupSparesOptions()
 		args = {
 			intro = Desc(L["OPTIONS_TOOLTIPS_DESC"], 1),
 			spaceIntro = Spacer(2),
-			ShowInventoryTooltips = {
-				type = "toggle",
-				width = "full",
-				name = L["OPTIONS_SHOW_INVENTORY"],
-				desc = L["OPTIONS_SHOW_INVENTORY_DESC"],
-				order = 3,
-				get = GetDB,
-				set = function(info, value)
-					SetDB(info, value)
-					-- This gates sharing too, so the group needs telling either way.
-					ns.RefreshGiveaways()
-					-- The front page carries the same switch.
-					AceConfigRegistry:NotifyChange(ns.OPTIONS_REGISTRY.General)
-				end,
-			},
+			-- The front page and the mini-map menu carry the same switch (ns.FEATURES).
+			ShowInventoryTooltips = ns.OptionsFeatureSwitch("ShowInventoryTooltips", 3),
 			-- Its own control rather than a sub-option of the player tooltips above, so it needs the gap to read as separate.
 			spaceBagTooltips = Spacer(5),
-			ShowBagTooltips = {
-				type = "toggle",
-				width = "full",
-				name = L["OPTIONS_BAG_TOOLTIPS"],
-				desc = L["OPTIONS_BAG_TOOLTIPS_DESC"],
-				order = 6,
-				get = GetDB,
-				set = function(info, value)
-					SetDB(info, value)
-					AceConfigRegistry:NotifyChange(ns.OPTIONS_REGISTRY.General)
-				end,
-			},
+			ShowBagTooltips = ns.OptionsFeatureSwitch("ShowBagTooltips", 6),
 			rowShareInventory = SubRow(4, TooltipsOff, {
 				SubToggle("ShareInventory", L["OPTIONS_SHARE_INVENTORY"], L["OPTIONS_SHARE_INVENTORY_DESC"], function()
 					ns.RefreshGiveaways()
